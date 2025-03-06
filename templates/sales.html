@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Sales</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 90%;
+            margin-top: 20px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+
+        .sold {
+            background-color: #ffcccc;
+        }
+
+        .condition-n {
+            background-color: #00ff00;
+        }
+
+        .condition-a {
+            background-color: #ba7035;
+        }
+
+        .condition-b {
+            background-color: #ffff00;
+        }
+
+        .condition-c {
+            background-color: #87ceeb;
+        }
+
+        .condition-f {
+            background-color: #f79646;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        /* Form Styling */
+        .form-group {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        label {
+            display: inline-block;
+            width: 120px;
+            margin-right: 10px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        input[type="text"],
+        select {
+            padding: 8px;
+            width: 250px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        select:focus {
+            border-color: #4CAF50;
+            outline: none;
+        }
+
+        select {
+            height: 34px;
+            background-color: #fff;
+            cursor: pointer;
+        }
+
+        select:hover {
+            border-color: #999;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        button:active {
+            background-color: #3d8b40;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Sales</h1>
+    <button onclick="window.location.href='{{ url_for('item_detail', serial_number=serial_number) }}';"
+        style="background-color: #f44336; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin-bottom: 20px;">Back</button>
+
+    <table>
+        {% if laptop %}
+        <tr>
+            <th>Brand</th>
+            <td>{{ laptop.Brand }}</td>
+        </tr>
+        <tr>
+            <th>Model</th>
+            <td>{{ laptop.Model }}</td>
+        </tr>
+        <tr>
+            <th>Specification</th>
+            <td>{{ laptop.Spec }}</td>
+        </tr>
+        <tr>
+            <th>Serial Number</th>
+            <td>{{ laptop.SerialNumber }}</td>
+        </tr>
+        <tr>
+            <th>Condition</th>
+            <td {% if laptop.Stock !='SOLD' %} {% if laptop.Condition=='N' %}class="condition-n" {% endif %} {% if
+                laptop.Condition=='A' %}class="condition-a" {% endif %} {% if laptop.Condition=='B'
+                %}class="condition-b" {% endif %} {% if laptop.Condition=='C' %}class="condition-c" {% endif %} {% if
+                laptop.Condition=='F' %}class="condition-f" {% endif %} {% endif %}>
+                {% if laptop.Condition == 'N' %}Back to new{% endif %}
+                {% if laptop.Condition == 'A' %}Grade A{% endif %}
+                {% if laptop.Condition == 'B' %}Grade B{% endif %}
+                {% if laptop.Condition == 'C' %}Grade C{% endif %}
+                {% if laptop.Condition == 'F' %}Grade F{% endif %}
+            </td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="2">No laptop found with this serial number.</td>
+        </tr>
+        {% endif %}
+    </table>
+
+    <form method="POST" action="/salesOrder">
+        <input type="hidden" name="serial_number" value="{{ serial_number }}">
+        <div class="form-group">
+            <label for="order">Order Number:</label>
+            <input type="text" id="order" name="order" placeholder="e.g., 256212333-A" required>
+        </div>
+        <div class="form-group">
+            <label for="ram">RAM:</label>
+            <select id="ram" name="ram" required>
+                <option value="" disabled>Select RAM</option>
+                <option value="4GB" {% if laptop.Spec.split('+')[0]=='4GB' %}selected{% endif %}>4GB</option>
+                <option value="8GB" {% if laptop.Spec.split('+')[0]=='8GB' %}selected{% endif %}>8GB</option>
+                <option value="12GB" {% if laptop.Spec.split('+')[0]=='12GB' %}selected{% endif %}>12GB</option>
+                <option value="16GB" {% if laptop.Spec.split('+')[0]=='16GB' %}selected{% endif %}>16GB</option>
+                <option value="24GB" {% if laptop.Spec.split('+')[0]=='24GB' %}selected{% endif %}>24GB</option>
+                <option value="32GB" {% if laptop.Spec.split('+')[0]=='32GB' %}selected{% endif %}>32GB</option>
+                <option value="64GB" {% if laptop.Spec.split('+')[0]=='64GB' %}selected{% endif %}>64GB</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="ssd">Storage:</label>
+            <select id="ssd" name="ssd" required>
+                <option value="" disabled>Select storage</option>
+                <option value="64GB" {% if laptop.Spec.split('+')[1]=='64GB' %}selected{% endif %}>64GB SSD</option>
+                <option value="128GB" {% if laptop.Spec.split('+')[1]=='128GB' %}selected{% endif %}>128GB SSD</option>
+                <option value="256GB" {% if laptop.Spec.split('+')[1]=='256GB' %}selected{% endif %}>256GB SSD</option>
+                <option value="512GB" {% if laptop.Spec.split('+')[1]=='512GB' %}selected{% endif %}>512GB SSD</option>
+                <option value="1TB" {% if laptop.Spec.split('+')[1]=='1TB' %}selected{% endif %}>1TB SSD</option>
+                <option value="2TB" {% if laptop.Spec.split('+')[1]=='2TB' %}selected{% endif %}>2TB SSD</option>
+            </select>
+        </div>
+        <button type="submit">Submit</button>
+    </form>
+</body>
+
+</html>
