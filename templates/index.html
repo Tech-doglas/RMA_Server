@@ -169,6 +169,7 @@
             <th data-sort="SerialNumber" class="sortable">Serial Number ↕</th>
             <th data-sort="OrderNumber" class="sortable">Order Number ↕</th>
             <th data-sort="Stock" class="sortable">Stock ↕</th>
+            <th data-sort="OdooRecord" class="sortable">Odoo Record ↕</th>
         </tr>
         {% for item in items %}
         <tr {% if item.Stock=='SOLD' %}class="sold clickable-row" {% else %}class="clickable-row" {% endif %}
@@ -192,10 +193,11 @@
                 {{ item.Spec }}
                 {% endif %}
             </td>
-            <td>{{ item.Sealed|string|lower }}</td>
+            <td>{{ '✅' if item.Sealed else '❌' }}</td>
             <td>{{ item.SerialNumber }}</td>
             <td>{{ item.OrderNumber or '' }}</td>
             <td>{{ item.Stock }}</td>
+            <td>{{ '✅' if item.OdooRecord else '❌' }}</td>
         </tr>
         {% endfor %}
     </table>

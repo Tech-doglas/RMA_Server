@@ -194,11 +194,15 @@
         </tr>
         <tr>
             <th>Sealed</th>
-            <td>{{ 'Yes' if laptop.Sealed else 'No' }}</td>
+            <td>{{ '✅' if laptop.Sealed else '❌' }}</td>
         </tr>
         <tr>
             <th>Stock</th>
             <td {% if laptop.Stock=='SOLD' %}class="sold" {% endif %}>{{ laptop.Stock or 'In Stock' }}</td>
+        </tr>
+        <tr>
+            <th>Odoo Record</th>
+            <td>{{ '✅' if laptop.OdooRecord else '❌' }}</td>
         </tr>
         <tr>
             <th>Order Number</th>

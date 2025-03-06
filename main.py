@@ -89,25 +89,25 @@ def submit_item():
         serial_number = request.form.get('serial_number')
         condition = request.form.get('condition')
         sealed = True if request.form.get('sealed') else False
+        odoo_record = True if request.form.get('odoorecord') else False  # New field
         stock = ""
-        remark = request.form.get('textarea')  # Get the textarea value (can be None if empty)
+        remark = request.form.get('textarea')
 
-        # Connect to the database
         conn = pyodbc.connect(conn_str)
         cursor = conn.cursor()
         
-        # Insert the new item, including Remark, and get the primary key
+        # Insert the new item
         cursor.execute("""
-            INSERT INTO RMA_sheet (Brand, Model, Spec, SerialNumber, Condition, Sealed, Stock, Remark) 
+            INSERT INTO RMA_sheet (Brand, Model, Spec, SerialNumber, Condition, Sealed, Stock, Remark, OdooRecord) 
             OUTPUT INSERTED.ID
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        """, (brand, model, spec, serial_number, condition, sealed, stock, remark))
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (brand, model, spec, serial_number, condition, sealed, stock, remark, odoo_record))
         
         primary_key = cursor.fetchone()[0]
-        image_dir = os.path.join('images', str(primary_key))  # Keeping images/ as per your setup
+        image_dir = os.path.join('images', str(primary_key))
         os.makedirs(image_dir, exist_ok=True)
         
-        # Save images
+        # Save images (unchanged)
         images = request.files.getlist('images')
         for i, image in enumerate(images, start=1):
             if image and image.filename:
@@ -259,6 +259,7 @@ def update_item(serial_number):
         order_number = request.form.get('order_number')
         updated_spec = request.form.get('updated_spec')
         remark = request.form.get('remark')
+        odoo_record = True if request.form.get('odoorecord') else False  # New field
 
         conn = pyodbc.connect(conn_str)
         cursor = conn.cursor()
@@ -267,17 +268,16 @@ def update_item(serial_number):
         cursor.execute("""
             UPDATE RMA_sheet 
             SET Brand = ?, Model = ?, Spec = ?, SerialNumber = ?, Condition = ?, 
-                Sealed = ?, Stock = ?, OrderNumber = ?, UpDatedSpec = ?, Remark = ?
+                Sealed = ?, Stock = ?, OrderNumber = ?, UpDatedSpec = ?, Remark = ?, OdooRecord = ?
             WHERE SerialNumber = ?
         """, (brand, model, spec, serial_number_new, condition, sealed, stock, 
-              order_number, updated_spec, remark, serial_number))
+              order_number, updated_spec, remark, odoo_record, serial_number))
         
         conn.commit()
         conn.close()
         return redirect(url_for('item_detail', serial_number=serial_number_new))
     except Exception as e:
         return f"Error updating item: {str(e)}"
-
 @app.route('/delete/<serial_number>')
 def delete_item(serial_number):
     try:
