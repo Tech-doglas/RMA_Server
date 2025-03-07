@@ -8,10 +8,10 @@ app = Flask(__name__)
 # Connection string for SQL Server Express
 conn_str = (
     "DRIVER={ODBC Driver 18 for SQL Server};"
-    "SERVER=localhost\\SQLEXPRESS02;"
+    "SERVER=localhost\\SQLEXPRESS;"
     "DATABASE=RMA;"
-    "UID=sa;"
-    "PWD=12345678;"
+    "UID=rma;"
+    "PWD=rma_admin;"
     "TrustServerCertificate=yes;"
 )
 
