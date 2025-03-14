@@ -118,7 +118,7 @@ def submit_item():
         
         conn.commit()
         conn.close()
-        return redirect('/')
+        return redirect('/input')
     except Exception as e:
         return f"Error submitting item: {str(e)}"
     
