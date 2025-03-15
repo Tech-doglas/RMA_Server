@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        background-color: #f4f4f4;
+      }
+
+      .container {
+        background-color: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 900px;
+        margin: 0 10px;
+      }
+
+      h1 {
+        text-align: center;
+        margin-bottom: 20px;
+      }
+
+      .form-group {
+        margin-bottom: 15px;
+      }
+
+      label {
+        display: inline-block;
+        margin-bottom: 5px;
+        font-size: 16px;
+      }
+
+      input[type="text"],
+      select,
+      textarea {
+        padding: 8px;
+        width: 100%;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+      }
+
+      select {
+        height: 35px;
+      }
+
+      textarea {
+        resize: vertical;
+      }
+
+      button {
+        background-color: #4caf50;
+        color: white;
+        padding: 12px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        width: 100%;
+        max-width: 150px;
+        margin-top: 20px;
+        margin-bottom: 10px;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .back-button {
+        background-color: #f44336;
+        color: white;
+        padding: 12px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        width: 100%;
+        max-width: 150px;
+        margin-bottom: 20px;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      /* Image preview styling */
+      #image-preview {
+        margin-top: 10px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      #image-preview img {
+        width: 100px;
+        height: 100px;
+        object-fit: cover;
+        border-radius: 5px;
+      }
+
+      /* Responsive design for mobile and tablet */
+      @media (max-width: 768px) {
+        h1 {
+          font-size: 24px;
+        }
+
+        .form-group {
+          margin-bottom: 10px;
+        }
+
+        label {
+          font-size: 14px;
+        }
+
+        input[type="text"],
+        select,
+        textarea {
+          font-size: 14px;
+          padding: 10px;
+          box-sizing: border-box;
+        }
+
+        button {
+          padding: 15px 20px;
+          font-size: 16px;
+        }
+
+        .container {
+          padding: 15px;
+        }
+
+        .back-button {
+          padding: 15px 20px;
+          font-size: 16px;
+          display: none;
+        }
+      }
+
+      /* Larger devices, desktop */
+      @media (min-width: 769px) {
+        .form-group {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        label {
+          width: 120px;
+        }
+
+        input[type="text"],
+        select {
+          max-width: 250px;
+          width: 100%;
+          box-sizing: border-box;
+        }
+
+        button {
+          width: auto;
+        }
+
+        .back-button {
+          width: auto;
+        }
+      }
+    </style>
+    <title>Input RMA Item</title>
+  </head>
+
+  <body>
+    <div class="container">
+      <h1>Input New RMA Item</h1>
+
+      <button
+        onclick="window.location.href='{{ url_for('main.show_rma_sheet') }}';"
+        style="
+          background-color: #f44336;
+          color: white;
+          padding: 10px 20px;
+          border: none;
+          border-radius: 5px;
+          cursor: pointer;
+          margin-bottom: 20px;
+        "
+      >
+        Back
+      </button>
+
+      <form
+        method="POST"
+        action="{{ url_for('item.submit_item') }}"
+        enctype="multipart/form-data"
+      >
+        <div class="form-group">
+          <label for="brand">Brand:</label>
+          <select id="brand" name="brand" required>
+            <option value="" disabled selected>Select a brand</option>
+            <option value="HP">HP</option>
+            <option value="Dell">Dell</option>
+            <option value="Lenovo">Lenovo</option>
+            <option value="Apple">Apple</option>
+            <option value="Acer">Acer</option>
+            <option value="ASUS">ASUS</option>
+            <option value="MSI">MSI</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="model">Model:</label>
+          <input
+            type="text"
+            id="model"
+            name="model"
+            placeholder="e.g., XPS-13"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="ram">RAM:</label>
+          <select id="ram" name="ram" required>
+            <option value="" disabled selected>Select RAM</option>
+            <option value="4GB">4GB</option>
+            <option value="8GB">8GB</option>
+            <option value="12GB">12GB</option>
+            <option value="16GB">16GB</option>
+            <option value="24GB">24GB</option>
+            <option value="32GB">32GB</option>
+            <option value="64GB">64GB</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="ssd">Storage:</label>
+          <select id="ssd" name="ssd" required>
+            <option value="" disabled selected>Select storage</option>
+            <option value="64GB">64GB SSD</option>
+            <option value="128GB">128GB SSD</option>
+            <option value="256GB">256GB SSD</option>
+            <option value="512GB">512GB SSD</option>
+            <option value="1TB">1TB SSD</option>
+            <option value="2TB">2TB SSD</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="serial_number">Serial Number:</label>
+          <input
+            type="text"
+            id="serial_number"
+            name="serial_number"
+            placeholder="e.g., A123456"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="condition">Condition:</label>
+          <select id="condition" name="condition" required>
+            <option value="" disabled selected>Select condition</option>
+            <option value="N">Back to New</option>
+            <option value="A">Grade A</option>
+            <option value="B">Grade B</option>
+            <option value="C">Grade C</option>
+            <option value="F">Grade F</option>
+          </select>
+        </div>
+
+        <div class="form-group checkbox-group">
+          <label for="sealed">Sealed:</label>
+          <input type="checkbox" id="sealed" name="sealed" />
+        </div>
+
+        <div class="form-group checkbox-group">
+          <label for="odoorecord">Odoo Record:</label>
+          <input type="checkbox" id="odoorecord" name="odoorecord" />
+        </div>
+
+        <div class="form-group">
+          <label for="remark">Remark:</label>
+          <textarea
+            id="remark"
+            name="remark"
+            placeholder="e.g., No power, No display, etc."
+            rows="5"
+            cols="40"
+          ></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="images">Upload Images (max 4MB each):</label>
+          <input
+            type="file"
+            id="images"
+            name="images"
+            accept="image/jpg; image/jpeg; image/png"
+            multiple
+            onchange="previewImages()"
+            oninput="validateFileSize(this)"
+          />
+          <div id="image-preview"></div>
+        </div>
+
+        <button type="submit">Submit</button>
+      </form>
+    </div>
+
+    <script>
+      function validateFileSize(input) {
+        const maxSize = 4 * 1024 * 1024; // 4MB
+        const files = input.files;
+        let valid = true;
+        for (let i = 0; i < files.length; i++) {
+          if (files[i].size > maxSize) {
+            alert(
+              "File " + files[i].name + " exceeds the maximum size of 4MB."
+            );
+            valid = false;
+          }
+        }
+        if (!valid) {
+          input.value = ""; // Clear only if invalid files are found
+        }
+        return valid;
+      }
+    </script>
+
+    <script>
+      // Form validation
+      document.querySelector("form").addEventListener("submit", function (e) {
+        const serialNumber = document.getElementById("serial_number").value;
+        if (serialNumber.length < 5) {
+          alert("Serial number must be at least 5 characters long");
+          e.preventDefault();
+          return false;
+        }
+      });
+    </script>
+  </body>
+</html>

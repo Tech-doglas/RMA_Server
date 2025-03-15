@@ -120,9 +120,10 @@
 
 <body>
     <h1>Sales</h1>
-    <button onclick="window.location.href='{{ url_for('item_detail', serial_number=serial_number) }}';"
-        style="background-color: #f44336; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin-bottom: 20px;">Back</button>
-
+    <button onclick="window.location.href='{{ url_for('item.item_detail', serial_number=serial_number) }}';"
+        style="background-color: #f44336; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin-bottom: 20px;">
+        Back
+    </button>
     <table>
         {% if laptop %}
         <tr>
