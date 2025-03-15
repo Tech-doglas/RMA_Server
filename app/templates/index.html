@@ -127,11 +127,13 @@
 <body>
     <h1>RMA List</h1>
 
-    <button onclick="window.location.href='/input'"
-        style="background-color: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">Input</button>
+    <button onclick="window.location.href='{{ url_for('main.laptop_input') }}'"
+        style="background-color: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">
+        Input
+    </button>
 
     <!-- Search Form with updated styling -->
-    <form method="POST" action="/" class="search-form">
+    <form method="POST" action="{{ url_for('main.show_rma_sheet') }}" class="search-form">
         <div>
             <label for="brand">Brand:</label>
             <input type="text" id="brand" name="brand" placeholder="e.g., HP">
@@ -212,7 +214,7 @@
             rows.forEach(row => {
                 row.addEventListener('click', function () {
                     const serialNumber = this.getAttribute('data-serial');
-                    window.location.href = `/item/${serialNumber}`;
+                    window.location.href = `{{ url_for('item.item_detail', serial_number='') }}${serialNumber}`;
                 });
             });
 
