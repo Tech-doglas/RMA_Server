@@ -32,6 +32,10 @@
             background-color: #ffcccc;
         }
 
+        .sold-tech-done {
+            background-color: #d3d3d3;
+        }
+
         .condition-n {
             background-color: #00ff00;
         }
@@ -157,6 +161,26 @@
             <label for="stock_null" style="width: auto;">Not Sold</label>
         </div>
 
+        <div>
+            <label for="condition">Condition:</label>
+            <select id="condition" name="condition">
+              <option value="" disabled selected>Select condition</option>
+              <option value="N">Back to New</option>
+              <option value="A">Grade A</option>
+              <option value="B">Grade B</option>
+              <option value="C">Grade C</option>
+              <option value="F">Grade F</option>
+            </select>
+          </div>
+
+          <div class="checkbox-container">
+            <label>Technician:</label>
+            <input type="checkbox" id="tech_done" name="tech_done">
+            <label for="tech_done" style="width: auto;">Done</label>
+            <input type="checkbox" id="tech_not_done" name="tech_not_done">
+            <label for="tech_not_done" style="width: auto;">Not Done</label>
+        </div>
+
         <button type="submit">Search</button>
     </form>
 
@@ -167,14 +191,23 @@
             <th data-sort="Condition" class="sortable">Condition ↕</th>
             <th data-sort="Model" class="sortable">Model ↕</th>
             <th data-sort="Spec" class="sortable">Spec ↕</th>
-            <th data-sort="Sealed" class="sortable">Sealed ↕</th>
             <th data-sort="SerialNumber" class="sortable">Serial Number ↕</th>
+            <th data-sort="SKU" class="sortable">SKU ↕</th>
             <th data-sort="OrderNumber" class="sortable">Order Number ↕</th>
             <th data-sort="Stock" class="sortable">Stock ↕</th>
+            <th data-sort="Sealed" class="sortable">Sealed ↕</th>
             <th data-sort="OdooRecord" class="sortable">Odoo Record ↕</th>
         </tr>
         {% for item in items %}
-        <tr {% if item.Stock=='SOLD' %}class="sold clickable-row" {% else %}class="clickable-row" {% endif %}
+        <tr {% if item.Stock=='SOLD' %}
+                {% if item.TechDone %}
+                    class="sold-tech-done clickable-row" 
+                {% else %}
+                    class="sold clickable-row"
+                {% endif %}
+            {% else %}
+                class="clickable-row" 
+            {% endif %}
             data-serial="{{ item.SerialNumber }}">
             <td>{{ item.Brand }}</td>
             <td {% if item.Stock !='SOLD' %} {% if item.Condition=='N' %}class="condition-n" {% endif %} {% if
@@ -195,10 +228,11 @@
                 {{ item.Spec }}
                 {% endif %}
             </td>
-            <td>{{ '✅' if item.Sealed else '❌' }}</td>
             <td>{{ item.SerialNumber }}</td>
+            <td>{{ item.SKU or '' }}</td>
             <td>{{ item.OrderNumber or '' }}</td>
             <td>{{ item.Stock }}</td>
+            <td>{{ '✅' if item.Sealed else '❌' }}</td>
             <td>{{ '✅' if item.OdooRecord else '❌' }}</td>
         </tr>
         {% endfor %}

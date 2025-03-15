@@ -162,7 +162,7 @@
         {% endif %}
     </table>
 
-    <form method="POST" action="/salesOrder">
+    <form method="POST" action="{{ url_for('sales.sales_order') }}">
         <input type="hidden" name="serial_number" value="{{ serial_number }}">
         <div class="form-group">
             <label for="order">Order Number:</label>

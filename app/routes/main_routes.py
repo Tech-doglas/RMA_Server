@@ -15,6 +15,9 @@ def show_rma_sheet():
             model = request.form.get('model', '').strip()
             spec = request.form.get('spec', '').strip()
             serial_number = request.form.get('serial_number', '').strip()
+            condition = request.form.get('condition', '').strip()
+            tech_done = '1' if request.form.get('tech_done') else None  # Convert to '1' for bit
+            tech_not_done = '0' if request.form.get('tech_not_done') else None  # Convert to '0' for bit
             stock_sold = 'SOLD' if request.form.get('stock_sold') else None
             stock_null = True if request.form.get('stock_null') else None
             
@@ -33,6 +36,18 @@ def show_rma_sheet():
             if spec:
                 query += " AND Specification LIKE ?"
                 params.append(f"%{spec}%")
+            if condition:
+                query += " AND Condition = ?"
+                params.append(condition)
+            tech_conditions = []
+            if tech_done is not None:
+                tech_conditions.append("TechDone = ?")
+                params.append(tech_done)
+            if tech_not_done is not None:
+                tech_conditions.append("TechDone = ? OR TechDone IS NULL")
+                params.append(tech_not_done)
+            if tech_conditions:
+                query += " AND (" + " OR ".join(tech_conditions) + ")"
             # Handle Stock conditions
             if stock_null and not stock_sold:
                 # If only "Not Sold" is checked, show only NULL or empty Stock
