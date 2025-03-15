@@ -43,12 +43,14 @@ def submit_item():
         odoo_record = True if request.form.get('odoorecord') else False
         stock = ""
         remark = request.form.get('textarea')
+        sku = request.form.get('sku', '')
+        tech_done = True if request.form.get('tech_done') else False
 
         cursor.execute("""
-            INSERT INTO RMA_sheet (Brand, Model, Spec, SerialNumber, Condition, Sealed, Stock, Remark, OdooRecord) 
+            INSERT INTO RMA_sheet (Brand, Model, Spec, SerialNumber, Condition, Sealed, Stock, Remark, OdooRecord, SKU, TechDone) 
             OUTPUT INSERTED.ID
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (brand, model, spec, serial_number, condition, sealed, stock, remark, odoo_record))
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (brand, model, spec, serial_number, condition, sealed, stock, remark, odoo_record, sku, tech_done))
         
         primary_key = cursor.fetchone()[0]
         save_images(request.files.getlist('images'), primary_key)
@@ -88,6 +90,8 @@ def update_item(serial_number):
         updated_spec = request.form.get('updated_spec')
         remark = request.form.get('remark')
         odoo_record = True if request.form.get('odoorecord') else False
+        sku = request.form.get('sku', '')  # New field
+        tech_done = True if request.form.get('tech_done') else False  # New field
 
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -98,12 +102,12 @@ def update_item(serial_number):
         cursor.execute("""
             UPDATE RMA_sheet 
             SET Brand = ?, Model = ?, Spec = ?, SerialNumber = ?, Condition = ?, 
-                Sealed = ?, Stock = ?, OrderNumber = ?, UpDatedSpec = ?, Remark = ?, OdooRecord = ?
+                Sealed = ?, Stock = ?, OrderNumber = ?, UpDatedSpec = ?, Remark = ?, OdooRecord = ?, SKU = ?, TechDone = ?
             WHERE SerialNumber = ?
         """, (brand, model, spec, serial_number_new, condition, sealed, stock, 
-              order_number, updated_spec, remark, odoo_record, serial_number))
+              order_number, updated_spec, remark, odoo_record, sku, tech_done, serial_number))
         
-        image_dir = os.path.join('images', str(item_id))
+        image_dir = os.path.join(get_project_root(), 'images', str(item_id))
         os.makedirs(image_dir, exist_ok=True)
         
         images = request.files.getlist('new_images')
@@ -167,3 +171,15 @@ def delete_image(serial_number, filename):
         return f"Error deleting image: {str(e)}", 500
     finally:
         conn.close()
+
+@item_bp.route('/tech_done/<serial_number>')
+def tech_done(serial_number):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("UPDATE RMA_sheet SET TechDone = 1 WHERE SerialNumber = ?", (serial_number,))
+        conn.commit()
+        conn.close()
+        return redirect(url_for('item.item_detail', serial_number=serial_number))
+    except Exception as e:
+        return f"Error updating TechDone: {str(e)}"
