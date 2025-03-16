@@ -4,151 +4,29 @@
 <head>
     <meta charset="UTF-8">
     <title>RMA List</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-
-        table {
-            border-collapse: collapse;
-            width: 90%;
-            margin-top: 20px;
-        }
-
-        th,
-        td {
-            border: 1px solid #ddd;
-            padding: 10px;
-            text-align: left;
-        }
-
-        th {
-            background-color: #f2f2f2;
-            font-weight: bold;
-        }
-
-        .sold {
-            background-color: #ffcccc;
-        }
-
-        .sold-tech-done {
-            background-color: #d3d3d3;
-        }
-
-        .condition-n {
-            background-color: #00ff00;
-        }
-
-        .condition-a {
-            background-color: #ba7035;
-        }
-
-        .condition-b {
-            background-color: #ffff00;
-        }
-
-        .condition-c {
-            background-color: #87ceeb;
-        }
-
-        .condition-f {
-            background-color: #f79646;
-        }
-
-        /* Form styling to match input.html */
-        .search-form {
-            margin-bottom: 20px;
-            padding: 15px;
-            background-color: #f9f9f9;
-            border-radius: 5px;
-            border: 1px solid #ddd;
-        }
-
-        .search-form label {
-            display: inline-block;
-            width: 120px;
-            margin-right: 10px;
-        }
-
-        .search-form input[type="text"] {
-            padding: 5px;
-            width: 200px;
-            margin-right: 15px;
-            border-radius: 4px;
-            border: 1px solid #ccc;
-        }
-
-        .search-form input[type="checkbox"] {
-            margin-right: 5px;
-        }
-
-        button {
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-
-        button:hover {
-            background-color: #45a049;
-        }
-
-        /* Styles for clickable rows */
-        .clickable-row {
-            cursor: pointer;
-        }
-
-        .clickable-row:hover {
-            background-color: #f5f5f5;
-        }
-
-        /* Styles for sortable headers */
-        .sortable {
-            cursor: pointer;
-        }
-
-        .sortable:hover {
-            background-color: #e0e0e0;
-        }
-
-        /* Add some spacing */
-        h1 {
-            margin-bottom: 20px;
-        }
-
-        /* Checkbox container */
-        .checkbox-container {
-            margin-top: 10px;
-            margin-bottom: 10px;
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 
 <body>
     <h1>RMA List</h1>
 
-    <button onclick="window.location.href='{{ url_for('main.laptop_input') }}'"
-        style="background-color: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">
+    <button onclick="window.location.href='{{ url_for('main.laptop_input') }}'">
         Input
     </button>
 
     <!-- Search Form with updated styling -->
     <form method="POST" action="{{ url_for('main.show_rma_sheet') }}" class="search-form">
-        <div>
+        <div class="form-group">
             <label for="brand">Brand:</label>
             <input type="text" id="brand" name="brand" placeholder="e.g., HP">
         </div>
 
-        <div>
+        <div class="form-group">
             <label for="model">Model:</label>
             <input type="text" id="model" name="model" placeholder="e.g., XPS-13">
         </div>
 
-        <div>
+        <div class="form-group">
             <label for="serial_number">Serial Number:</label>
             <input type="text" id="serial_number" name="serial_number" placeholder="e.g., A123456">
         </div>

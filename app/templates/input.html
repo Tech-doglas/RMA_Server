@@ -3,10 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <style>
       body {
-        font-family: Arial, sans-serif;
-        margin: 20px;
         display: flex;
         justify-content: center;
         align-items: center;
@@ -22,15 +21,6 @@
         width: 100%;
         max-width: 900px;
         margin: 0 10px;
-      }
-
-      h1 {
-        text-align: center;
-        margin-bottom: 20px;
-      }
-
-      .form-group {
-        margin-bottom: 15px;
       }
 
       label {
@@ -57,31 +47,16 @@
       }
 
       button {
-        background-color: #4caf50;
-        color: white;
-        padding: 12px 20px;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
         width: 100%;
         max-width: 150px;
-        margin-top: 20px;
-        margin-bottom: 10px;
         display: block;
         margin-left: auto;
         margin-right: auto;
       }
 
-      .back-button {
+      button.red {
         background-color: #f44336;
-        color: white;
-        padding: 12px 20px;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        width: 100%;
         max-width: 150px;
-        margin-bottom: 20px;
         display: block;
         margin-left: auto;
         margin-right: auto;
@@ -177,15 +152,7 @@
 
       <button
         onclick="window.location.href='{{ url_for('main.show_rma_sheet') }}';"
-        style="
-          background-color: #f44336;
-          color: white;
-          padding: 10px 20px;
-          border: none;
-          border-radius: 5px;
-          cursor: pointer;
-          margin-bottom: 20px;
-        "
+        class="red"
       >
         Back
       </button>
