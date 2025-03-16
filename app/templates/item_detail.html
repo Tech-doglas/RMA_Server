@@ -4,164 +4,33 @@
 <head>
     <meta charset="UTF-8">
     <title>Laptop Details</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-
-        table {
-            border-collapse: collapse;
-            width: 90%;
-            margin-top: 20px;
-        }
-
-        th,
-        td {
-            border: 1px solid #ddd;
-            padding: 10px;
-            text-align: left;
-        }
-
-        th {
-            background-color: #f2f2f2;
-            font-weight: bold;
-        }
-
-        .sold {
-            background-color: #ffcccc;
-        }
-
-        .condition-n {
-            background-color: #00ff00;
-        }
-
-        .condition-a {
-            background-color: #ba7035;
-        }
-
-        .condition-b {
-            background-color: #ffff00;
-        }
-
-        .condition-c {
-            background-color: #87ceeb;
-        }
-
-        .condition-f {
-            background-color: #f79646;
-        }
-
-        .search-form {
-            margin-bottom: 20px;
-            padding: 15px;
-            background-color: #f9f9f9;
-            border-radius: 5px;
-            border: 1px solid #ddd;
-        }
-
-        .search-form label {
-            display: inline-block;
-            width: 120px;
-            margin-right: 10px;
-        }
-
-        .search-form input[type="text"] {
-            padding: 5px;
-            width: 200px;
-            margin-right: 15px;
-            border-radius: 4px;
-            border: 1px solid #ccc;
-        }
-
-        .search-form input[type="checkbox"] {
-            margin-right: 5px;
-        }
-
-        button {
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-
-        button:hover {
-            background-color: #45a049;
-        }
-
-        .clickable-row {
-            cursor: pointer;
-        }
-
-        .clickable-row:hover {
-            background-color: #f5f5f5;
-        }
-
-        .sortable {
-            cursor: pointer;
-        }
-
-        .sortable:hover {
-            background-color: #e0e0e0;
-        }
-
-        h1 {
-            margin-bottom: 20px;
-        }
-
-        .checkbox-container {
-            margin-top: 10px;
-            margin-bottom: 10px;
-        }
-
-        .image-gallery {
-            margin-top: 20px;
-        }
-
-        .image-gallery img {
-            max-width: 600px;
-            margin: 5px;
-            border: 1px solid #ddd;
-        }
-
-        button.disabled {
-            background-color: #808080;
-            /* Medium grey */
-            color: #ffffff;
-            /* White text for contrast */
-            cursor: not-allowed;
-            opacity: 0.7;
-            /* Slight transparency to enhance disabled feel */
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 
 <body>
     <h1>Laptop Details</h1>
     <button onclick="window.location.href='{{ url_for('main.show_rma_sheet') }}';"
-        style="background-color: #f44336; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin-bottom: 20px;">
+        class="red" >
         Back
     </button>
 
     <button onclick="window.location.href='{{ url_for('sales.sales_detail', serial_number=laptop.SerialNumber) }}';"
-        style="background-color: skyblue; color: black; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;"
-        {% if laptop.Stock=='SOLD' %}disabled class="disabled"{% endif %}>
+        class="skyblue{% if laptop.Stock == 'SOLD' %} disabled{% endif %}"
+        {% if laptop.Stock == 'SOLD' %}disabled{% endif %}>
         Sales
     </button>
 
     <button onclick="window.location.href='{{ url_for('item.edit_item', serial_number=laptop.SerialNumber) }}';"
-        style="background-color: #ff9800; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin-left: 10px;">
+        class="orange">
         Edit
     </button>
 
-    <button onclick="window.location.href='{{ url_for('item.tech_done', serial_number=laptop.SerialNumber) }}';"
-        style="background-color: #90ee90; color: rgb(0, 0, 0); padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin-left: 10px;"
-        {% if laptop.Stock != 'SOLD' or laptop.TechDone %}disabled class="disabled"{% endif %}>
+    <button {% if laptop.TechDone != True %}onclick="window.location.href='{{ url_for('item.tech_done', serial_number=laptop.SerialNumber) }}';"{% endif %}
+        class="lightgreen{% if laptop.Stock != 'SOLD' or laptop.TechDone %} disabled{% endif %}"
+        {% if laptop.Stock != 'SOLD' or laptop.TechDone %}disabled{% endif %}>
         Done
     </button>
+
 
     <table>
         {% if laptop %}

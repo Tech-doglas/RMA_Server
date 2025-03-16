@@ -90,9 +90,13 @@ def update_item(serial_number):
         updated_spec = request.form.get('updated_spec')
         remark = request.form.get('remark')
         odoo_record = True if request.form.get('odoorecord') else False
-        sku = request.form.get('sku', '')  # New field
-        tech_done = True if request.form.get('tech_done') else False  # New field
+        sku = request.form.get('sku', '')
+        tech_done = True if request.form.get('tech_done') else False
 
+        if stock is None:
+            stock = ""
+
+        print(stock)
         conn = get_db_connection()
         cursor = conn.cursor()
         
