@@ -68,6 +68,8 @@
                     <option value="16GB" {% if laptop.Spec.split('+')[0]=='16GB' %}selected{% endif %}>16GB</option>
                     <option value="24GB" {% if laptop.Spec.split('+')[0]=='24GB' %}selected{% endif %}>24GB</option>
                     <option value="32GB" {% if laptop.Spec.split('+')[0]=='32GB' %}selected{% endif %}>32GB</option>
+                    <option value="40GB" {% if laptop.Spec.split('+')[0]=='40GB' %}selected{% endif %}>40GB</option>
+                    <option value="48GB" {% if laptop.Spec.split('+')[0]=='48GB' %}selected{% endif %}>48GB</option>
                     <option value="64GB" {% if laptop.Spec.split('+')[0]=='64GB' %}selected{% endif %}>64GB</option>
                 </select>
             </div>
@@ -75,7 +77,8 @@
                 <label for="ssd">Storage:</label>
                 <select id="ssd" name="ssd" required>
                     <option value="" disabled>Select storage</option>
-                    <option value="64GB" {% if laptop.Spec.split('+')[1]=='64GB' %}selected{% endif %}>64GB SSD</option>
+                    <option value="64GB" {% if laptop.Spec.split('+')[1]=='64GB' %}selected{% endif %}>64GB EMMC SSD</option>
+                    <option value="128GBe" {% if laptop.Spec.split('+')[1]=='128GBe' %}selected{% endif %}>128GB EMMC SSD</option>
                     <option value="128GB" {% if laptop.Spec.split('+')[1]=='128GB' %}selected{% endif %}>128GB SSD</option>
                     <option value="256GB" {% if laptop.Spec.split('+')[1]=='256GB' %}selected{% endif %}>256GB SSD</option>
                     <option value="512GB" {% if laptop.Spec.split('+')[1]=='512GB' %}selected{% endif %}>512GB SSD</option>
