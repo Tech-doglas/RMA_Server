@@ -106,9 +106,9 @@
                 {{ item.Spec }}
                 {% endif %}
             </td>
-            <td>{{ item.SerialNumber }}</td>
+            <td class="clickable-copy">{{ item.SerialNumber }}</td>
             <td>{{ item.SKU or '' }}</td>
-            <td>{{ item.OrderNumber or '' }}</td>
+            <td class="clickable-copy">{{ item.OrderNumber or '' }}</td>
             <td>{{ item.Stock }}</td>
             <td>{{ '✅' if item.Sealed else '❌' }}</td>
             <td>{{ '✅' if item.OdooRecord else '❌' }}</td>
@@ -126,7 +126,15 @@
             rows.forEach(row => {
                 row.addEventListener('click', function () {
                     const serialNumber = this.getAttribute('data-serial');
-                    window.location.href = `{{ url_for('item.item_detail', serial_number='') }}${serialNumber}`;
+                    window.open(`{{ url_for('item.item_detail', serial_number='') }}${serialNumber}`, '_blank');
+                });
+            });
+
+            const cells = document.querySelectorAll('.clickable-copy');
+            cells.forEach(cell => {
+                cell.addEventListener('click', function (event) {
+                    event.stopPropagation();
+                    navigator.clipboard.writeText(cell.innerHTML);
                 });
             });
 
