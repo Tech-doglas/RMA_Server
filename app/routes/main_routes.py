@@ -67,7 +67,7 @@ def show_rma_sheet():
             
             cursor.execute(query, params) if params else cursor.execute("SELECT * FROM RMA_sheet")
         else:
-            cursor.execute("SELECT * FROM RMA_sheet")
+            cursor.execute("SELECT * FROM RMA_sheet WHERE TechDone = '0'")
         
         data = cursor.fetchall()
         columns = [column[0] for column in cursor.description]
