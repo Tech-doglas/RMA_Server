@@ -47,7 +47,7 @@ def submit_item():
         sealed = True if request.form.get('sealed') else False
         odoo_record = True if request.form.get('odoorecord') else False
         stock = ""
-        remark = request.form.get('textarea')
+        remark = request.form.get('remark')
         sku = request.form.get('sku', '')
         tech_done = True if request.form.get('tech_done') else False
 
