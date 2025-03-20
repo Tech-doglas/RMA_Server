@@ -2,21 +2,21 @@
 from flask import Blueprint, render_template, request, redirect, url_for
 from app.models import get_db_connection
 
-sales_bp = Blueprint('sales', __name__)
+laptop_sales_bp = Blueprint('laptop_sales', __name__)
 
-@sales_bp.route('/')
+@laptop_sales_bp.route('/')
 def sales():
     try:
         return render_template('sales.html')
     except Exception as e:
         return f"Error: {str(e)}"
 
-@sales_bp.route('/<serial_number>')
+@laptop_sales_bp.route('/<serial_number>')
 def sales_detail(serial_number):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM RMA_sheet WHERE SerialNumber = ?", serial_number)
+        cursor.execute("SELECT * FROM RMA_laptop_sheet WHERE SerialNumber = ?", serial_number)
         data = cursor.fetchone()
 
         if not data:
@@ -26,11 +26,11 @@ def sales_detail(serial_number):
         laptop = dict(zip(columns, data))
 
         conn.close()
-        return render_template('sales.html', laptop=laptop, serial_number=serial_number)
+        return render_template('laptop_sales.html', laptop=laptop, serial_number=serial_number)
     except Exception as e:
         return f"Error: {str(e)}"
 
-@sales_bp.route('/order', methods=['POST'])
+@laptop_sales_bp.route('/order', methods=['POST'])
 def sales_order():
     try:
         # Get form data
@@ -46,7 +46,7 @@ def sales_order():
         conn = get_db_connection()
         cursor = conn.cursor()
         
-        cursor.execute("SELECT Spec FROM RMA_sheet WHERE SerialNumber = ?", serial_number)
+        cursor.execute("SELECT Spec FROM RMA_laptop_sheet WHERE SerialNumber = ?", serial_number)
         result = cursor.fetchone()
         if not result:
             conn.close()
@@ -56,19 +56,19 @@ def sales_order():
         
         if new_spec != current_spec:
             cursor.execute("""
-                UPDATE RMA_sheet 
+                UPDATE RMA_laptop_sheet 
                 SET OrderNumber = ?, Stock = 'SOLD', UpDatedSpec = ? 
                 WHERE SerialNumber = ?
             """, (order_number, new_spec, serial_number))
         else:
             cursor.execute("""
-                UPDATE RMA_sheet 
+                UPDATE RMA_laptop_sheet 
                 SET OrderNumber = ?, Stock = 'SOLD' 
                 WHERE SerialNumber = ?
             """, (order_number, serial_number))
         
         conn.commit()
         conn.close()
-        return redirect(url_for('main.show_rma_sheet'))
+        return redirect(url_for('laptop.show_RMA_laptop_sheet'))
     except Exception as e:
         return f"Error submitting item: {str(e)}"

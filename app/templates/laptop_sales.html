@@ -3,13 +3,13 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Sales</title>
+    <title>Laptop Sales</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 
 <body>
-    <h1>Sales</h1>
-    <button onclick="window.location.href='{{ url_for('item.item_detail', serial_number=serial_number) }}';"
+    <h1>Laptop Sales</h1>
+    <button onclick="window.location.href='{{ url_for('laptop.laptop_item.laptop_item_detail', serial_number=serial_number) }}';"
         class="red">
         Back
     </button>
@@ -51,7 +51,7 @@
         {% endif %}
     </table>
 
-    <form method="POST" action="{{ url_for('sales.sales_order') }}">
+    <form method="POST" action="{{ url_for('laptop.laptop_sales.sales_order') }}">
         <input type="hidden" name="serial_number" value="{{ serial_number }}">
         <div class="form-group">
             <label for="order">Order Number:</label>

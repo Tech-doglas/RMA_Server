@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Edit RMA Item</title>
+    <title>Edit Laptop Item</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
-    <h1>Edit RMA Item</h1>
+    <h1>Edit Laptop Item</h1>
 
-    <form method="POST" action="{{ url_for('item.update_item', serial_number=laptop.SerialNumber) }}" enctype="multipart/form-data">
+    <form method="POST" action="{{ url_for('laptop.laptop_item.update_item', serial_number=laptop.SerialNumber) }}" enctype="multipart/form-data">
         <div class="form-group">
             <label for="brand">Brand:</label>
             <select id="brand" name="brand" required>
@@ -91,7 +91,7 @@
                 {% if image_files %}
                 {% for filename in image_files %}
                 <div style="display: inline-block; position: relative;">
-                    <img src="{{ url_for('item.serve_image', id=laptop.ID, filename=filename) }}" alt="Item image">
+                    <img src="{{ url_for('laptop.laptop_item.serve_image', id=laptop.ID, filename=filename) }}" alt="Item image">
                     <button type="button" class="delete-image-btn" 
                             onclick="deleteImage('{{ laptop.SerialNumber }}', '{{ filename }}', this)">
                         Delete
@@ -110,14 +110,14 @@
         </div>
 
         <button type="submit">Save Changes</button>
-        <button type="button" class="gery" onclick="window.location.href='{{ url_for('item.item_detail', serial_number=laptop.SerialNumber) }}';">Cancel</button>
-        <button type="button" class="red" onclick="if(confirm('Are you sure you want to delete this item?')) window.location.href='{{ url_for('item.delete_item', serial_number=laptop.SerialNumber) }}';">Delete Item</button>
+        <button type="button" class="gery" onclick="window.location.href='{{ url_for('laptop.laptop_item.laptop_item_detail', serial_number=laptop.SerialNumber) }}';">Cancel</button>
+        <button type="button" class="red" onclick="if(confirm('Are you sure you want to delete this item?')) window.location.href='{{ url_for('laptop.laptop_item.delete_item', serial_number=laptop.SerialNumber) }}';">Delete Item</button>
     </form>
 
     <script>
         function deleteImage(serialNumber, filename, button) {
             if (confirm('Are you sure you want to delete this image?')) {
-                fetch('{{ url_for('item.delete_image', serial_number='PLACEHOLDER', filename='PLACEHOLDER') }}'.replace('PLACEHOLDER', serialNumber).replace('PLACEHOLDER', filename), {
+                fetch('{{ url_for('laptop.laptop_item.delete_image', serial_number='PLACEHOLDER', filename='PLACEHOLDER') }}'.replace('PLACEHOLDER', serialNumber).replace('PLACEHOLDER', filename), {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

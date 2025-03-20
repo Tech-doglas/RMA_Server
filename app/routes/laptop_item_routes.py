@@ -4,30 +4,30 @@ from app.models import get_db_connection, save_images, get_image_files, get_proj
 import os
 import shutil
 
-item_bp = Blueprint('item', __name__)
+laptop_item_bp = Blueprint('laptop_item', __name__)
 
-@item_bp.route('/<serial_number>')
-def item_detail(serial_number):
+@laptop_item_bp.route('/<serial_number>')
+def laptop_item_detail(serial_number):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM RMA_sheet WHERE SerialNumber = ?", serial_number)
+        cursor.execute("SELECT * FROM RMA_laptop_sheet WHERE SerialNumber = ?", serial_number)
         data = cursor.fetchone()
         if not data:
             return "Item not found", 404
         laptop = dict(zip([column[0] for column in cursor.description], data))
         image_files = get_image_files(laptop['ID'])
         conn.close()
-        return render_template('item_detail.html', laptop=laptop, image_files=image_files)
+        return render_template('laptop_item_detail.html', laptop=laptop, image_files=image_files)
     except Exception as e:
         return f"Error: {str(e)}"
 
-@item_bp.route('/images/<id>/<filename>')
+@laptop_item_bp.route('/images/<id>/<filename>')
 def serve_image(id, filename):
     image_dir = os.path.join(get_project_root(), 'images', str(id))
     return send_from_directory(image_dir, filename)
 
-@item_bp.route('/submit', methods=['POST'])
+@laptop_item_bp.route('/submit', methods=['POST'])
 def submit_item():
     try:
         conn = get_db_connection()
@@ -47,7 +47,7 @@ def submit_item():
         tech_done = True if request.form.get('tech_done') else False
 
         cursor.execute("""
-            INSERT INTO RMA_sheet (Brand, Model, Spec, SerialNumber, Condition, Sealed, Stock, Remark, OdooRecord, SKU, TechDone) 
+            INSERT INTO RMA_laptop_sheet (Brand, Model, Spec, SerialNumber, Condition, Sealed, Stock, Remark, OdooRecord, SKU, TechDone) 
             OUTPUT INSERTED.ID
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (brand, model, spec, serial_number, condition, sealed, stock, remark, odoo_record, sku, tech_done))
@@ -56,27 +56,27 @@ def submit_item():
         save_images(request.files.getlist('images'), primary_key)
         conn.commit()
         conn.close()
-        return redirect(url_for('main.laptop_input'))
+        return redirect(url_for('laptop.laptop_input'))
     except Exception as e:
         return f"Error submitting item: {str(e)}"
 
-@item_bp.route('/edit/<serial_number>')
+@laptop_item_bp.route('/edit/<serial_number>')
 def edit_item(serial_number):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM RMA_sheet WHERE SerialNumber = ?", serial_number)
+        cursor.execute("SELECT * FROM RMA_laptop_sheet WHERE SerialNumber = ?", serial_number)
         data = cursor.fetchone()
         if not data:
             return "Item not found", 404
         laptop = dict(zip([column[0] for column in cursor.description], data))
         image_files = get_image_files(laptop['ID'])
         conn.close()
-        return render_template('edit_item.html', laptop=laptop, image_files=image_files)
+        return render_template('laptop_edit_item.html', laptop=laptop, image_files=image_files)
     except Exception as e:
         return f"Error: {str(e)}"
 
-@item_bp.route('/update/<serial_number>', methods=['POST'])
+@laptop_item_bp.route('/update/<serial_number>', methods=['POST'])
 def update_item(serial_number):
     try:
         brand = request.form.get('brand')
@@ -100,11 +100,11 @@ def update_item(serial_number):
         conn = get_db_connection()
         cursor = conn.cursor()
         
-        cursor.execute("SELECT ID FROM RMA_sheet WHERE SerialNumber = ?", serial_number)
+        cursor.execute("SELECT ID FROM RMA_laptop_sheet WHERE SerialNumber = ?", serial_number)
         item_id = cursor.fetchone()[0]
         
         cursor.execute("""
-            UPDATE RMA_sheet 
+            UPDATE RMA_laptop_sheet 
             SET Brand = ?, Model = ?, Spec = ?, SerialNumber = ?, Condition = ?, 
                 Sealed = ?, Stock = ?, OrderNumber = ?, UpDatedSpec = ?, Remark = ?, OdooRecord = ?, SKU = ?, TechDone = ?
             WHERE SerialNumber = ?
@@ -129,16 +129,16 @@ def update_item(serial_number):
         
         conn.commit()
         conn.close()
-        return redirect(url_for('item.item_detail', serial_number=serial_number_new))
+        return redirect(url_for('laptop.laptop_item.laptop_item_detail', serial_number=serial_number_new))
     except Exception as e:
         return f"Error updating item: {str(e)}"
 
-@item_bp.route('/delete/<serial_number>')
+@laptop_item_bp.route('/delete/<serial_number>')
 def delete_item(serial_number):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("DELETE FROM RMA_sheet WHERE SerialNumber = ?", serial_number)
+        cursor.execute("DELETE FROM RMA_laptop_sheet WHERE SerialNumber = ?", serial_number)
         
         image_dir = os.path.join('images', str(serial_number))
         if os.path.exists(image_dir):
@@ -146,16 +146,16 @@ def delete_item(serial_number):
         
         conn.commit()
         conn.close()
-        return redirect(url_for('main.show_rma_sheet'))
+        return redirect(url_for('laptop.show_RMA_laptop_sheet'))
     except Exception as e:
         return f"Error deleting item: {str(e)}"
 
-@item_bp.route('/delete_image/<serial_number>/<filename>', methods=['POST'])
+@laptop_item_bp.route('/delete_image/<serial_number>/<filename>', methods=['POST'])
 def delete_image(serial_number, filename):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("SELECT ID FROM RMA_sheet WHERE SerialNumber = ?", serial_number)
+        cursor.execute("SELECT ID FROM RMA_laptop_sheet WHERE SerialNumber = ?", serial_number)
         item = cursor.fetchone()
         
         if not item:
@@ -176,14 +176,14 @@ def delete_image(serial_number, filename):
     finally:
         conn.close()
 
-@item_bp.route('/tech_done/<serial_number>')
+@laptop_item_bp.route('/tech_done/<serial_number>')
 def tech_done(serial_number):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("UPDATE RMA_sheet SET TechDone = 1 WHERE SerialNumber = ?", (serial_number,))
+        cursor.execute("UPDATE RMA_laptop_sheet SET TechDone = 1 WHERE SerialNumber = ?", (serial_number,))
         conn.commit()
         conn.close()
-        return redirect(url_for('item.item_detail', serial_number=serial_number))
+        return redirect(url_for('laptop.laptop_item.laptop_item_detail', serial_number=serial_number))
     except Exception as e:
         return f"Error updating TechDone: {str(e)}"

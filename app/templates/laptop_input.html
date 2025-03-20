@@ -143,15 +143,15 @@
         }
       }
     </style>
-    <title>Input RMA Item</title>
+    <title>Input Laptop Item</title>
   </head>
 
   <body>
     <div class="container">
-      <h1>Input New RMA Item</h1>
+      <h1>Input New Laptop Item</h1>
 
       <button
-        onclick="window.location.href='{{ url_for('main.show_rma_sheet') }}';"
+        onclick="window.location.href='{{ url_for('laptop.show_RMA_laptop_sheet') }}';"
         class="red"
       >
         Back
@@ -159,7 +159,7 @@
 
       <form
         method="POST"
-        action="{{ url_for('item.submit_item') }}"
+        action="{{ url_for('laptop.laptop_item.submit_item') }}"
         enctype="multipart/form-data"
       >
         <div class="form-group">
