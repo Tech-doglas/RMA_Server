@@ -42,16 +42,16 @@
         <div>
             <label for="condition">Condition:</label>
             <select id="condition" name="condition">
-              <option value="" disabled selected>Select condition</option>
-              <option value="N">Back to New</option>
-              <option value="A">Grade A</option>
-              <option value="B">Grade B</option>
-              <option value="C">Grade C</option>
-              <option value="F">Grade F</option>
+                <option value="" disabled selected>Select condition</option>
+                <option value="N">Back to New</option>
+                <option value="A">Grade A</option>
+                <option value="B">Grade B</option>
+                <option value="C">Grade C</option>
+                <option value="F">Grade F</option>
             </select>
-          </div>
+        </div>
 
-          <div class="checkbox-container">
+        <div class="checkbox-container">
             <label>Technician:</label>
             <input type="checkbox" id="tech_done" name="tech_done">
             <label for="tech_done" style="width: auto;">Done</label>
@@ -77,16 +77,9 @@
             <th data-sort="OdooRecord" class="sortable">Odoo Record ↕</th>
         </tr>
         {% for item in items %}
-        <tr {% if item.Stock=='SOLD' %}
-                {% if item.TechDone %}
-                    class="sold-tech-done clickable-row" 
-                {% else %}
-                    class="sold clickable-row"
-                {% endif %}
-            {% else %}
-                class="clickable-row" 
-            {% endif %}
-            data-serial="{{ item.SerialNumber }}">
+        {% if item.ID %}
+        <tr {% if item.Stock=='SOLD' %} {% if item.TechDone %} class="sold-tech-done clickable-row" {% else %}
+            class="sold clickable-row" {% endif %} {% else %} class="clickable-row" {% endif %} data-id="{{ item.ID }}">
             <td>{{ item.Brand }}</td>
             <td {% if item.Stock !='SOLD' %} {% if item.Condition=='N' %}class="condition-n" {% endif %} {% if
                 item.Condition=='A' %}class="condition-a" {% endif %} {% if item.Condition=='B' %}class="condition-b" {%
@@ -113,6 +106,9 @@
             <td>{{ '✅' if item.Sealed else '❌' }}</td>
             <td>{{ '✅' if item.OdooRecord else '❌' }}</td>
         </tr>
+        {% else %}
+        <tr><td colspan="10">Error: Item missing ID - {{ item.SerialNumber }}</td></tr>
+        {% endif %}
         {% endfor %}
     </table>
     {% else %}
@@ -125,8 +121,12 @@
             const rows = document.querySelectorAll('.clickable-row');
             rows.forEach(row => {
                 row.addEventListener('click', function () {
-                    const serialNumber = this.getAttribute('data-serial');
-                    window.open(`{{ url_for('laptop.laptop_item.laptop_item_detail', serial_number='') }}${serialNumber}`, '_blank');
+                    const id = this.getAttribute('data-id');
+                    if (id && !isNaN(id) && id.trim() !== '') {
+                        window.open(`{{ url_for('laptop.laptop_item.laptop_item_detail', id='') }}${id}`, '_blank');
+                    } else {
+                        console.error('Invalid or missing ID for row:', this);
+                    }
                 });
             });
 

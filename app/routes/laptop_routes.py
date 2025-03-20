@@ -70,14 +70,13 @@ def show_RMA_laptop_sheet():
                 if stock_conditions:
                     query += " AND (" + " OR ".join(stock_conditions) + ")"
             
-            cursor.execute(query, params) if params else cursor.execute("SELECT * FROM RMA_laptop_sheet")
+            cursor.execute(query, params) if params else cursor.execute("SELECT * FROM RMA_laptop_sheet WHERE TechDone = '0'")
         else:
             cursor.execute("SELECT * FROM RMA_laptop_sheet WHERE TechDone = '0'")
         
         data = cursor.fetchall()
         columns = [column[0] for column in cursor.description]
         results = [dict(zip(columns, row)) for row in data]
-        
         conn.close()
         return render_template('laptop.html', items=results)
     except Exception as e:

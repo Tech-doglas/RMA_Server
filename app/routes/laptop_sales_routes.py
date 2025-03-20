@@ -11,24 +11,20 @@ def sales():
     except Exception as e:
         return f"Error: {str(e)}"
 
-@laptop_sales_bp.route('/<serial_number>')
-def sales_detail(serial_number):
+@laptop_sales_bp.route('/<id>')
+def sales_detail(id):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM RMA_laptop_sheet WHERE SerialNumber = ?", serial_number)
+        cursor.execute("SELECT * FROM RMA_laptop_sheet WHERE ID = ?", id)
         data = cursor.fetchone()
-
         if not data:
             return "Item not found", 404
-
-        columns = [column[0] for column in cursor.description]
-        laptop = dict(zip(columns, data))
-
+        laptop = dict(zip([column[0] for column in cursor.description], data))
         conn.close()
-        return render_template('laptop_sales.html', laptop=laptop, serial_number=serial_number)
+        return render_template('laptop_sales.html', laptop=laptop, id=id)
     except Exception as e:
-        return f"Error: {str(e)}"
+        return f"Error: {str(e)}", 500
 
 @laptop_sales_bp.route('/order', methods=['POST'])
 def sales_order():
@@ -38,7 +34,7 @@ def sales_order():
         ssd = request.form.get('ssd')
         new_spec = f"{ram}+{ssd}"
         order_number = request.form.get('order')
-        serial_number = request.form.get('serial_number')
+        id = request.form.get('id')
         
         if not order_number:
             return "Order Number is required", 400
@@ -46,7 +42,7 @@ def sales_order():
         conn = get_db_connection()
         cursor = conn.cursor()
         
-        cursor.execute("SELECT Spec FROM RMA_laptop_sheet WHERE SerialNumber = ?", serial_number)
+        cursor.execute("SELECT Spec FROM RMA_laptop_sheet WHERE ID = ?", id)
         result = cursor.fetchone()
         if not result:
             conn.close()
@@ -58,14 +54,14 @@ def sales_order():
             cursor.execute("""
                 UPDATE RMA_laptop_sheet 
                 SET OrderNumber = ?, Stock = 'SOLD', UpDatedSpec = ? 
-                WHERE SerialNumber = ?
-            """, (order_number, new_spec, serial_number))
+                WHERE ID = ?
+            """, (order_number, new_spec, id))
         else:
             cursor.execute("""
                 UPDATE RMA_laptop_sheet 
                 SET OrderNumber = ?, Stock = 'SOLD' 
-                WHERE SerialNumber = ?
-            """, (order_number, serial_number))
+                WHERE ID = ?
+            """, (order_number, id))
         
         conn.commit()
         conn.close()
