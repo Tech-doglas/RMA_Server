@@ -2,10 +2,15 @@
 from flask import Blueprint, render_template, request, redirect
 from app.models import get_db_connection
 
-main_bp = Blueprint('main', __name__)
+from app.routes.laptop_item_routes import laptop_item_bp
+from app.routes.laptop_sales_routes import laptop_sales_bp
 
-@main_bp.route('/', methods=['GET', 'POST'])
-def show_rma_sheet():
+laptop_bp = Blueprint('laptop', __name__)
+laptop_bp.register_blueprint(laptop_item_bp, url_prefix='/item')
+laptop_bp.register_blueprint(laptop_sales_bp, url_prefix='/sales')
+
+@laptop_bp.route('/', methods=['GET', 'POST'])
+def show_RMA_laptop_sheet():
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -21,7 +26,7 @@ def show_rma_sheet():
             stock_sold = 'SOLD' if request.form.get('stock_sold') else None
             stock_null = True if request.form.get('stock_null') else None
             
-            query = "SELECT * FROM RMA_sheet WHERE 1=1"
+            query = "SELECT * FROM RMA_laptop_sheet WHERE 1=1"
             params = []
             
             if brand:
@@ -65,22 +70,21 @@ def show_rma_sheet():
                 if stock_conditions:
                     query += " AND (" + " OR ".join(stock_conditions) + ")"
             
-            cursor.execute(query, params) if params else cursor.execute("SELECT * FROM RMA_sheet")
+            cursor.execute(query, params) if params else cursor.execute("SELECT * FROM RMA_laptop_sheet WHERE TechDone = '0'")
         else:
-            cursor.execute("SELECT * FROM RMA_sheet WHERE TechDone = '0'")
+            cursor.execute("SELECT * FROM RMA_laptop_sheet WHERE TechDone = '0'")
         
         data = cursor.fetchall()
         columns = [column[0] for column in cursor.description]
         results = [dict(zip(columns, row)) for row in data]
-        
         conn.close()
-        return render_template('index.html', items=results)
+        return render_template('laptop.html', items=results)
     except Exception as e:
         return f"Error: {str(e)}"
 
-@main_bp.route('/input')
+@laptop_bp.route('/laptop_input')
 def laptop_input():
     try:
-        return render_template('input.html')
+        return render_template('laptop_input.html')
     except Exception as e:
         return f"Error: {str(e)}"

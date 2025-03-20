@@ -4,30 +4,35 @@ from app.models import get_db_connection, save_images, get_image_files, get_proj
 import os
 import shutil
 
-item_bp = Blueprint('item', __name__)
+laptop_item_bp = Blueprint('laptop_item', __name__)
 
-@item_bp.route('/<serial_number>')
-def item_detail(serial_number):
+@laptop_item_bp.route('/<id>')
+def laptop_item_detail(id):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM RMA_sheet WHERE SerialNumber = ?", serial_number)
+        cursor.execute("SELECT * FROM RMA_laptop_sheet WHERE ID = ?", id)
         data = cursor.fetchone()
         if not data:
             return "Item not found", 404
         laptop = dict(zip([column[0] for column in cursor.description], data))
         image_files = get_image_files(laptop['ID'])
         conn.close()
-        return render_template('item_detail.html', laptop=laptop, image_files=image_files)
+        return render_template('laptop_item_detail.html', laptop=laptop, image_files=image_files)
     except Exception as e:
-        return f"Error: {str(e)}"
+        return f"Error: {str(e)}", 500
 
-@item_bp.route('/images/<id>/<filename>')
+@laptop_item_bp.route('/images/<id>/<filename>')
 def serve_image(id, filename):
-    image_dir = os.path.join(get_project_root(), 'images', str(id))
-    return send_from_directory(image_dir, filename)
+    try:
+        image_dir = os.path.join(get_project_root(), 'images', str(id))
+        if not os.path.exists(image_dir):
+            return "Image directory not found", 404
+        return send_from_directory(image_dir, filename)
+    except Exception as e:
+        return f"Error: {str(e)}", 500
 
-@item_bp.route('/submit', methods=['POST'])
+@laptop_item_bp.route('/submit', methods=['POST'])
 def submit_item():
     try:
         conn = get_db_connection()
@@ -47,7 +52,7 @@ def submit_item():
         tech_done = True if request.form.get('tech_done') else False
 
         cursor.execute("""
-            INSERT INTO RMA_sheet (Brand, Model, Spec, SerialNumber, Condition, Sealed, Stock, Remark, OdooRecord, SKU, TechDone) 
+            INSERT INTO RMA_laptop_sheet (Brand, Model, Spec, SerialNumber, Condition, Sealed, Stock, Remark, OdooRecord, SKU, TechDone) 
             OUTPUT INSERTED.ID
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (brand, model, spec, serial_number, condition, sealed, stock, remark, odoo_record, sku, tech_done))
@@ -56,28 +61,28 @@ def submit_item():
         save_images(request.files.getlist('images'), primary_key)
         conn.commit()
         conn.close()
-        return redirect(url_for('main.laptop_input'))
+        return redirect(url_for('laptop.laptop_input'))
     except Exception as e:
         return f"Error submitting item: {str(e)}"
 
-@item_bp.route('/edit/<serial_number>')
-def edit_item(serial_number):
+@laptop_item_bp.route('/edit/<id>')
+def edit_item(id):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM RMA_sheet WHERE SerialNumber = ?", serial_number)
+        cursor.execute("SELECT * FROM RMA_laptop_sheet WHERE ID = ?", id)
         data = cursor.fetchone()
         if not data:
             return "Item not found", 404
         laptop = dict(zip([column[0] for column in cursor.description], data))
         image_files = get_image_files(laptop['ID'])
         conn.close()
-        return render_template('edit_item.html', laptop=laptop, image_files=image_files)
+        return render_template('laptop_edit_item.html', laptop=laptop, image_files=image_files)
     except Exception as e:
-        return f"Error: {str(e)}"
+        return f"Error: {str(e)}", 500
 
-@item_bp.route('/update/<serial_number>', methods=['POST'])
-def update_item(serial_number):
+@laptop_item_bp.route('/update/<id>', methods=['POST'])
+def update_item(id):
     try:
         brand = request.form.get('brand')
         model = request.form.get('model')
@@ -99,91 +104,78 @@ def update_item(serial_number):
         print(stock)
         conn = get_db_connection()
         cursor = conn.cursor()
-        
-        cursor.execute("SELECT ID FROM RMA_sheet WHERE SerialNumber = ?", serial_number)
-        item_id = cursor.fetchone()[0]
-        
+
         cursor.execute("""
-            UPDATE RMA_sheet 
-            SET Brand = ?, Model = ?, Spec = ?, SerialNumber = ?, Condition = ?, 
-                Sealed = ?, Stock = ?, OrderNumber = ?, UpDatedSpec = ?, Remark = ?, OdooRecord = ?, SKU = ?, TechDone = ?
-            WHERE SerialNumber = ?
-        """, (brand, model, spec, serial_number_new, condition, sealed, stock, 
-              order_number, updated_spec, remark, odoo_record, sku, tech_done, serial_number))
-        
-        image_dir = os.path.join(get_project_root(), 'images', str(item_id))
-        os.makedirs(image_dir, exist_ok=True)
+                UPDATE RMA_laptop_sheet 
+                SET Brand = ?, Model = ?, Spec = ?, SerialNumber = ?, Condition = ?, 
+                    Sealed = ?, Stock = ?, OrderNumber = ?, UpDatedSpec = ?, Remark = ?, OdooRecord = ?, SKU = ?, TechDone = ?
+                WHERE ID = ?
+            """, (brand, model, spec, serial_number_new, condition, sealed, stock, 
+                order_number, updated_spec, remark, odoo_record, sku, tech_done, id))
         
         images = request.files.getlist('new_images')
-        existing_images = get_image_files(item_id)
-        next_image_num = len(existing_images) + 1
-        
-        for image in images:
-            if image and image.filename:
-                from werkzeug.utils import secure_filename
-                ext = os.path.splitext(secure_filename(image.filename))[1]
-                filename = f"{next_image_num}{ext}"
-                image_path = os.path.join(image_dir, filename)
-                image.save(image_path)
-                next_image_num += 1
+        if images:
+            image_dir = os.path.join(get_project_root(), 'images', str(id))
+            os.makedirs(image_dir, exist_ok=True)
+            existing_images = get_image_files(id)
+            next_image_num = len(existing_images) + 1
+            for image in images:
+                if image and image.filename:
+                    from werkzeug.utils import secure_filename
+                    ext = os.path.splitext(secure_filename(image.filename))[1]
+                    filename = f"{next_image_num}{ext}"
+                    image_path = os.path.join(image_dir, filename)
+                    image.save(image_path)
+                    next_image_num += 1
         
         conn.commit()
         conn.close()
-        return redirect(url_for('item.item_detail', serial_number=serial_number_new))
+        return redirect(url_for('laptop.laptop_item.laptop_item_detail', id=id))
     except Exception as e:
         return f"Error updating item: {str(e)}"
 
-@item_bp.route('/delete/<serial_number>')
-def delete_item(serial_number):
+@laptop_item_bp.route('/delete/<id>')
+def delete_item(id):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("DELETE FROM RMA_sheet WHERE SerialNumber = ?", serial_number)
-        
-        image_dir = os.path.join('images', str(serial_number))
+        cursor.execute("DELETE FROM RMA_laptop_sheet WHERE ID = ?", id)
+        image_dir = os.path.join('images', str(id))
         if os.path.exists(image_dir):
             shutil.rmtree(image_dir)
-        
         conn.commit()
         conn.close()
-        return redirect(url_for('main.show_rma_sheet'))
+        return redirect(url_for('laptop.show_RMA_laptop_sheet'))
     except Exception as e:
-        return f"Error deleting item: {str(e)}"
+        return f"Error deleting item: {str(e)}", 500
 
-@item_bp.route('/delete_image/<serial_number>/<filename>', methods=['POST'])
-def delete_image(serial_number, filename):
+@laptop_item_bp.route('/delete_image/<id>/<filename>', methods=['POST'])
+def delete_image(id, filename):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("SELECT ID FROM RMA_sheet WHERE SerialNumber = ?", serial_number)
-        item = cursor.fetchone()
-        
-        if not item:
+        cursor.execute("SELECT ID FROM RMA_laptop_sheet WHERE ID = ?", id)
+        if not cursor.fetchone():
             return "Item not found", 404
-            
-        item_id = item[0]
-        image_dir = os.path.join(get_project_root(), 'images', str(item_id))
+        image_dir = os.path.join(get_project_root(), 'images', str(id))
         image_path = os.path.join(image_dir, filename)
-        
         if os.path.exists(image_path):
             os.remove(image_path)
             return "Image deleted successfully", 200
-        else:
-            return "Image not found", 404
-            
+        return "Image not found", 404
     except Exception as e:
         return f"Error deleting image: {str(e)}", 500
     finally:
         conn.close()
 
-@item_bp.route('/tech_done/<serial_number>')
-def tech_done(serial_number):
+@laptop_item_bp.route('/tech_done/<id>')
+def tech_done(id):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("UPDATE RMA_sheet SET TechDone = 1 WHERE SerialNumber = ?", (serial_number,))
+        cursor.execute("UPDATE RMA_laptop_sheet SET TechDone = 1 WHERE ID = ?", (id,))
         conn.commit()
         conn.close()
-        return redirect(url_for('item.item_detail', serial_number=serial_number))
+        return redirect(url_for('laptop.laptop_item.laptop_item_detail', id=id))
     except Exception as e:
-        return f"Error updating TechDone: {str(e)}"
+        return f"Error updating TechDone: {str(e)}", 500

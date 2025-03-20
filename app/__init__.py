@@ -17,12 +17,10 @@ def create_app():
     )
 
     # Register blueprints
-    from app.routes.main_routes import main_bp
-    from app.routes.item_routes import item_bp
-    from app.routes.sales_routes import sales_bp
+    from app.routes.index_routes import index_bp
+    from app.routes.laptop_routes import laptop_bp
     
-    app.register_blueprint(main_bp)
-    app.register_blueprint(item_bp, url_prefix='/item')
-    app.register_blueprint(sales_bp, url_prefix='/sales')
+    app.register_blueprint(index_bp)
+    app.register_blueprint(laptop_bp, url_prefix='/laptop')
 
     return app

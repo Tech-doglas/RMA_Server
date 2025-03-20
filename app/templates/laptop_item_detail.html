@@ -9,23 +9,23 @@
 
 <body>
     <h1>Laptop Details</h1>
-    <button onclick="window.location.href='{{ url_for('main.show_rma_sheet') }}';"
+    <button onclick="window.location.href='{{ url_for('laptop.show_RMA_laptop_sheet') }}';"
         class="red" >
         Back
     </button>
 
-    <button onclick="window.location.href='{{ url_for('sales.sales_detail', serial_number=laptop.SerialNumber) }}';"
+    <button onclick="window.location.href='{{ url_for('laptop.laptop_sales.sales_detail', id=laptop.ID) }}';"
         class="skyblue{% if laptop.Stock == 'SOLD' %} disabled{% endif %}"
         {% if laptop.Stock == 'SOLD' %}disabled{% endif %}>
         Sales
     </button>
 
-    <button onclick="window.location.href='{{ url_for('item.edit_item', serial_number=laptop.SerialNumber) }}';"
+    <button onclick="window.location.href='{{ url_for('laptop.laptop_item.edit_item', id=laptop.ID) }}';"
         class="orange">
         Edit
     </button>
 
-    <button {% if laptop.TechDone != True %}onclick="window.location.href='{{ url_for('item.tech_done', serial_number=laptop.SerialNumber) }}';"{% endif %}
+    <button {% if laptop.TechDone != True %}onclick="window.location.href='{{ url_for('laptop.laptop_item.tech_done', id=laptop.ID) }}';"{% endif %}
         class="lightgreen{% if laptop.Stock != 'SOLD' or laptop.TechDone %} disabled{% endif %}"
         {% if laptop.Stock != 'SOLD' or laptop.TechDone %}disabled{% endif %}>
         Done
@@ -108,7 +108,7 @@
         <h1>Images</h1>
         {% if image_files %}
         {% for image in image_files %}
-        <img src="{{ url_for('item.serve_image', id=laptop.ID|default(0), filename=image)|safe }}" alt="Laptop Image">
+        <img src="{{ url_for('laptop.laptop_item.serve_image', id=laptop.ID|default(0), filename=image)|safe }}" alt="Laptop Image">
         {% endfor %}
         {% else %}
         <p>No images available for this laptop.</p>
