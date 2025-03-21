@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Return Receiving</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+
+<body>
+    <h1>Return Receiving List</h1>
+
+    <button onclick="window.location.href='{{ url_for('return_receiving.return_receiving_input') }}'">
+        Input
+    </button>
+    <button class="orange" onclick="window.location.href='{{ url_for('index.show_landing_page') }}'">
+        Home
+    </button>
+
+    <form method="POST" action="{{ url_for('return_receiving.show_return_receiving_sheet') }}" class="search-form">
+        <div class="form-group">
+            <label for="tracking_number">Tracking #:</label>
+            <input type="text" id="tracking_number" name="tracking_number" placeholder="e.g., 1ZV390E3000000000">
+        </div>
+
+        <div>
+            <label for="company">Company:</label>
+            <select id="company" name="company">
+                <option value="" disabled selected>Select company</option>
+                <option value="PX/LEO/KRIZY">PX/LEO/KRIZY</option>
+                <option value="SNOWBELL/XIE/PITY TECH">SNOWBELL/XIE/PITY TECH</option>
+                <option value="Others">Others</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="record_date">Record Date:</label>
+            <input type="date" id="record_date" name="record_date">
+        </div>
+
+        <button type="submit">Search</button>
+    </form>
+
+    <span>Total Count: {{total_count}}</span>
+
+    {% if records|length > 0 %}
+    <table id="return-receiving-table">
+        <tr>
+            <th>Tracking #</th>
+            <th>Company</th>
+            <th>Record DateTime</th>
+        </tr>
+        {% for record in records %}
+        <tr class="clickable-row" tracking-number="{{ record.TrackingNumber }}">
+            <td>{{ record.TrackingNumber }}</td>
+            <td>{{ record.Company }}</td>
+            <td>{{ record.CreationDateTime }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+    <p>No record.</p>
+    {% endif %}
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Clickable rows for item details
+            const rows = document.querySelectorAll('.clickable-row');
+            rows.forEach(row => {
+                row.addEventListener('click', function () {
+                    console.log('gg')
+                    const tracking_number = this.getAttribute('tracking-number');
+                    if (tracking_number && tracking_number.trim() !== '') {
+                        window.open(`{{ url_for('return_receiving.return_receiving_record_detail', tracking_number='') }}${tracking_number}`, '_blank');
+                    } else {
+                        console.error('Invalid or missing ID for row:', this);
+                    }
+                });
+            });
+        })
+    </script>
+</body>
+
+</html>

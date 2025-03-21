@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <style>
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        background-color: #f4f4f4;
+      }
+
+      .container {
+        background-color: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 900px;
+        margin: 0 10px;
+      }
+
+      label {
+        display: inline-block;
+        margin-bottom: 5px;
+        font-size: 16px;
+      }
+
+      input[type="text"],
+      select,
+      textarea {
+        padding: 8px;
+        width: 100%;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+      }
+
+      select {
+        height: 35px;
+      }
+
+      textarea {
+        resize: vertical;
+      }
+
+      button {
+        width: 100%;
+        max-width: 150px;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      button.red {
+        background-color: #f44336;
+        max-width: 150px;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      /* Image preview styling */
+      #image-preview {
+        margin-top: 10px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      #image-preview img {
+        width: 100px;
+        height: 100px;
+        object-fit: cover;
+        border-radius: 5px;
+      }
+
+      /* Responsive design for mobile and tablet */
+      @media (max-width: 768px) {
+        h1 {
+          font-size: 24px;
+        }
+
+        .form-group {
+          margin-bottom: 10px;
+        }
+
+        label {
+          font-size: 14px;
+        }
+
+        input[type="text"],
+        select,
+        textarea {
+          font-size: 14px;
+          padding: 10px;
+          box-sizing: border-box;
+        }
+
+        button {
+          padding: 15px 20px;
+          font-size: 16px;
+        }
+
+        .container {
+          padding: 15px;
+        }
+
+        .back-button {
+          padding: 15px 20px;
+          font-size: 16px;
+          display: none;
+        }
+      }
+
+      /* Larger devices, desktop */
+      @media (min-width: 769px) {
+        .form-group {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        label {
+          width: 120px;
+        }
+
+        input[type="text"],
+        select {
+          max-width: 250px;
+          width: 100%;
+          box-sizing: border-box;
+        }
+
+        button {
+          width: auto;
+        }
+
+        .back-button {
+          width: auto;
+        }
+      }
+    </style>
+    <title>Input Return Receiving Record</title>
+  </head>
+
+  <body>
+    <div class="container">
+      <h1>Input New Return Receiving Record</h1>
+
+      <button
+        onclick="window.location.href='{{ url_for('return_receiving.show_return_receiving_sheet') }}';"
+        class="red"
+      >
+        Back
+      </button>
+
+      <form
+        method="POST"
+        action="{{ url_for('return_receiving.submit_record') }}"
+        enctype="multipart/form-data"
+      >
+
+        <div class="form-group">
+          <label for="tracking_number">Tracking #:</label>
+          <input
+            type="text"
+            id="tracking_number"
+            name="tracking_number"
+            placeholder="e.g., 1ZV390E3000000000"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="company">Company:</label>
+          <select id="company" name="company" required>
+            <option value="" disabled selected>Select company</option>
+            <option value="PX/LEO/KRIZY">PX/LEO/KRIZY</option>
+            <option value="SNOWBELL/XIE/PITY TECH">SNOWBELL/XIE/PITY TECH</option>
+            <option value="Others">Others</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="remark">Remark:</label>
+          <textarea
+            id="remark"
+            name="remark"
+            rows="5"
+            cols="40"
+          ></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="images">Upload Shipping Label Image (max 4MB each):</label>
+          <input
+            type="file"
+            id="image"
+            name="image"
+            accept="image/jpg; image/jpeg; image/png"
+            required
+            onchange="previewImages()"
+            oninput="validateFileSize(this)"
+          />
+          <div id="image-preview"></div>
+        </div>
+
+        <button type="submit">Submit</button>
+      </form>
+    </div>
+
+    <script>
+      function validateFileSize(input) {
+        const maxSize = 4 * 1024 * 1024; // 4MB
+        const files = input.files;
+        let valid = true;
+        for (let i = 0; i < files.length; i++) {
+          if (files[i].size > maxSize) {
+            alert(
+              "File " + files[i].name + " exceeds the maximum size of 4MB."
+            );
+            valid = false;
+          }
+        }
+        if (!valid) {
+          input.value = ""; // Clear only if invalid files are found
+        }
+        return valid;
+      }
+    </script>
+  </body>
+</html>

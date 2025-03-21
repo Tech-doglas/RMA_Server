@@ -1,6 +1,6 @@
 # app/routes/item_routes.py
 from flask import Blueprint, render_template, request, redirect, send_from_directory, url_for
-from app.models import get_db_connection, save_images, get_image_files, get_project_root
+from app.models import get_db_connection, save_laptop_images, get_laptop_image_files, get_project_root
 import os
 import shutil
 
@@ -16,7 +16,7 @@ def laptop_item_detail(id):
         if not data:
             return "Item not found", 404
         laptop = dict(zip([column[0] for column in cursor.description], data))
-        image_files = get_image_files(laptop['ID'])
+        image_files = get_laptop_image_files(laptop['ID'])
         conn.close()
         return render_template('laptop/laptop_item_detail.html', laptop=laptop, image_files=image_files)
     except Exception as e:
@@ -59,7 +59,7 @@ def submit_item():
         """, (brand, model, spec, serial_number, condition, sealed, stock, remark, odoo_record, sku, tech_done, user))
         
         primary_key = cursor.fetchone()[0]
-        save_images(request.files.getlist('images'), primary_key)
+        save_laptop_images(request.files.getlist('images'), primary_key)
         conn.commit()
         conn.close()
         return redirect(url_for('laptop.laptop_input'))
@@ -76,7 +76,7 @@ def edit_item(id):
         if not data:
             return "Item not found", 404
         laptop = dict(zip([column[0] for column in cursor.description], data))
-        image_files = get_image_files(laptop['ID'])
+        image_files = get_laptop_image_files(laptop['ID'])
 
         cursor.execute("SELECT * FROM RMA_user")
         data = cursor.fetchall()
@@ -108,7 +108,6 @@ def update_item(id):
         if stock is None:
             stock = ""
 
-        print(stock)
         conn = get_db_connection()
         cursor = conn.cursor()
 
@@ -124,7 +123,7 @@ def update_item(id):
         if images:
             image_dir = os.path.join(get_project_root(), 'images', str(id))
             os.makedirs(image_dir, exist_ok=True)
-            existing_images = get_image_files(id)
+            existing_images = get_laptop_image_files(id)
             next_image_num = len(existing_images) + 1
             for image in images:
                 if image and image.filename:

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Return Receiving Record Details</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+
+<body>
+    <h1>Return Receiving Record Details</h1>
+    <button onclick="window.location.href='{{ url_for('return_receiving.show_return_receiving_sheet') }}';"
+        class="red" >
+        Back
+    </button>
+
+    <table>
+        {% if record %}
+        <tr>
+            <th>Tracking #</th>
+            <td>{{ record.TrackingNumber }}</td>
+        </tr>
+        <tr>
+            <th>Company</th>
+            <td>{{ record.Company }}</td>
+        </tr>
+        <tr>
+            <th>Record DateTime</th>
+            <td>{{ record.CreationDateTime }}</td>
+        </tr>
+        
+        <tr>
+            <th>Remark</th>
+            <td>{{ record.Remark or 'None' }}</td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="2">No Record found with this tracking number.</td>
+        </tr>
+        {% endif %}
+    </table>
+
+    <div class="image-gallery">
+        <h1>Image</h1>
+        {% if image %}
+        <img src="{{ url_for('return_receiving.serve_image', tracking_Number=record.TrackingNumber|default(0), filename=image)|safe }}" alt="Shipping Label Image">
+        {% else %}
+        <p>No image available for this record.</p>
+        {% endif %}
+    </div>
+
+</body>
+
+</html>

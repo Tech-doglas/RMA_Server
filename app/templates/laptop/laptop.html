@@ -13,6 +13,9 @@
     <button onclick="window.location.href='{{ url_for('laptop.laptop_input') }}'">
         Input
     </button>
+    <button class="orange" onclick="window.location.href='{{ url_for('index.show_landing_page') }}'">
+        Home
+    </button>
 
     <!-- Search Form with updated styling -->
     <form method="POST" action="{{ url_for('laptop.show_RMA_laptop_sheet') }}" class="search-form">
