@@ -113,6 +113,16 @@
             <input type="file" id="new_images" name="new_images" multiple accept="image/*">
         </div>
 
+        <div class="form-group">
+            <label for="user">User:</label>
+            <select id="user" name="user" required>
+                <option value="" disabled selected>Select User</option>
+                {% for user in users %}
+                <option value={{user}}>{{ user }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
         <button type="submit">Save Changes</button>
         <button type="button" class="gery"
             onclick="window.location.href='{{ url_for('laptop.laptop_item.laptop_item_detail', id=laptop.ID) }}';">Cancel</button>
