@@ -50,12 +50,13 @@ def submit_item():
         remark = request.form.get('remark')
         sku = request.form.get('sku', '')
         tech_done = True if request.form.get('tech_done') else False
+        user= request.form.get('user')
 
         cursor.execute("""
-            INSERT INTO RMA_laptop_sheet (Brand, Model, Spec, SerialNumber, Condition, Sealed, Stock, Remark, OdooRecord, SKU, TechDone) 
+            INSERT INTO RMA_laptop_sheet (Brand, Model, Spec, SerialNumber, Condition, Sealed, Stock, Remark, OdooRecord, SKU, TechDone, LastModifiedUser, LastModifiedDateTime) 
             OUTPUT INSERTED.ID
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (brand, model, spec, serial_number, condition, sealed, stock, remark, odoo_record, sku, tech_done))
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, GETDATE())
+        """, (brand, model, spec, serial_number, condition, sealed, stock, remark, odoo_record, sku, tech_done, user))
         
         primary_key = cursor.fetchone()[0]
         save_images(request.files.getlist('images'), primary_key)
@@ -76,8 +77,13 @@ def edit_item(id):
             return "Item not found", 404
         laptop = dict(zip([column[0] for column in cursor.description], data))
         image_files = get_image_files(laptop['ID'])
+
+        cursor.execute("SELECT * FROM RMA_user")
+        data = cursor.fetchall()
+
+        users = [row[0] for row in data]
         conn.close()
-        return render_template('laptop_edit_item.html', laptop=laptop, image_files=image_files)
+        return render_template('laptop_edit_item.html', laptop=laptop, image_files=image_files, users=users)
     except Exception as e:
         return f"Error: {str(e)}", 500
 
@@ -97,6 +103,7 @@ def update_item(id):
         odoo_record = True if request.form.get('odoorecord') else False
         sku = request.form.get('sku', '')
         tech_done = True if request.form.get('tech_done') else False
+        user = request.form.get('user')
 
         if stock is None:
             stock = ""
@@ -108,10 +115,10 @@ def update_item(id):
         cursor.execute("""
                 UPDATE RMA_laptop_sheet 
                 SET Brand = ?, Model = ?, Spec = ?, SerialNumber = ?, Condition = ?, 
-                    Sealed = ?, Stock = ?, OrderNumber = ?, UpDatedSpec = ?, Remark = ?, OdooRecord = ?, SKU = ?, TechDone = ?
+                    Sealed = ?, Stock = ?, OrderNumber = ?, UpDatedSpec = ?, Remark = ?, OdooRecord = ?, SKU = ?, TechDone = ?, LastModifiedUser = ?, LastModifiedDateTime = GETDATE()
                 WHERE ID = ?
             """, (brand, model, spec, serial_number_new, condition, sealed, stock, 
-                order_number, updated_spec, remark, odoo_record, sku, tech_done, id))
+                order_number, updated_spec, remark, odoo_record, sku, tech_done, user, id))
         
         images = request.files.getlist('new_images')
         if images:

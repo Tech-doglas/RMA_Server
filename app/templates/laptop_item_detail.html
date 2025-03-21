@@ -97,6 +97,14 @@
             <th>Remark</th>
             <td>{{ laptop.Remark or 'None' }}</td>
         </tr>
+        <tr>
+            <th>Last Edited User</th>
+            <td>{{ laptop.LastModifiedUser or '' }}</td>
+        </tr>
+        <tr>
+            <th>Last Edited DateTime</th>
+            <td>{{ laptop.LastModifiedDateTime or '' }}</td>
+        </tr>
         {% else %}
         <tr>
             <td colspan="2">No laptop found with this serial number.</td>

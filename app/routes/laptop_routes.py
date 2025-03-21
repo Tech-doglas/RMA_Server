@@ -85,6 +85,15 @@ def show_RMA_laptop_sheet():
 @laptop_bp.route('/laptop_input')
 def laptop_input():
     try:
-        return render_template('laptop_input.html')
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM RMA_user")
+        data = cursor.fetchall()
+
+        conn.close()
+
+        results = [row[0] for row in data]
+
+        return render_template('laptop_input.html', users=results)
     except Exception as e:
         return f"Error: {str(e)}"
