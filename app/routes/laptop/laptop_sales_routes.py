@@ -7,7 +7,7 @@ laptop_sales_bp = Blueprint('laptop_sales', __name__)
 @laptop_sales_bp.route('/')
 def sales():
     try:
-        return render_template('sales.html')
+        return render_template('laptop/sales.html')
     except Exception as e:
         return f"Error: {str(e)}"
 
@@ -22,7 +22,7 @@ def sales_detail(id):
             return "Item not found", 404
         laptop = dict(zip([column[0] for column in cursor.description], data))
         conn.close()
-        return render_template('laptop_sales.html', laptop=laptop, id=id)
+        return render_template('laptop/laptop_sales.html', laptop=laptop, id=id)
     except Exception as e:
         return f"Error: {str(e)}", 500
 

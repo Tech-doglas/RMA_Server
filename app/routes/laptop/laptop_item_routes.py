@@ -18,7 +18,7 @@ def laptop_item_detail(id):
         laptop = dict(zip([column[0] for column in cursor.description], data))
         image_files = get_image_files(laptop['ID'])
         conn.close()
-        return render_template('laptop_item_detail.html', laptop=laptop, image_files=image_files)
+        return render_template('laptop/laptop_item_detail.html', laptop=laptop, image_files=image_files)
     except Exception as e:
         return f"Error: {str(e)}", 500
 
@@ -83,7 +83,7 @@ def edit_item(id):
 
         users = [row[0] for row in data]
         conn.close()
-        return render_template('laptop_edit_item.html', laptop=laptop, image_files=image_files, users=users)
+        return render_template('laptop/laptop_edit_item.html', laptop=laptop, image_files=image_files, users=users)
     except Exception as e:
         return f"Error: {str(e)}", 500
 
