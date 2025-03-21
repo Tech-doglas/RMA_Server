@@ -2,8 +2,8 @@
 from flask import Blueprint, render_template, request, redirect
 from app.models import get_db_connection
 
-from app.routes.laptop_item_routes import laptop_item_bp
-from app.routes.laptop_sales_routes import laptop_sales_bp
+from app.routes.laptop.laptop_item_routes import laptop_item_bp
+from app.routes.laptop.laptop_sales_routes import laptop_sales_bp
 
 laptop_bp = Blueprint('laptop', __name__)
 laptop_bp.register_blueprint(laptop_item_bp, url_prefix='/item')
@@ -77,8 +77,9 @@ def show_RMA_laptop_sheet():
         data = cursor.fetchall()
         columns = [column[0] for column in cursor.description]
         results = [dict(zip(columns, row)) for row in data]
+        total_count = len(results)
         conn.close()
-        return render_template('laptop.html', items=results)
+        return render_template('laptop/laptop.html', items=results, total_count=total_count)
     except Exception as e:
         return f"Error: {str(e)}"
 
@@ -94,6 +95,6 @@ def laptop_input():
 
         results = [row[0] for row in data]
 
-        return render_template('laptop_input.html', users=results)
+        return render_template('laptop/laptop_input.html', users=results)
     except Exception as e:
         return f"Error: {str(e)}"
