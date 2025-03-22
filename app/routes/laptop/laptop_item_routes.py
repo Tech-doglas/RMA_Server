@@ -43,6 +43,7 @@ def submit_item():
         ssd = request.form.get('ssd')
         spec = f"{ram}+{ssd}"
         serial_number = request.form.get('serial_number')
+        odooRef = request.form.get('OdooRef')
         condition = request.form.get('condition')
         sealed = True if request.form.get('sealed') else False
         odoo_record = True if request.form.get('odoorecord') else False
@@ -53,10 +54,10 @@ def submit_item():
         user= request.form.get('user')
 
         cursor.execute("""
-            INSERT INTO RMA_laptop_sheet (Brand, Model, Spec, SerialNumber, Condition, Sealed, Stock, Remark, OdooRecord, SKU, TechDone, LastModifiedUser, LastModifiedDateTime) 
+            INSERT INTO RMA_laptop_sheet (Brand, Model, Spec, SerialNumber,OdooRef ,Condition, Sealed, Stock, Remark, OdooRecord, SKU, TechDone, LastModifiedUser, LastModifiedDateTime) 
             OUTPUT INSERTED.ID
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, GETDATE())
-        """, (brand, model, spec, serial_number, condition, sealed, stock, remark, odoo_record, sku, tech_done, user))
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, GETDATE())
+        """, (brand, model, spec, serial_number,odooRef, condition, sealed, stock, remark, odoo_record, sku, tech_done, user))
         
         primary_key = cursor.fetchone()[0]
         save_laptop_images(request.files.getlist('images'), primary_key)
@@ -94,6 +95,7 @@ def update_item(id):
         model = request.form.get('model')
         spec = request.form.get('spec')
         serial_number_new = request.form.get('serial_number')
+        odooRef = request.form.get('odooRef')
         condition = request.form.get('condition')
         sealed = True if request.form.get('sealed') else False
         stock = request.form.get('stock')
@@ -113,10 +115,10 @@ def update_item(id):
 
         cursor.execute("""
                 UPDATE RMA_laptop_sheet 
-                SET Brand = ?, Model = ?, Spec = ?, SerialNumber = ?, Condition = ?, 
+                SET Brand = ?, Model = ?, Spec = ?, SerialNumber = ?, OdooRef = ? ,Condition = ?, 
                     Sealed = ?, Stock = ?, OrderNumber = ?, UpDatedSpec = ?, Remark = ?, OdooRecord = ?, SKU = ?, TechDone = ?, LastModifiedUser = ?, LastModifiedDateTime = GETDATE()
                 WHERE ID = ?
-            """, (brand, model, spec, serial_number_new, condition, sealed, stock, 
+            """, (brand, model, spec, serial_number_new,odooRef ,condition, sealed, stock, 
                 order_number, updated_spec, remark, odoo_record, sku, tech_done, user, id))
         
         images = request.files.getlist('new_images')

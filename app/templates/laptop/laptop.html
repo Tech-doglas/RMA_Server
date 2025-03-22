@@ -8,109 +8,130 @@
 </head>
 
 <body>
-    <h1>RMA Laptop List</h1>
 
-    <button onclick="window.location.href='{{ url_for('laptop.laptop_input') }}'">
-        Input
-    </button>
-    <button class="orange" onclick="window.location.href='{{ url_for('index.show_landing_page') }}'">
-        Home
-    </button>
+    <div class="search-container">
 
-    <!-- Search Form with updated styling -->
-    <form method="POST" action="{{ url_for('laptop.show_RMA_laptop_sheet') }}" class="search-form">
-        <div class="form-group">
-            <label for="brand">Brand:</label>
-            <input type="text" id="brand" name="brand" placeholder="e.g., HP">
+        <h1>RMA Laptop List</h1>
+
+        <button onclick="window.location.href='{{ url_for('laptop.laptop_input') }}'">
+            Input
+        </button>
+        <button class="orange" onclick="window.location.href='{{ url_for('index.show_landing_page') }}'">
+            Home
+        </button>
+        <form method="POST" action="{{ url_for('laptop.show_RMA_laptop_sheet') }}" class="search-form">
+                <div class="form-group">
+                    <label for="brand">Brand:</label>
+                    <input type="text" id="brand" name="brand" placeholder="e.g., HP">
+                </div>
+        
+                <div class="form-group">
+                    <label for="model">Model:</label>
+                    <input type="text" id="model" name="model" placeholder="e.g., XPS-13">
+                </div>
+        
+                <div class="form-group">
+                    <label for="serial_number">Serial Number:</label>
+                    <input type="text" id="serial_number" name="serial_number" placeholder="e.g., A123456">
+                </div>
+        
+                <div class="checkbox-container">
+                    <label>Stock:</label>
+                    <input type="checkbox" id="stock_sold" name="stock_sold">
+                    <label for="stock_sold" style="width: auto;">Sold</label>
+                    <input type="checkbox" id="stock_null" name="stock_null">
+                    <label for="stock_null" style="width: auto;">Not Sold</label>
+                </div>
+        
+                <div>
+                    <label for="condition">Condition:</label>
+                    <select id="condition" name="condition">
+                        <option value="" disabled selected>Select condition</option>
+                        <option value="N">Back to New</option>
+                        <option value="A">Grade A</option>
+                        <option value="B">Grade B</option>
+                        <option value="C">Grade C</option>
+                        <option value="F">Grade F</option>
+                    </select>
+                </div>
+        
+                <div class="checkbox-container">
+                    <label>Technician:</label>
+                    <input type="checkbox" id="tech_done" name="tech_done">
+                    <label for="tech_done" style="width: auto;">Done</label>
+                    <input type="checkbox" id="tech_not_done" name="tech_not_done">
+                    <label for="tech_not_done" style="width: auto;">Not Done</label>
+                </div>
+        
+                <button type="submit">Search</button>
+        </form>
+
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+            <span>Total Count: {{total_count}}</span>
+            <div class="column-filter-container">
+                <button id="column-filter-btn"> Filter ▼</button>
+                <div id="column-filter-menu" class="column-filter-menu hidden">
+                    <label><input type="checkbox" id="toggle-brand" checked> Brand</label>
+                    <label><input type="checkbox" id="toggle-condition" checked> Condition</label>
+                    <label><input type="checkbox" id="toggle-model" checked> Model</label>
+                    <label><input type="checkbox" id="toggle-spec" checked> Spec</label>
+                    <label><input type="checkbox" id="toggle-sn" checked> Serial Number</label>
+                    <label><input type="checkbox" id="toggle-odoo-ref"> Odoo Code</label>
+                    <label><input type="checkbox" id="toggle-sku" checked> SKU</label>
+                    <label><input type="checkbox" id="toggle-order-number" checked> Order Number</label>
+                    <label><input type="checkbox" id="toggle-stock"> Stock</label>
+                    <label><input type="checkbox" id="toggle-sealed"> Sealed</label>
+                    <label><input type="checkbox" id="toggle-odoo-record"> Odoo Record</label>
+                </div>
+            </div>
         </div>
-
-        <div class="form-group">
-            <label for="model">Model:</label>
-            <input type="text" id="model" name="model" placeholder="e.g., XPS-13">
-        </div>
-
-        <div class="form-group">
-            <label for="serial_number">Serial Number:</label>
-            <input type="text" id="serial_number" name="serial_number" placeholder="e.g., A123456">
-        </div>
-
-        <div class="checkbox-container">
-            <label>Stock:</label>
-            <input type="checkbox" id="stock_sold" name="stock_sold">
-            <label for="stock_sold" style="width: auto;">Sold</label>
-            <input type="checkbox" id="stock_null" name="stock_null">
-            <label for="stock_null" style="width: auto;">Not Sold</label>
-        </div>
-
-        <div>
-            <label for="condition">Condition:</label>
-            <select id="condition" name="condition">
-                <option value="" disabled selected>Select condition</option>
-                <option value="N">Back to New</option>
-                <option value="A">Grade A</option>
-                <option value="B">Grade B</option>
-                <option value="C">Grade C</option>
-                <option value="F">Grade F</option>
-            </select>
-        </div>
-
-        <div class="checkbox-container">
-            <label>Technician:</label>
-            <input type="checkbox" id="tech_done" name="tech_done">
-            <label for="tech_done" style="width: auto;">Done</label>
-            <input type="checkbox" id="tech_not_done" name="tech_not_done">
-            <label for="tech_not_done" style="width: auto;">Not Done</label>
-        </div>
-
-        <button type="submit">Search</button>
-    </form>
-
-    <span>Total Count: {{total_count}}</span>
-
+    </div>
     {% if items|length > 0 %}
     <table id="rma-table">
         <tr>
-            <th data-sort="Brand" class="sortable">Brand ↕</th>
-            <th data-sort="Condition" class="sortable">Condition ↕</th>
-            <th data-sort="Model" class="sortable">Model ↕</th>
-            <th data-sort="Spec" class="sortable">Spec ↕</th>
-            <th data-sort="SerialNumber" class="sortable">Serial Number ↕</th>
-            <th data-sort="SKU" class="sortable">SKU ↕</th>
-            <th data-sort="OrderNumber" class="sortable">Order Number ↕</th>
-            <th data-sort="Stock" class="sortable">Stock ↕</th>
-            <th data-sort="Sealed" class="sortable">Sealed ↕</th>
-            <th data-sort="OdooRecord" class="sortable">Odoo Record ↕</th>
+            <th data-sort="Brand" class="sortable brand-col">Brand ↕</th>
+            <th data-sort="Condition" class="sortable condition-col">Condition ↕</th>
+            <th data-sort="Model" class="sortable model-col">Model ↕</th>
+            <th data-sort="Spec" class="sortable spec-col">Spec ↕</th>
+            <th data-sort="SerialNumber" class="sortable sn-col">Serial Number ↕</th>
+            <th data-sort="OdooRef" class="sortable odoo-ref-col">Odoo Code ↕</th>
+            <th data-sort="SKU" class="sortable sku-col">SKU ↕</th>
+            <th data-sort="OrderNumber" class="sortable order-number-col">Order Number ↕</th>
+            <th data-sort="Stock" class="sortable stock-col">Stock ↕</th>
+            <th data-sort="Sealed" class="sortable sealed-col">Sealed ↕</th>
+            <th data-sort="OdooRecord" class="sortable odoo-record-col">Odoo Record ↕</th>
         </tr>
         {% for item in items %}
         {% if item.ID %}
         <tr {% if item.Stock=='SOLD' %} {% if item.TechDone %} class="sold-tech-done clickable-row" {% else %}
-            class="sold clickable-row" {% endif %} {% else %} class="clickable-row" {% endif %} data-id="{{ item.ID }}">
-            <td>{{ item.Brand }}</td>
-            <td {% if item.Stock !='SOLD' %} {% if item.Condition=='N' %}class="condition-n" {% endif %} {% if
-                item.Condition=='A' %}class="condition-a" {% endif %} {% if item.Condition=='B' %}class="condition-b" {%
-                endif %} {% if item.Condition=='C' %}class="condition-c" {% endif %} {% if item.Condition=='F'
-                %}class="condition-f" {% endif %} {% endif %}>
-                {% if item.Condition == 'N' %}Back to new{% endif %}
-                {% if item.Condition == 'A' %}Grade A{% endif %}
-                {% if item.Condition == 'B' %}Grade B{% endif %}
-                {% if item.Condition == 'C' %}Grade C{% endif %}
-                {% if item.Condition == 'F' %}Grade F{% endif %}
-            </td>
-            <td>{{ item.Model }}</td>
-            <td>
-                {% if item.UpDatedSpec %}
-                <s>{{ item.Spec }}</s> → {{ item.UpDatedSpec }}
-                {% else %}
-                {{ item.Spec }}
-                {% endif %}
-            </td>
-            <td class="clickable-copy">{{ item.SerialNumber }}</td>
-            <td>{{ item.SKU or '' }}</td>
-            <td class="clickable-copy">{{ item.OrderNumber or '' }}</td>
-            <td>{{ item.Stock }}</td>
-            <td>{{ '✅' if item.Sealed else '❌' }}</td>
-            <td>{{ '✅' if item.OdooRecord else '❌' }}</td>
-        </tr>
+        class="sold clickable-row" {% endif %} {% else %} class="clickable-row" {% endif %} data-id="{{ item.ID }}">
+        <td class="brand-col">{{ item.Brand }}</td>
+        <td class="condition-col" {% if item.Stock !='SOLD' %} {% if item.Condition=='N' %}class="condition-n" {% endif %} {% if
+            item.Condition=='A' %}class="condition-a" {% endif %} {% if item.Condition=='B' %}class="condition-b" {%
+            endif %} {% if item.Condition=='C' %}class="condition-c" {% endif %} {% if item.Condition=='F'
+            %}class="condition-f" {% endif %} {% endif %}>
+            {% if item.Condition == 'N' %}Back to new{% endif %}
+            {% if item.Condition == 'A' %}Grade A{% endif %}
+            {% if item.Condition == 'B' %}Grade B{% endif %}
+            {% if item.Condition == 'C' %}Grade C{% endif %}
+            {% if item.Condition == 'F' %}Grade F{% endif %}
+        </td>
+        <td class="model-col">{{ item.Model }}</td>
+        <td class="spec-col">
+            {% if item.UpDatedSpec %}
+            <s>{{ item.Spec }}</s> → {{ item.UpDatedSpec }}
+            {% else %}
+            {{ item.Spec }}
+            {% endif %}
+        </td>
+        <td class="sn-col clickable-copy">{{ item.SerialNumber }}</td>
+        <td class="odoo-ref-col clickable-copy">{{ item.OdooRef or '' }}</td>
+        <td class="sku-col">{{ item.SKU or '' }}</td>
+        <td class="order-number-col clickable-copy">{{ item.OrderNumber or '' }}</td>
+        <td class="stock-col">{{ item.Stock }}</td>
+        <td class="sealed-col">{{ '✅' if item.Sealed else '❌' }}</td>
+        <td class="odoo-record-col">{{ '✅' if item.OdooRecord else '❌' }}</td>
+    </tr>
         {% else %}
         <tr><td colspan="10">Error: Item missing ID - {{ item.SerialNumber }}</td></tr>
         {% endif %}
@@ -195,6 +216,54 @@
 
                 // Re-add rows in sorted order
                 sorted.forEach(row => table.appendChild(row));
+            }
+
+            // Column filter functionality
+            const columns = [
+                { id: 'toggle-brand', class: 'brand-col' },
+                { id: 'toggle-condition', class: 'condition-col' },
+                { id: 'toggle-model', class: 'model-col' },
+                { id: 'toggle-spec', class: 'spec-col' },
+                { id: 'toggle-sn', class: 'sn-col' },
+                { id: 'toggle-odoo-ref', class: 'odoo-ref-col' },
+                { id: 'toggle-sku', class: 'sku-col' },
+                { id: 'toggle-order-number', class: 'order-number-col' },
+                { id: 'toggle-stock', class: 'stock-col' },
+                { id: 'toggle-sealed', class: 'stock-col' }, // Fixed: was 'sealed-col'
+                { id: 'toggle-odoo-record', class: 'odoo-record-col' }
+            ];
+
+            function toggleColumn(checkbox, columnClass) {
+                const cells = document.querySelectorAll(`.${columnClass}`);
+                cells.forEach(cell => {
+                    cell.classList.toggle('hidden', !checkbox.checked);
+                });
+            }
+
+            // Initialize column visibility on page load
+            columns.forEach(column => {
+                const checkbox = document.getElementById(column.id);
+                if (checkbox) {
+                    toggleColumn(checkbox, column.class); // Apply initial state
+                    checkbox.addEventListener('change', () => toggleColumn(checkbox, column.class));
+                }
+            });
+
+            // Dropdown menu toggle
+            const columnFilterBtn = document.getElementById('column-filter-btn');
+            const columnFilterMenu = document.getElementById('column-filter-menu');
+
+            if (columnFilterBtn && columnFilterMenu) {
+                columnFilterBtn.addEventListener('click', (event) => {
+                    event.stopPropagation(); // Prevent the click from triggering the document click event
+                    columnFilterMenu.classList.toggle('hidden');
+                });
+
+                document.addEventListener('click', (event) => {
+                    if (!columnFilterBtn.contains(event.target) && !columnFilterMenu.contains(event.target)) {
+                        columnFilterMenu.classList.add('hidden');
+                    }
+                });
             }
         });
     </script>

@@ -57,6 +57,10 @@
             <td>{{ laptop.SerialNumber }}</td>
         </tr>
         <tr>
+            <th>Odoo Code</th>
+            <td>{{ laptop.OdooRef or '' }}</td>
+        </tr>
+        <tr>
             <th>Condition</th>
             <td {% if laptop.Stock !='SOLD' %} {% if laptop.Condition=='N' %}class="condition-n" {% endif %} {% if
                 laptop.Condition=='A' %}class="condition-a" {% endif %} {% if laptop.Condition=='B'
