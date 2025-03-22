@@ -80,7 +80,6 @@ h1 {
     margin-right: 5px;
 }
 
-
 /* Styles for clickable rows */
 .clickable-row {
     cursor: pointer;
@@ -93,6 +92,10 @@ h1 {
 /* Styles for sortable headers */
 .sortable {
     cursor: pointer;
+    position: sticky;
+    top: 544px;
+    background-color: #f2f2f2;
+    z-index: 1000;
 }
 
 .sortable:hover {
@@ -129,7 +132,7 @@ button.red:hover {
 
 button.skyblue {
     background-color: #87ceeb;
-    color:black;
+    color: black;
 }
 
 button.skyblue:hover {
@@ -138,7 +141,7 @@ button.skyblue:hover {
 
 button.lightgreen {
     background-color: #55fc55;
-    color:black;
+    color: black;
 }
 
 button.lightgreen:hover {
@@ -192,7 +195,6 @@ button.disabled:hover {
     border: none;
     border-radius: 3px;
 }
-
 
 .form-group {
     margin: 15px 0px;
@@ -258,4 +260,67 @@ select:hover {
     column-gap: 50px;
     flex-wrap: wrap;
     align-items: center;
+}
+
+.search-container {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background-color: #fff;
+    padding-bottom: 10px;
+}
+
+.brand-col, .condition-col, .model-col, .spec-col, .sn-col, .odoo-ref-col, .sku-col, .order-number-col, .stock-col, .sealed-col, .odoo-record-col {
+    display: table-cell;
+}
+
+.brand-col.hidden, .condition-col.hidden, .model-col.hidden, .spec-col.hidden, .sn-col.hidden, .odoo-ref-col.hidden, .sku-col.hidden, .order-number-col.hidden, .stock-col.hidden, .sealed-col.hidden, .odoo-record-col.hidden {
+    display: none;
+}
+
+.column-filter-container {
+    position: relative;
+    display: inline-block;
+    margin: 10px 0;
+}
+
+#column-filter-btn {
+    background-color: cadetblue;
+    border: 1px solid #ccc;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+#column-filter-btn:hover {
+    background-color: #319093;
+}
+
+.column-filter-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    padding: 10px;
+    z-index: 1001;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 150px;
+}
+
+.column-filter-menu.hidden {
+    display: none;
+}
+
+.column-filter-menu label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    width: auto;
+    font-size: 14px;
 }

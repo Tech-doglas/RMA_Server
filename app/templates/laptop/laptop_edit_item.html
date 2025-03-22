@@ -63,9 +63,15 @@
             <input type="checkbox" id="sealed" name="sealed" {% if laptop.Sealed %}checked{% endif %}>
         </div>
 
-        <div class="form-group">
-            <label for="odoorecord">Odoo Record:</label>
-            <input type="checkbox" id="odoorecord" name="odoorecord" {% if laptop.OdooRecord %}checked{% endif %}>
+        <div class="flex-row">
+            <div class="form-group">
+                <label for="odoorecord">Odoo Record:</label>
+                <input type="checkbox" id="odoorecord" name="odoorecord" {% if laptop.OdooRecord %}checked{% endif %}>
+            </div>
+            <div class="form-group">
+                <label for="odooRef">Odoo Code:</label>
+                <input type="text" id="odooRef" name="odooRef" value="{{ laptop.OdooRef or '' }}">
+            </div>
         </div>
 
         <div class="form-group">
