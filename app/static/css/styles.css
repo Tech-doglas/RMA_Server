@@ -300,7 +300,7 @@ select:hover {
 .column-filter-menu {
     position: absolute;
     top: 100%;
-    left: 0;
+    transform: translateX(-50%); /* Center the menu */
     background-color: #fff;
     border: 1px solid #ccc;
     border-radius: 4px;
@@ -311,6 +311,7 @@ select:hover {
     flex-direction: column;
     gap: 5px;
     min-width: 150px;
+    max-width: 200px; /* Prevent the menu from being too wide */
 }
 
 .column-filter-menu.hidden {
