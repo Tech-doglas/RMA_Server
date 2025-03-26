@@ -3,7 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/styles.css') }}"
+    />
     <style>
       body {
         display: flex;
@@ -292,7 +295,7 @@
           <select id="user" name="user" required>
             <option value="" disabled selected>Select User</option>
             {% for user in users %}
-            <option value={{user}}>{{ user }}</option>
+            <option value="{{user}}">{{ user }}</option>
             {% endfor %}
           </select>
         </div>
@@ -329,6 +332,24 @@
           alert("Serial number must be at least 5 characters long");
           e.preventDefault();
           return false;
+        }
+      });
+
+      function validateGradeAndPhoto() {
+        const condition = document.getElementById("condition").value;
+        const images = document.getElementById("images").files;
+
+        if (["B", "C", "F"].includes(condition) && images.length === 0) {
+          alert("Grades B, Grades C, and Grades F require at least one photo.");
+          return false;
+        }
+        return true;
+      }
+
+      // Add to form submission
+      document.querySelector("form").addEventListener("submit", function (e) {
+        if (!validateGradeAndPhoto()) {
+          e.preventDefault();
         }
       });
     </script>

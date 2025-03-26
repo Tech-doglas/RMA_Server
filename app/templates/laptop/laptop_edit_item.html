@@ -160,6 +160,24 @@
                     .catch(error => alert(error.message));
             }
         }
+        function validateGradeAndPhoto() {
+            const condition = document.getElementById("condition").value;
+            const newImages = document.getElementById("new_images").files;
+            const currentImages = document.querySelectorAll(".image-preview img").length;
+            
+            if (["B", "C", "F"].includes(condition) && newImages.length === 0 && currentImages === 0) {
+                alert("Grades B, C, and F require at least one photo.");
+                return false;
+            }
+            return true;
+            }
+
+            // Add to form submission
+            document.querySelector("form").addEventListener("submit", function (e) {
+            if (!validateGradeAndPhoto()) {
+                e.preventDefault();
+            }
+        });
     </script>
 </body>
 
