@@ -96,12 +96,17 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Initialize column visibility on page load
+    // Initialize column visibility and localStorage
     columns.forEach(column => {
         const checkbox = document.getElementById(column.id);
         if (checkbox) {
+            const savedState = localStorage.getItem(column.id);
+            checkbox.checked = savedState !== null ? JSON.parse(savedState) : checkbox.checked;
             toggleColumn(checkbox, column.class); // Apply initial state
-            checkbox.addEventListener('change', () => toggleColumn(checkbox, column.class));
+            checkbox.addEventListener('change', () => {
+                localStorage.setItem(column.id, checkbox.checked);
+                toggleColumn(checkbox, column.class);
+            });
         }
     });
 

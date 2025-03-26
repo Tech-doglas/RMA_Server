@@ -29,16 +29,16 @@
             <div style="display: flex;">
                 <div class="test">
                     <label style="margin-bottom: 5px;">Serial Number</label>
-                    <input style="width: auto; padding: 10px;" type="text" placeholder="Enter serial number">
+                    <input style="width: auto; padding: 10px;"  id="serial_number" name="serial_number" type="text" placeholder="Enter serial number">
                 </div>
                 <div class="test">
                     <label style="margin-bottom: 5px;">Model</label>
-                    <input style="width: auto; padding: 10px;" type="text" placeholder="Enter model">
+                    <input style="width: auto; padding: 10px;"  id="model" name="model" type="text" placeholder="Enter model">
                 </div>
             </div>
-            <div style="display: flex; align-items: center; justify-content: space-between;">
-                <div>
-                    <select style="width: auto;" name="condition">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 10px;">
+                <div style="display: flex; align-items: center;">
+                    <select style="width: auto; margin-left: 10px;" name="brand">
                         <option value="" disabled selected>Brand</option>
                         <option value="HP">HP</option>
                         <option value="Dell">Dell</option>
@@ -50,7 +50,7 @@
                         <option value="IBuyPower">IBuyPower</option>
                     </select>
 
-                    <select style="width: auto;" name="brand">
+                    <select style="width: auto; margin: 0px 10px" name="condition">
                         <option value="" disabled selected>Condition</option>
                         <option value="N">Back to New</option>
                         <option value="A">Grade A</option>
@@ -58,66 +58,27 @@
                         <option value="C">Grade C</option>
                         <option value="F">Grade F</option>
                     </select>
-
-
-                    <label><input type="checkbox"> Stock</label>
-                    <label><input type="checkbox"> TechDone</label>
+                    
+                    <div style="display: grid;">
+                        <label>Stock: </label>
+                        <label><input id="stock_null" name="stock_null" type="checkbox">In Stock</label>
+                        <label><input id="stock_sold" name="stock_sold" type="checkbox">SOLD</label>
+                    </div>
+                    <div style="display: grid;">
+                        <label>TechDone: </label>
+                        <label><input id="tech_done" name="tech_done" type="checkbox"> Done</label>
+                        <label><input id="tech_not_done" name="tech_not_done" type="checkbox"> Not yet</label>
+                    </div>
                 </div>
 
                 <button style="margin-right: 15px;" type="submit">Search</button>
             </div>
-            <!-- <div>
-                <div class="form-group">
-                    <label for="brand">Brand:</label>
-                    <input type="text" id="brand" name="brand" placeholder="e.g., HP">
-                </div>
-
-                <div class="form-group">
-                    <label for="model">Model:</label>
-                    <input type="text" id="model" name="model" placeholder="e.g., XPS-13">
-                </div>
-
-                <div class="form-group">
-                    <label for="serial_number">Serial Number:</label>
-                    <input type="text" id="serial_number" name="serial_number" placeholder="e.g., A123456">
-                </div>
-
-                <div class="checkbox-container">
-                    <label>Stock:</label>
-                    <input type="checkbox" id="stock_sold" name="stock_sold">
-                    <label for="stock_sold" style="width: auto;">Sold</label>
-                    <input type="checkbox" id="stock_null" name="stock_null">
-                    <label for="stock_null" style="width: auto;">Not Sold</label>
-                </div>
-
-                <div>
-                    <label for="condition">Condition:</label>
-                    <select id="condition" name="condition">
-                        <option value="" disabled selected>Select condition</option>
-                        <option value="N">Back to New</option>
-                        <option value="A">Grade A</option>
-                        <option value="B">Grade B</option>
-                        <option value="C">Grade C</option>
-                        <option value="F">Grade F</option>
-                    </select>
-                </div>
-
-                <div class="checkbox-container">
-                    <label>Technician:</label>
-                    <input type="checkbox" id="tech_done" name="tech_done">
-                    <label for="tech_done" style="width: auto;">Done</label>
-                    <input type="checkbox" id="tech_not_done" name="tech_not_done">
-                    <label for="tech_not_done" style="width: auto;">Not Done</label>
-                </div>
-            </div>
-
-            <button type="submit">Search</button> -->
         </form>
 
         <div style="display: flex; align-items: center; justify-content: space-between;">
             <span>Total Count: {{total_count}}</span>
             <div class="column-filter-container">
-                <button id="column-filter-btn"> Filter ▼</button>
+                <button id="column-filter-btn">Filter ▼</button>
                 <div id="column-filter-menu" class="column-filter-menu hidden">
                     <label><input type="checkbox" id="toggle-brand" checked> Brand</label>
                     <label><input type="checkbox" id="toggle-condition" checked> Condition</label>
@@ -154,10 +115,7 @@
         <tr {% if item.Stock=='SOLD' %} {% if item.TechDone %} class="sold-tech-done clickable-row" {% else %}
             class="sold clickable-row" {% endif %} {% else %} class="clickable-row" {% endif %} data-id="{{ item.ID }}">
             <td class="brand-col">{{ item.Brand }}</td>
-            <td class="condition-col" {% if item.Stock !='SOLD' %} {% if item.Condition=='N' %}class="condition-n" {%
-                endif %} {% if item.Condition=='A' %}class="condition-a" {% endif %} {% if item.Condition=='B'
-                %}class="condition-b" {% endif %} {% if item.Condition=='C' %}class="condition-c" {% endif %} {% if
-                item.Condition=='F' %}class="condition-f" {% endif %} {% endif %}>
+            <td class="condition-col {% if item.Stock != 'SOLD' %}{% if item.Condition == 'N' %}condition-n{% elif item.Condition == 'A' %}condition-a{% elif item.Condition == 'B' %}condition-b{% elif item.Condition == 'C' %}condition-c{% elif item.Condition == 'F' %}condition-f{% endif %}{% endif %}">
                 {% if item.Condition == 'N' %}Back to new{% endif %}
                 {% if item.Condition == 'A' %}Grade A{% endif %}
                 {% if item.Condition == 'B' %}Grade B{% endif %}
