@@ -93,9 +93,8 @@ h1 {
 .sortable {
     cursor: pointer;
     position: sticky;
-    top: 357px;
+    top: 370px;
     background-color: #f2f2f2;
-    z-index: 1000;
 }
 
 .sortable:hover {
@@ -265,7 +264,7 @@ select:hover {
 .search-container {
     position: sticky;
     top: 0;
-    z-index: 1000;
+    z-index: 2000;
     background-color: #fff;
     padding-bottom: 10px;
 }

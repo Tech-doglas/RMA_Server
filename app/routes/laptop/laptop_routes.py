@@ -9,6 +9,14 @@ laptop_bp = Blueprint('laptop', __name__)
 laptop_bp.register_blueprint(laptop_item_bp, url_prefix='/item')
 laptop_bp.register_blueprint(laptop_sales_bp, url_prefix='/sales')
 
+condition_mapping = {
+    'Back to New': 'N',
+    'Grade A': 'A',
+    'Grade B': 'B',
+    'Grade C': 'C',
+    'Grade F': 'F'
+}
+
 @laptop_bp.route('/', methods=['GET', 'POST'])
 def show_RMA_laptop_sheet():
     try:
@@ -16,14 +24,17 @@ def show_RMA_laptop_sheet():
         cursor = conn.cursor()
         
         if request.method == 'POST':
-            brand = request.form.get('brand', '').strip()  # From select
-            model = request.form.get('model', '').strip()  # From input
-            serial_number = request.form.get('serial_number', '').strip()  # From input
-            condition = request.form.get('condition', '').strip()  # From select
-            tech_done = '1' if request.form.get('tech_done') else None  # Convert to '1' for bit
-            tech_not_done = '0' if request.form.get('tech_not_done') else None  # Convert to '0' for bit
+            brand = request.form.get('brand', '').strip()
+            model = request.form.get('model', '').strip()
+            serial_number = request.form.get('serial_number', '').strip()
+            tech_done = '1' if request.form.get('tech_done') else None
+            tech_not_done = '0' if request.form.get('tech_not_done') else None
             stock_sold = 'SOLD' if request.form.get('stock_sold') else None
             stock_null = True if request.form.get('stock_null') else None
+            
+            conditions = request.form.get('conditions', '') 
+            condition_list = [condition.strip() for condition in conditions.split(',') if condition.strip()]
+            db_conditions = [condition_mapping.get(condition, condition) for condition in condition_list]
 
             query = "SELECT * FROM RMA_laptop_sheet WHERE 1=1"
             params = []
@@ -37,9 +48,9 @@ def show_RMA_laptop_sheet():
             if serial_number:
                 query += " AND SerialNumber LIKE ?"
                 params.append(f"%{serial_number}%")
-            if condition:
-                query += " AND Condition = ?"
-                params.append(condition)
+            if db_conditions:
+                query += " AND Condition IN (" + ",".join(["?"] * len(db_conditions)) + ")"
+                params.extend(db_conditions)
             tech_conditions = []
             if tech_done is not None:
                 tech_conditions.append("TechDone = ?")

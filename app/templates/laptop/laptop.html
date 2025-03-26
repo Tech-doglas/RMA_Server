@@ -5,12 +5,7 @@
     <meta charset="UTF-8">
     <title>RMA Laptop List</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-    <style>
-        .test {
-            width: 100%;
-            display: grid;
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/multi-select.css') }}">
 </head>
 
 <body>
@@ -27,11 +22,11 @@
         </button>
         <form method="POST" action="{{ url_for('laptop.show_RMA_laptop_sheet') }}" class="search-form">
             <div style="display: flex;">
-                <div class="test">
+                <div style="width: 100%; display: grid;">
                     <label style="margin-bottom: 5px;">Serial Number</label>
                     <input style="width: auto; padding: 10px;"  id="serial_number" name="serial_number" type="text" placeholder="Enter serial number">
                 </div>
-                <div class="test">
+                <div style="width: 100%; display: grid;">
                     <label style="margin-bottom: 5px;">Model</label>
                     <input style="width: auto; padding: 10px;"  id="model" name="model" type="text" placeholder="Enter model">
                 </div>
@@ -50,14 +45,17 @@
                         <option value="IBuyPower">IBuyPower</option>
                     </select>
 
-                    <select style="width: auto; margin: 0px 10px" name="condition">
-                        <option value="" disabled selected>Condition</option>
-                        <option value="N">Back to New</option>
-                        <option value="A">Grade A</option>
-                        <option value="B">Grade B</option>
-                        <option value="C">Grade C</option>
-                        <option value="F">Grade F</option>
-                    </select>
+                    <div class="multi-select">
+                        <div class="select-bar">Condition</div>
+                        <div class="dropdown">
+                          <div class="option" data-value="Back to New">Back to New</div>
+                          <div class="option" data-value="Grade A">Grade A</div>
+                          <div class="option" data-value="Grade B">Grade B</div>
+                          <div class="option" data-value="Grade C">Grade C</div>
+                          <div class="option" data-value="Grade F">Grade F</div>
+                        </div>
+                        <input type="hidden" name="conditions" id="conditions-input" value="">
+                      </div>
                     
                     <div style="display: grid;">
                         <label>Stock: </label>
