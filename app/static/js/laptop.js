@@ -126,4 +126,52 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     }
+
+    // condition select dropdown menu toggle
+    const selectBar = document.querySelector('.select-bar');
+    const dropdown = document.querySelector('.dropdown');
+    const options = document.querySelectorAll('.option');
+    const conditionsInput = document.querySelector('#conditions-input');
+    let selectedItems = [];
+
+    selectBar.addEventListener('click', () => {
+        dropdown.classList.toggle('active');
+    });
+
+    options.forEach(option => {
+        option.addEventListener('click', () => {
+        const value = option.getAttribute('data-value');
+        if (selectedItems.includes(value)) {
+            selectedItems = selectedItems.filter(item => item !== value);
+            option.classList.remove('selected');
+        } else {
+            selectedItems.push(value);
+            option.classList.add('selected');
+        }
+        selectBar.innerHTML = selectedItems.length > 0 
+            ? selectedItems.map(item => {
+                let className;
+                console.log(item)
+                switch (item) {
+                    case 'Back to New': className = 'condition-n'; break;
+                    case 'Grade A': className = 'condition-a'; break;
+                    case 'Grade B': className = 'condition-b'; break;
+                    case 'Grade C': className = 'condition-c'; break;
+                    case 'Grade F': className = 'condition-f'; break;
+                    default: className = '';
+                }
+                return `<span class="selected-item ${className}">${item}</span>`;
+                }).join(' ') 
+            : 'Condition';
+
+        // Update the hidden input with selected values
+        conditionsInput.value = selectedItems.join(',');
+        });
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!selectBar.contains(e.target) && !dropdown.contains(e.target)) {
+        dropdown.classList.remove('active');
+        }
+    });
 });
