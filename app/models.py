@@ -12,7 +12,7 @@ def get_db_connection():
     return pyodbc.connect(current_app.config['CONN_STR'])
 
 def save_laptop_images(images, item_id):
-    image_dir = os.path.join('images', str(item_id))
+    image_dir = os.path.join('images', 'laptop', str(item_id))
     os.makedirs(image_dir, exist_ok=True)
     
     from werkzeug.utils import secure_filename
@@ -25,7 +25,7 @@ def save_laptop_images(images, item_id):
     return image_dir
 
 def get_laptop_image_files(item_id):
-    image_dir = os.path.join(get_project_root(), 'images', str(item_id))
+    image_dir = os.path.join(get_project_root(), 'images', 'laptop', str(item_id))
     if os.path.exists(image_dir):
         files = sorted([f for f in os.listdir(image_dir) if os.path.isfile(os.path.join(image_dir, f))])
         return files

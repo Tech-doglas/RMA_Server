@@ -25,7 +25,7 @@ def laptop_item_detail(id):
 @laptop_item_bp.route('/images/<id>/<filename>')
 def serve_image(id, filename):
     try:
-        image_dir = os.path.join(get_project_root(), 'images', str(id))
+        image_dir = os.path.join(get_project_root(), 'images', 'laptop', str(id))
         if not os.path.exists(image_dir):
             return "Image directory not found", 404
         return send_from_directory(image_dir, filename)
@@ -123,7 +123,7 @@ def update_item(id):
         
         images = request.files.getlist('new_images')
         if images:
-            image_dir = os.path.join(get_project_root(), 'images', str(id))
+            image_dir = os.path.join(get_project_root(), 'images', 'laptop', str(id))
             os.makedirs(image_dir, exist_ok=True)
             existing_images = get_laptop_image_files(id)
             next_image_num = len(existing_images) + 1
@@ -148,7 +148,7 @@ def delete_item(id):
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute("DELETE FROM RMA_laptop_sheet WHERE ID = ?", id)
-        image_dir = os.path.join('images', str(id))
+        image_dir = os.path.join('images', 'laptop', str(id))
         if os.path.exists(image_dir):
             shutil.rmtree(image_dir)
         conn.commit()
@@ -165,7 +165,7 @@ def delete_image(id, filename):
         cursor.execute("SELECT ID FROM RMA_laptop_sheet WHERE ID = ?", id)
         if not cursor.fetchone():
             return "Item not found", 404
-        image_dir = os.path.join(get_project_root(), 'images', str(id))
+        image_dir = os.path.join(get_project_root(), 'images', 'laptop', str(id))
         image_path = os.path.join(image_dir, filename)
         if os.path.exists(image_path):
             os.remove(image_path)
