@@ -35,7 +35,7 @@
                 <div style="display: flex; align-items: center;">
                     <select style="width: auto; margin-left: 10px;" name="brand">
                         <option value="" disabled selected>Category</option>
-                        <option value="Electrionic">Electrionic Devices</option>
+                        <option value="Electronic">Electronic Devices</option>
                         <option value="Printer">Printer</option>
                         <option value="Monitor">Monitor</option>
                         <option value="Other">Other</option>
@@ -64,7 +64,6 @@
                     <label><input type="checkbox" id="toggle-rec-date"> Rec Date</label>
                     <label><input type="checkbox" id="toggle-tracking" checked> Tracking#</label>
                     <label><input type="checkbox" id="toggle-name" checked> Name</label>
-                    <label><input type="checkbox" id="toggle-qty" checked> Qty</label>
                     <label><input type="checkbox" id="toggle-location" checked> Location</label>
                     <label><input type="checkbox" id="toggle-category" checked> Category</label>
                     <label><input type="checkbox" id="toggle-inspectReq" checked> Inspection Request</label>
@@ -79,7 +78,6 @@
             <th data-sort="ReceivedDate" class="sortable">Rec Date ↕</th>
             <th data-sort="TrackingNumber" class="sortable">Tracking# ↕</th>
             <th data-sort="Name" class="sortable">Name ↕</th>
-            <th data-sort="Qty" class="sortable">Qty ↕</th>
             <th data-sort="Location" class="sortable">Location ↕</th>
             <th data-sort="Category" class="sortable">Category ↕</th>
             <th data-sort="InspectionRequest" class="sortable">Inspection Request ↕</th>
@@ -90,9 +88,10 @@
             <td>{{ item.ReceivedDate}}</td>
             <td>{{ item.TrackingNumber }}</td>
             <td>{{ item.Name }}</td>
-            <td>{{ item.Qty}}</td>
             <td>{{ item.Location }}</td>
-            <td>{{ item.Category}}</td>
+            <td>
+                {% if item.Category == 'Electrionic' %}Electronic Devices{% endif %}
+            </td>
             <td class="{% if item.InspectionRequest == 'A' %}red{% elif item.InspectionRequest == 'B' %}condition-b{% elif item.InspectionRequest == 'C' %}condition-n{% endif %}">
                 {% if item.InspectionRequest == 'A' %}Full inspection{% endif %}
                 {% if item.InspectionRequest == 'B' %}Quick Check{% endif %}

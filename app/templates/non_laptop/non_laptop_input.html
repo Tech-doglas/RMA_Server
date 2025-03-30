@@ -179,13 +179,19 @@
         </div>
 
         <div class="form-group">
+          <label for="received_date">Recived Date:</label>
+          <input type="date" id="received_date" name="received_date" required>
+        </div>
+
+
+        <div class="form-group">
           <label for="category">Category:</label>
           <select id="category" name="category" required>
-            <option value="" disabled selected>Select a Category</option>
-            <option value="Electrionic">Electrionic Devices</option>
-            <option value="Printer">Printer</option>
-            <option value="Printer">Monitor</option>
-            <option value="Other">Other</option>
+              <option value="" disabled selected>Select a Category</option>
+              <option value="Electronic">Electronic Devices</option>
+              <option value="Printer">Printer</option>
+              <option value="Monitor">Monitor</option>
+              <option value="Other">Other</option>
           </select>
         </div>
 
@@ -213,7 +219,7 @@
 
         <div class="form-group">
           <label for="condition">Condition:</label>
-          <select id="condition" name="condition" required>
+          <select id="condition" name="condition">
             <option value="" disabled selected>Select condition</option>
             <option value="N">Back to New</option>
             <option value="A">Grade A</option>
@@ -224,13 +230,19 @@
         </div>
 
         <div class="form-group">
-          <label for="received_date">Recived Date:</label>
-          <input type="date" id="received_date" name="received_date" required>
+          <label for="qty">Qty:</label>
+          <input type="number" id="qty" name="qty" placeholder="e.g., 2" required/>
         </div>
 
         <div class="form-group">
-          <label for="qty">Qty:</label>
-          <input type="number" id="qty" name="qty" required/>
+          <label for="location">Location:</label>
+          <input
+            type="text"
+            id="location"
+            name="location"
+            placeholder="e.g., On Pallet/A1"
+            required
+          />
         </div>
 
         <div class="form-group">

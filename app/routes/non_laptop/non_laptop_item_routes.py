@@ -42,44 +42,46 @@ def submit_item():
         category = request.form.get('category')
         name = request.form.get('name')
         odoo_ref = request.form.get('OdooRef')
-        condition = request.form.get('condition')
+        condition = request.form.get('condition', '')
         received_date = request.form.get('received_date')
-        quantity = request.form.get('qty')
+        quantity = int(request.form.get('qty'))
         remark = request.form.get('remark')
         user = request.form.get('user')
+        location = request.form.get('location')
 
-        cursor.execute(
-            """
-                    INSERT INTO RMA_non_laptop_sheet (
-                        TrackingNumber, 
-                        Category, 
-                        Name, 
-                        OdooRef, 
-                        Condition, 
-                        ReceivedDate, 
-                        Quantity, 
-                        Remark, 
-                        LastModifiedUser, 
-                        LastModifiedDateTime
-                    ) 
-                    OUTPUT INSERTED.ID
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, GETDATE())
+        for _ in range(quantity):
+            cursor.execute(
+                """
+                INSERT INTO RMA_non_laptop_sheet (
+                    TrackingNumber, 
+                    Category, 
+                    Name, 
+                    OdooRef, 
+                    Condition, 
+                    ReceivedDate, 
+                    Remark, 
+                    LastModifiedUser, 
+                    LastModifiedDateTime, 
+                    Location
+                ) 
+                OUTPUT INSERTED.ID
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, GETDATE(), ?)
                 """,
-            (
-                tracking_number,
-                category,
-                name,
-                odoo_ref,
-                condition,
-                received_date,
-                quantity,
-                remark,
-                user,
-            ),
-        )
+                (
+                    tracking_number,
+                    category,
+                    name,
+                    odoo_ref,
+                    condition if condition else None,
+                    received_date,
+                    remark,
+                    user,
+                    location
+                )
+            )
         
         primary_key = cursor.fetchone()[0]
-        save_laptop_images(request.files.getlist('images'), primary_key)
+        # save_laptop_images(request.files.getlist('images'), "non_laptop" , primary_key)
         conn.commit()
         conn.close()
         return redirect(url_for('non_laptop.non_laptop_input'))

@@ -38,6 +38,12 @@
             <input type="date" id="record_date" name="record_date">
         </div>
 
+        <div class="form-group">
+            <label for="recorded">Recorded:</label>
+            <input id="recorded" name="recorded" value="recorded" type="radio"><label for="recorded">Recorded</label>
+            <input id="not_recorded" name="recorded" value="not_recorded" type="radio"><label for="not_recorded">Not Recorded</label>
+        </div>
+
         <button type="submit">Search</button>
     </form>
 
@@ -49,13 +55,14 @@
             <th>Tracking #</th>
             <th>Company</th>
             <th>Record DateTime</th>
+            <th>Recorded</th>
         </tr>
         {% for record in records %}
         <tr class="clickable-row" tracking-number="{{ record.TrackingNumber }}">
             <td>{{ record.TrackingNumber }}</td>
             <td>{{ record.Company }}</td>
             <td>{{ record.CreationDateTime }}</td>
-        </tr>
+            <td>{{ '✅' if record.Recorded else '❌' }}</td>
         {% endfor %}
     </table>
     {% else %}
