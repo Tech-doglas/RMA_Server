@@ -180,7 +180,7 @@
 
         <div class="form-group">
           <label for="category">Category:</label>
-          <select id="crand" name="crand" required>
+          <select id="category" name="category" required>
             <option value="" disabled selected>Select a Category</option>
             <option value="Electrionic">Electrionic Devices</option>
             <option value="Printer">Printer</option>
@@ -252,7 +252,6 @@
             name="images"
             accept="image/jpg; image/jpeg; image/png"
             multiple
-            onchange="previewImages()"
             oninput="validateFileSize(this)"
             required
           />

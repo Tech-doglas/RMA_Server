@@ -37,31 +37,49 @@ def submit_item():
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        print(1)
-        # brand = request.form.get('brand')
-        # model = request.form.get('model')
-        # ram = request.form.get('ram')
-        # ssd = request.form.get('ssd')
-        # spec = f"{ram}+{ssd}"
-        # serial_number = request.form.get('serial_number')
-        # odooRef = request.form.get('OdooRef')
-        # condition = request.form.get('condition')
-        # sealed = True if request.form.get('sealed') else False
-        # odoo_record = True if request.form.get('odoorecord') else False
-        # stock = ""
-        # remark = request.form.get('remark')
-        # sku = request.form.get('sku', '')
-        # tech_done = True if request.form.get('tech_done') else False
-        # user= request.form.get('user')
 
-        # cursor.execute("""
-        #     INSERT INTO RMA_laptop_sheet (Brand, Model, Spec, SerialNumber,OdooRef ,Condition, Sealed, Stock, Remark, OdooRecord, SKU, TechDone, LastModifiedUser, LastModifiedDateTime) 
-        #     OUTPUT INSERTED.ID
-        #     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, GETDATE())
-        # """, (brand, model, spec, serial_number,odooRef, condition, sealed, stock, remark, odoo_record, sku, tech_done, user))
+        tracking_number = request.form.get('tracking_number')
+        category = request.form.get('category')
+        name = request.form.get('name')
+        odoo_ref = request.form.get('OdooRef')
+        condition = request.form.get('condition')
+        received_date = request.form.get('received_date')
+        quantity = request.form.get('qty')
+        remark = request.form.get('remark')
+        user = request.form.get('user')
+
+        cursor.execute(
+            """
+                    INSERT INTO RMA_non_laptop_sheet (
+                        TrackingNumber, 
+                        Category, 
+                        Name, 
+                        OdooRef, 
+                        Condition, 
+                        ReceivedDate, 
+                        Quantity, 
+                        Remark, 
+                        LastModifiedUser, 
+                        LastModifiedDateTime
+                    ) 
+                    OUTPUT INSERTED.ID
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, GETDATE())
+                """,
+            (
+                tracking_number,
+                category,
+                name,
+                odoo_ref,
+                condition,
+                received_date,
+                quantity,
+                remark,
+                user,
+            ),
+        )
         
-        # primary_key = cursor.fetchone()[0]
-        # save_laptop_images(request.files.getlist('images'), primary_key)
+        primary_key = cursor.fetchone()[0]
+        save_laptop_images(request.files.getlist('images'), primary_key)
         conn.commit()
         conn.close()
         return redirect(url_for('non_laptop.non_laptop_input'))
