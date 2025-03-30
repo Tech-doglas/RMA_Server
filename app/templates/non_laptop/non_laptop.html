@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>RMA Laptop List</title>
+    <title>RMA non Laptop List</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/multi-select.css') }}">
 </head>
@@ -12,9 +12,9 @@
 
     <div class="search-container">
 
-        <h1>RMA Laptop List</h1>
+        <h1>RMA Non Laptop List</h1>
 
-        <button>
+        <button onclick="window.location.href='{{ url_for('non_laptop.non_laptop_input') }}'">
             Input
         </button>
         <button class="orange" onclick="window.location.href='{{ url_for('index.show_landing_page') }}'">

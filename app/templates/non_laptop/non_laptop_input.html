@@ -34,7 +34,9 @@
 
       input[type="text"],
       select,
-      textarea {
+      textarea,
+      input[type="date"],
+      input[type="number"] {
         padding: 8px;
         width: 100%;
         border-radius: 4px;
@@ -131,7 +133,9 @@
         }
 
         input[type="text"],
-        select {
+        select,
+        input[type="date"],
+        input[type="number"]  {
           max-width: 250px;
           width: 100%;
           box-sizing: border-box;
@@ -146,88 +150,52 @@
         }
       }
     </style>
-    <title>Input Laptop Item</title>
+    <title>Input Non Laptop Item</title>
   </head>
 
   <body>
     <div class="container">
-      <h1>Input New Laptop Item</h1>
+      <h1>Input New Non Laptop Item</h1>
 
       <button
-        onclick="window.location.href='{{ url_for('laptop.show_RMA_laptop_sheet') }}';"
+        onclick="window.location.href='{{ url_for('non_laptop.show_RMA_non_laptop_sheet') }}';"
         class="red"
       >
         Back
       </button>
 
-      <form
-        method="POST"
-        action="{{ url_for('laptop.laptop_item.submit_item') }}"
-        enctype="multipart/form-data"
-      >
+      <form method="POST" 
+      action="{{ url_for('non_laptop.non_laptop_item.submit_item') }}"
+      enctype="multipart/form-data">
         <div class="form-group">
-          <label for="brand">Brand:</label>
-          <select id="brand" name="brand" required>
-            <option value="" disabled selected>Select a brand</option>
-            <option value="HP">HP</option>
-            <option value="Dell">Dell</option>
-            <option value="Lenovo">Lenovo</option>
-            <option value="Apple">Apple</option>
-            <option value="Acer">Acer</option>
-            <option value="ASUS">ASUS</option>
-            <option value="MSI">MSI</option>
-            <option value="IBuyPower">IBuyPower</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="model">Model:</label>
+          <label for="tracking_number">Tracking#:</label>
           <input
             type="text"
-            id="model"
-            name="model"
-            placeholder="e.g., XPS-13"
+            id="tracking_number"
+            name="tracking_number"
+            placeholder="e.g., RA428003440US"
             required
           />
         </div>
 
         <div class="form-group">
-          <label for="ram">RAM:</label>
-          <select id="ram" name="ram" required>
-            <option value="" disabled selected>Select RAM</option>
-            <option value="4GB">4GB</option>
-            <option value="8GB">8GB</option>
-            <option value="12GB">12GB</option>
-            <option value="16GB">16GB</option>
-            <option value="24GB">24GB</option>
-            <option value="32GB">32GB</option>
-            <option value="40GB">40GB</option>
-            <option value="48GB">48GB</option>
-            <option value="64GB">64GB</option>
+          <label for="category">Category:</label>
+          <select id="crand" name="crand" required>
+            <option value="" disabled selected>Select a Category</option>
+            <option value="Electrionic">Electrionic Devices</option>
+            <option value="Printer">Printer</option>
+            <option value="Printer">Monitor</option>
+            <option value="Other">Other</option>
           </select>
         </div>
 
         <div class="form-group">
-          <label for="ssd">Storage:</label>
-          <select id="ssd" name="ssd" required>
-            <option value="" disabled selected>Select storage</option>
-            <option value="64GB">64GB EMMC SSD</option>
-            <option value="128GBe">128GB EMMC SSD</option>
-            <option value="128GB">128GB SSD</option>
-            <option value="256GB">256GB SSD</option>
-            <option value="512GB">512GB SSD</option>
-            <option value="1TB">1TB SSD</option>
-            <option value="2TB">2TB SSD</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="serial_number">Serial Number:</label>
+          <label for="name">Name:</label>
           <input
             type="text"
-            id="serial_number"
-            name="serial_number"
-            placeholder="e.g., A123456"
+            id="name"
+            name="name"
+            placeholder="e.g., Google Nest Hub"
             required
           />
         </div>
@@ -255,14 +223,14 @@
           </select>
         </div>
 
-        <div class="form-group checkbox-group">
-          <label for="sealed">Sealed:</label>
-          <input type="checkbox" id="sealed" name="sealed" />
+        <div class="form-group">
+          <label for="received_date">Recived Date:</label>
+          <input type="date" id="received_date" name="received_date" required>
         </div>
 
-        <div class="form-group checkbox-group">
-          <label for="odoorecord">Odoo Record:</label>
-          <input type="checkbox" id="odoorecord" name="odoorecord" />
+        <div class="form-group">
+          <label for="qty">Qty:</label>
+          <input type="number" id="qty" name="qty" required/>
         </div>
 
         <div class="form-group">
@@ -284,7 +252,9 @@
             name="images"
             accept="image/jpg; image/jpeg; image/png"
             multiple
+            onchange="previewImages()"
             oninput="validateFileSize(this)"
+            required
           />
           <div id="image-preview"></div>
         </div>
@@ -321,36 +291,6 @@
         }
         return valid;
       }
-    </script>
-
-    <script>
-      // Form validation
-      document.querySelector("form").addEventListener("submit", function (e) {
-        const serialNumber = document.getElementById("serial_number").value;
-        if (serialNumber.length < 5) {
-          alert("Serial number must be at least 5 characters long");
-          e.preventDefault();
-          return false;
-        }
-      });
-
-      function validateGradeAndPhoto() {
-        const condition = document.getElementById("condition").value;
-        const images = document.getElementById("images").files;
-
-        if (["B", "C", "F"].includes(condition) && images.length === 0) {
-          alert("Grades B, Grades C, and Grades F require at least one photo.");
-          return false;
-        }
-        return true;
-      }
-
-      // Add to form submission
-      document.querySelector("form").addEventListener("submit", function (e) {
-        if (!validateGradeAndPhoto()) {
-          e.preventDefault();
-        }
-      });
     </script>
   </body>
 </html>
