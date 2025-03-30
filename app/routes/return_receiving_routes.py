@@ -14,6 +14,7 @@ def show_return_receiving_sheet():
             tracking_number = request.form.get('tracking_number', '').strip()
             company = request.form.get('company', '').strip()
             record_date = request.form.get('record_date', '').strip()
+            recorded = request.form.get('recorded', '')
 
             query = "SELECT * FROM RMA_return_receiving WHERE 1=1"
             params = []
@@ -27,10 +28,17 @@ def show_return_receiving_sheet():
             if record_date:
                 query += " AND CONVERT(DATE, CreationDateTime) = ?"
                 params.append(record_date)
-            
-            cursor.execute(query, params) if params else cursor.execute("SELECT * FROM RMA_return_receiving")
+            if recorded:
+                if recorded == "recorded":
+                    query += " AND Recorded = ?"
+                    params.append(1)
+                else:
+                    query += " AND Recorded = ?"
+                    params.append(0)
+            query += " ORDER BY CreationDateTime DESC"
+            cursor.execute(query, params) if params else cursor.execute("SELECT * FROM RMA_return_receiving ORDER BY CreationDateTime DESC")
         else:
-            cursor.execute("SELECT * FROM RMA_return_receiving")
+            cursor.execute("SELECT * FROM RMA_return_receiving ORDER BY CreationDateTime DESC")
 
         data = cursor.fetchall()
         columns = [column[0] for column in cursor.description]
@@ -95,3 +103,15 @@ def serve_image(filename):
         return send_from_directory(image_dir, filename)
     except Exception as e:
         return f"Error: {str(e)}", 500
+    
+@return_receiving_bp.route('/recorded/<tracking_number>')
+def mark_recorded(tracking_number):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("UPDATE RMA_return_receiving SET Recorded = 1 WHERE TrackingNumber = ?", (tracking_number,))
+        conn.commit()
+        conn.close()
+        return redirect(url_for('return_receiving.return_receiving_record_detail', tracking_number=tracking_number))
+    except Exception as e:
+        return f"Error updating Recorded: {str(e)}", 500
