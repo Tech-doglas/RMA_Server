@@ -41,15 +41,28 @@
                         <option value="Other">Other</option>
                     </select>
 
-                    <div class="multi-select">
+                    <div class="multi-select" style="width: 200px;">
                         <div class="select-bar">Inspection Request</div>
                         <div class="dropdown">
                           <div class="option" data-value="Full inspection">Full inspection</div>
                           <div class="option" data-value="Quick Check">Quick Check</div>
                           <div class="option" data-value="As it">As it</div>
                         </div>
-                        <input type="hidden" name="conditions" id="conditions-input" value="">
-                      </div>
+                        <input type="hidden" name="inspection_request" id="inspection_requestt" value="">
+                    </div>
+
+                    <div class="multi-select" style="width: 200px;">
+                        <div class="select-bar">Condition</div>
+                        <div class="dropdown">
+                          <div class="option" data-value="Back to New">Back to New</div>
+                          <div class="option" data-value="Grade A">Grade A</div>
+                          <div class="option" data-value="Grade B">Grade B</div>
+                          <div class="option" data-value="Grade C">Grade C</div>
+                          <div class="option" data-value="Grade F">Grade F</div>
+                        </div>
+                        <input type="hidden" name="conditions" id="conditions_input" value="">
+                    </div>
+
                 </div>
 
                 <button style="margin-right: 15px;" type="submit">Search</button>
