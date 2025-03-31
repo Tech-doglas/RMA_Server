@@ -126,52 +126,67 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     }
+    // Handle multiple dropdowns
+    const dropdowns = document.querySelectorAll('.multi-select');
+    
+    dropdowns.forEach(dropdown => {
+        const selectBar = dropdown.querySelector('.select-bar');
+        const dropdownMenu = dropdown.querySelector('.dropdown');
+        const options = dropdown.querySelectorAll('.option');
+        const hiddenInput = dropdown.querySelector('input[type="hidden"]');
+        let selectedItems = [];
 
-    // condition select dropdown menu toggle
-    const selectBar = document.querySelector('.select-bar');
-    const dropdown = document.querySelector('.dropdown');
-    const options = document.querySelectorAll('.option');
-    const conditionsInput = document.querySelector('#conditions-input');
-    let selectedItems = [];
-
-    selectBar.addEventListener('click', () => {
-        dropdown.classList.toggle('active');
-    });
-
-    options.forEach(option => {
-        option.addEventListener('click', () => {
-        const value = option.getAttribute('data-value');
-        if (selectedItems.includes(value)) {
-            selectedItems = selectedItems.filter(item => item !== value);
-            option.classList.remove('selected');
-        } else {
-            selectedItems.push(value);
-            option.classList.add('selected');
-        }
-        selectBar.innerHTML = selectedItems.length > 0 
-            ? selectedItems.map(item => {
-                let className;
-                console.log(item)
-                switch (item) {
-                    case 'Back to New': className = 'condition-n'; break;
-                    case 'Grade A': className = 'condition-a'; break;
-                    case 'Grade B': className = 'condition-b'; break;
-                    case 'Grade C': className = 'condition-c'; break;
-                    case 'Grade F': className = 'condition-f'; break;
-                    default: className = '';
-                }
-                return `<span class="selected-item ${className}">${item}</span>`;
-                }).join(' ') 
-            : 'Condition';
-
-        // Update the hidden input with selected values
-        conditionsInput.value = selectedItems.join(',');
+        // Toggle dropdown visibility
+        selectBar.addEventListener('click', () => {
+            dropdownMenu.classList.toggle('active');
         });
-    });
 
-    document.addEventListener('click', (e) => {
-        if (!selectBar.contains(e.target) && !dropdown.contains(e.target)) {
-        dropdown.classList.remove('active');
-        }
+        // Handle option selection
+        options.forEach(option => {
+            option.addEventListener('click', () => {
+                const value = option.getAttribute('data-value');
+                if (selectedItems.includes(value)) {
+                    selectedItems = selectedItems.filter(item => item !== value);
+                    option.classList.remove('selected');
+                } else {
+                    selectedItems.push(value);
+                    option.classList.add('selected');
+                }
+
+                // Update display
+                selectBar.innerHTML = selectedItems.length > 0 
+                    ? selectedItems.map(item => {
+                        let className = '';
+                        if (hiddenInput.name === 'conditions') {
+                            switch (item) {
+                                case 'Back to New': className = 'condition-n'; break;
+                                case 'Grade A': className = 'condition-a'; break;
+                                case 'Grade B': className = 'condition-b'; break;
+                                case 'Grade C': className = 'condition-c'; break;
+                                case 'Grade F': className = 'condition-f'; break;
+                            }
+                        }
+                        else if (hiddenInput.name === 'inspection_request') {
+                            switch (item) {
+                                case 'As it': className = 'condition-n'; break;
+                                case 'Quick Check': className = 'condition-b'; break;
+                                case 'Full inspection': className = 'condition-red'; break;
+                            }
+                        }
+                        return `<span class="selected-item ${className}">${item}</span>`;
+                    }).join(' ') 
+                    : selectBar.textContent; // Keep original text when nothing selected
+
+                // Update hidden input
+                hiddenInput.value = selectedItems.join(',');
+            });
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!selectBar.contains(e.target) && !dropdownMenu.contains(e.target)) {
+                dropdownMenu.classList.remove('active');
+            }
+        });
     });
 });

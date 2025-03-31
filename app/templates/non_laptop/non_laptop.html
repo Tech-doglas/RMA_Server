@@ -105,7 +105,7 @@
             <td>
                 {% if item.Category == 'Electrionic' %}Electronic Devices{% endif %}
             </td>
-            <td class="{% if item.InspectionRequest == 'A' %}red{% elif item.InspectionRequest == 'B' %}condition-b{% elif item.InspectionRequest == 'C' %}condition-n{% endif %}">
+            <td class="{% if item.InspectionRequest == 'A' %}condition-red{% elif item.InspectionRequest == 'B' %}condition-b{% elif item.InspectionRequest == 'C' %}condition-n{% endif %}">
                 {% if item.InspectionRequest == 'A' %}Full inspection{% endif %}
                 {% if item.InspectionRequest == 'B' %}Quick Check{% endif %}
                 {% if item.InspectionRequest == 'C' %}As it{% endif %}
