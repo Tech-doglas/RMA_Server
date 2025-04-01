@@ -5,10 +5,8 @@ document.addEventListener('DOMContentLoaded', function () {
         row.addEventListener('click', function () {
             const id = this.getAttribute('data-id');
             if (id && !isNaN(id) && id.trim() !== '') {
-                // Determine the base URL based on the page title or some indicator
                 const pageTitle = document.querySelector('title').textContent;
                 let baseUrl = '';
-                
                 if (pageTitle.includes('RMA Laptop List')) {
                     baseUrl = '/laptop/item/';
                 } else if (pageTitle.includes('RMA Non Laptop List')) {
@@ -46,22 +44,18 @@ document.addEventListener('DOMContentLoaded', function () {
                     ? 'desc'
                     : 'asc';
 
-            // Update headers to show current sort
             headers.forEach(h => {
                 h.textContent = h.textContent.replace(' ↑', ' ↕').replace(' ↓', ' ↕');
             });
             this.textContent = this.textContent.replace(' ↕', direction === 'asc' ? ' ↑' : ' ↓');
 
-            // Sort the table
             sortTable(column, direction);
-
-            // Update current sort
             currentSort = { column, direction };
         });
     });
 
     function sortTable(column, direction) {
-        const rows = Array.from(table.querySelectorAll('tr')).slice(1); // Skip header row
+        const rows = Array.from(table.querySelectorAll('tr')).slice(1);
         const columnIndex = Array.from(headers).findIndex(
             header => header.getAttribute('data-sort') === column
         );
@@ -69,37 +63,41 @@ document.addEventListener('DOMContentLoaded', function () {
         const sorted = rows.sort((a, b) => {
             const aValue = a.cells[columnIndex]?.textContent.trim().toLowerCase() || '';
             const bValue = b.cells[columnIndex]?.textContent.trim().toLowerCase() || '';
-
-            // Handle numeric values
             const aNum = parseFloat(aValue);
             const bNum = parseFloat(bValue);
             if (!isNaN(aNum) && !isNaN(bNum)) {
                 return direction === 'asc' ? aNum - bNum : bNum - aNum;
             }
-
-            // Handle text values (including empty strings)
             return direction === 'asc'
                 ? aValue.localeCompare(bValue)
                 : bValue.localeCompare(aValue);
         });
 
-        // Re-add rows in sorted order
         sorted.forEach(row => table.appendChild(row));
     }
 
-    // Column filter functionality
+    // Combined columns for both Laptop and Non-Laptop pages
     const columns = [
-        { id: 'toggle-brand', class: 'brand-col' },
-        { id: 'toggle-condition', class: 'condition-col' },
-        { id: 'toggle-model', class: 'model-col' },
-        { id: 'toggle-spec', class: 'spec-col' },
-        { id: 'toggle-sn', class: 'sn-col' },
-        { id: 'toggle-odoo-ref', class: 'odoo-ref-col' },
-        { id: 'toggle-sku', class: 'sku-col' },
-        { id: 'toggle-order-number', class: 'order-number-col' },
-        { id: 'toggle-stock', class: 'stock-col' },
-        { id: 'toggle-sealed', class: 'sealed-col' },
-        { id: 'toggle-odoo-record', class: 'odoo-record-col' }
+        // Laptop-specific columns
+        { id: 'toggle-laptop-brand', class: 'brand-laptop-col' },
+        { id: 'toggle-laptop-condition', class: 'condition-laptop-col' },
+        { id: 'toggle-laptop-model', class: 'model-laptop-col' },
+        { id: 'toggle-laptop-spec', class: 'spec-laptop-col' },
+        { id: 'toggle-laptop-sn', class: 'sn-laptop-col' },
+        { id: 'toggle-laptop-odoo-ref', class: 'odoo-ref-laptop-col' },
+        { id: 'toggle-laptop-sku', class: 'sku-laptop-col' },
+        { id: 'toggle-laptop-order-number', class: 'order-number-laptop-col' },
+        { id: 'toggle-laptop-stock', class: 'stock-laptop-col' },
+        { id: 'toggle-laptop-sealed', class: 'sealed-laptop-col' },
+        { id: 'toggle-laptop-odoo-record', class: 'odoo-record-laptop-col' },
+        // Non-Laptop-specific columns
+        { id: 'toggle-nonlaptop-rec-date', class: 'rec-date-nonlaptop-col' },
+        { id: 'toggle-nonlaptop-tracking', class: 'tracking-nonlaptop-col' },
+        { id: 'toggle-nonlaptop-name', class: 'name-nonlaptop-col' },
+        { id: 'toggle-nonlaptop-location', class: 'location-nonlaptop-col' },
+        { id: 'toggle-nonlaptop-category', class: 'category-nonlaptop-col' },
+        { id: 'toggle-nonlaptop-inspectReq', class: 'inspectReq-nonlaptop-col' },
+        { id: 'toggle-nonlaptop-condition', class: 'condition-nonlaptop-col' }
     ];
 
     function toggleColumn(checkbox, columnClass) {
@@ -115,7 +113,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (checkbox) {
             const savedState = localStorage.getItem(column.id);
             checkbox.checked = savedState !== null ? JSON.parse(savedState) : checkbox.checked;
-            toggleColumn(checkbox, column.class); // Apply initial state
+            toggleColumn(checkbox, column.class);
             checkbox.addEventListener('change', () => {
                 localStorage.setItem(column.id, checkbox.checked);
                 toggleColumn(checkbox, column.class);
@@ -139,9 +137,9 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     }
+
     // Handle multiple dropdowns
     const dropdowns = document.querySelectorAll('.multi-select');
-    
     dropdowns.forEach(dropdown => {
         const selectBar = dropdown.querySelector('.select-bar');
         const dropdownMenu = dropdown.querySelector('.dropdown');
@@ -149,12 +147,10 @@ document.addEventListener('DOMContentLoaded', function () {
         const hiddenInput = dropdown.querySelector('input[type="hidden"]');
         let selectedItems = [];
 
-        // Toggle dropdown visibility
         selectBar.addEventListener('click', () => {
             dropdownMenu.classList.toggle('active');
         });
 
-        // Handle option selection
         options.forEach(option => {
             option.addEventListener('click', () => {
                 const value = option.getAttribute('data-value');
@@ -166,7 +162,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     option.classList.add('selected');
                 }
 
-                // Update display
                 selectBar.innerHTML = selectedItems.length > 0 
                     ? selectedItems.map(item => {
                         let className = '';
@@ -178,8 +173,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 case 'Grade C': className = 'condition-c'; break;
                                 case 'Grade F': className = 'condition-f'; break;
                             }
-                        }
-                        else if (hiddenInput.name === 'inspection_request') {
+                        } else if (hiddenInput.name === 'inspection_request') {
                             switch (item) {
                                 case 'As it': className = 'condition-n'; break;
                                 case 'Quick Check': className = 'condition-b'; break;
@@ -188,14 +182,12 @@ document.addEventListener('DOMContentLoaded', function () {
                         }
                         return `<span class="selected-item ${className}">${item}</span>`;
                     }).join(' ') 
-                    : selectBar.textContent; // Keep original text when nothing selected
+                    : selectBar.textContent;
 
-                // Update hidden input
                 hiddenInput.value = selectedItems.join(',');
             });
         });
 
-        // Close dropdown when clicking outside
         document.addEventListener('click', (e) => {
             if (!selectBar.contains(e.target) && !dropdownMenu.contains(e.target)) {
                 dropdownMenu.classList.remove('active');

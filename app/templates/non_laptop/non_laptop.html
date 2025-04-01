@@ -20,7 +20,7 @@
         <button class="orange" onclick="window.location.href='{{ url_for('index.show_landing_page') }}'">
             Home
         </button>
-        <form method="POST" action="" class="search-form">
+        <form method="POST" action="{{ url_for('non_laptop.show_RMA_non_laptop_sheet') }}" class="search-form">
             <div style="display: flex;">
                 <div style="width: 100%; display: grid;">
                     <label style="margin-bottom: 5px;">Tracking #</label>
@@ -74,13 +74,13 @@
             <div class="column-filter-container">
                 <button id="column-filter-btn">Filter ▼</button>
                 <div id="column-filter-menu" class="column-filter-menu hidden">
-                    <label><input type="checkbox" id="toggle-rec-date"> Rec Date</label>
-                    <label><input type="checkbox" id="toggle-tracking" checked> Tracking#</label>
-                    <label><input type="checkbox" id="toggle-name" checked> Name</label>
-                    <label><input type="checkbox" id="toggle-location" checked> Location</label>
-                    <label><input type="checkbox" id="toggle-category" checked> Category</label>
-                    <label><input type="checkbox" id="toggle-inspectReq" checked> Inspection Request</label>
-                    <label><input type="checkbox" id="toggle-condition" checked> Condition</label>
+                    <label><input type="checkbox" id="toggle-nonlaptop-rec-date"> Rec Date</label>
+                    <label><input type="checkbox" id="toggle-nonlaptop-tracking" checked> Tracking#</label>
+                    <label><input type="checkbox" id="toggle-nonlaptop-name" checked> Name</label>
+                    <label><input type="checkbox" id="toggle-nonlaptop-location" checked> Location</label>
+                    <label><input type="checkbox" id="toggle-nonlaptop-category" checked> Category</label>
+                    <label><input type="checkbox" id="toggle-nonlaptop-inspectReq" checked> Inspection Request</label>
+                    <label><input type="checkbox" id="toggle-nonlaptop-condition" checked> Condition</label>
                 </div>
             </div>
         </div>
@@ -88,29 +88,29 @@
     {% if items|length > 0 %}
     <table id="rma-table">
         <tr>
-            <th data-sort="ReceivedDate" class="sortable">Rec Date ↕</th>
-            <th data-sort="TrackingNumber" class="sortable">Tracking# ↕</th>
-            <th data-sort="Name" class="sortable">Name ↕</th>
-            <th data-sort="Location" class="sortable">Location ↕</th>
-            <th data-sort="Category" class="sortable">Category ↕</th>
-            <th data-sort="InspectionRequest" class="sortable">Inspection Request ↕</th>
-            <th data-sort="Condition" class="sortable">Condition ↕</th>
+            <th data-sort="ReceivedDate" class="sortable rec-date-nonlaptop-col">Rec Date ↕</th>
+            <th data-sort="TrackingNumber" class="sortable tracking-nonlaptop-col">Tracking# ↕</th>
+            <th data-sort="Name" class="sortable name-nonlaptop-col">Name ↕</th>
+            <th data-sort="Location" class="sortable location-nonlaptop-col">Location ↕</th>
+            <th data-sort="Category" class="sortable category-nonlaptop-col">Category ↕</th>
+            <th data-sort="InspectionRequest" class="sortable inspectReq-nonlaptop-col">Inspection Request ↕</th>
+            <th data-sort="Condition" class="sortable condition-nonlaptop-col">Condition ↕</th>
         </tr>
         {% for item in items %}
         <tr class="clickable-row" data-id="{{ item.ID }}">
-            <td>{{ item.ReceivedDate}}</td>
-            <td>{{ item.TrackingNumber }}</td>
-            <td>{{ item.Name }}</td>
-            <td>{{ item.Location }}</td>
-            <td>
+            <td class="rec-date-nonlaptop-col">{{ item.ReceivedDate}}</td>
+            <td class="tracking-nonlaptop-col">{{ item.TrackingNumber }}</td>
+            <td class="name-nonlaptop-col">{{ item.Name }}</td>
+            <td class="location-nonlaptop-col">{{ item.Location }}</td>
+            <td class="category-nonlaptop-col">
                 {% if item.Category == 'Electronic' %}Electronic Devices{% else %}{{ item.Category }}{% endif %}
             </td>
-            <td class="{% if item.InspectionRequest == 'A' %}condition-red{% elif item.InspectionRequest == 'B' %}condition-b{% elif item.InspectionRequest == 'C' %}condition-n{% endif %}">
+            <td class="inspectReq-nonlaptop-col {% if item.InspectionRequest == 'A' %}condition-red{% elif item.InspectionRequest == 'B' %}condition-b{% elif item.InspectionRequest == 'C' %}condition-n{% endif %}">
                 {% if item.InspectionRequest == 'A' %}Full inspection{% endif %}
                 {% if item.InspectionRequest == 'B' %}Quick Check{% endif %}
                 {% if item.InspectionRequest == 'C' %}As it{% endif %}
             </td>
-            <td class="condition-col {% if item.Condition == 'N' %}condition-n{% elif item.Condition == 'A' %}condition-a{% elif item.Condition == 'B' %}condition-b{% elif item.Condition == 'C' %}condition-c{% elif item.Condition == 'F' %}condition-f{% endif %}">
+            <td class="condition-nonlaptop-col {% if item.Condition == 'N' %}condition-n{% elif item.Condition == 'A' %}condition-a{% elif item.Condition == 'B' %}condition-b{% elif item.Condition == 'C' %}condition-c{% elif item.Condition == 'F' %}condition-f{% endif %}">
                 {% if item.Condition == 'N' %}Back to new{% endif %}
                 {% if item.Condition == 'A' %}Grade A{% endif %}
                 {% if item.Condition == 'B' %}Grade B{% endif %}
