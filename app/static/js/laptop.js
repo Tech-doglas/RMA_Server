@@ -5,7 +5,20 @@ document.addEventListener('DOMContentLoaded', function () {
         row.addEventListener('click', function () {
             const id = this.getAttribute('data-id');
             if (id && !isNaN(id) && id.trim() !== '') {
-                window.open(`/laptop/item/${id}`, '_blank'); // Adjust URL as needed
+                // Determine the base URL based on the page title or some indicator
+                const pageTitle = document.querySelector('title').textContent;
+                let baseUrl = '';
+                
+                if (pageTitle.includes('RMA Laptop List')) {
+                    baseUrl = '/laptop/item/';
+                } else if (pageTitle.includes('RMA Non Laptop List')) {
+                    baseUrl = '/non_laptop/item/';
+                } else {
+                    console.error('Unknown page type');
+                    return;
+                }
+                console.log('Opening URL:', `${baseUrl}${id}`);
+                window.open(`${baseUrl}${id}`, '_blank');
             } else {
                 console.error('Invalid or missing ID for row:', this);
             }

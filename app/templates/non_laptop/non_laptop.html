@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>RMA non Laptop List</title>
+    <title>RMA Non Laptop List</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/multi-select.css') }}">
 </head>
@@ -97,13 +97,13 @@
             <th data-sort="Condition" class="sortable">Condition ↕</th>
         </tr>
         {% for item in items %}
-        <tr>
+        <tr class="clickable-row" data-id="{{ item.ID }}">
             <td>{{ item.ReceivedDate}}</td>
             <td>{{ item.TrackingNumber }}</td>
             <td>{{ item.Name }}</td>
             <td>{{ item.Location }}</td>
             <td>
-                {% if item.Category == 'Electrionic' %}Electronic Devices{% endif %}
+                {% if item.Category == 'Electronic' %}Electronic Devices{% else %}{{ item.Category }}{% endif %}
             </td>
             <td class="{% if item.InspectionRequest == 'A' %}condition-red{% elif item.InspectionRequest == 'B' %}condition-b{% elif item.InspectionRequest == 'C' %}condition-n{% endif %}">
                 {% if item.InspectionRequest == 'A' %}Full inspection{% endif %}

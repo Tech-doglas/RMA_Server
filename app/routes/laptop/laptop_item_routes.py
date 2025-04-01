@@ -160,11 +160,6 @@ def delete_item(id):
 @laptop_item_bp.route('/delete_image/<id>/<filename>', methods=['POST'])
 def delete_image(id, filename):
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("SELECT ID FROM RMA_laptop_sheet WHERE ID = ?", id)
-        if not cursor.fetchone():
-            return "Item not found", 404
         image_dir = os.path.join(get_project_root(), 'images', 'laptop', str(id))
         image_path = os.path.join(image_dir, filename)
         if os.path.exists(image_path):
@@ -173,8 +168,6 @@ def delete_image(id, filename):
         return "Image not found", 404
     except Exception as e:
         return f"Error deleting image: {str(e)}", 500
-    finally:
-        conn.close()
 
 @laptop_item_bp.route('/tech_done/<id>')
 def tech_done(id):
