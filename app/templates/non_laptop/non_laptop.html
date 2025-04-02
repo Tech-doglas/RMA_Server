@@ -28,7 +28,6 @@
       >
         Home
       </button>
-      <button id="select-toggle-btn" class="lightgreen">Select</button>
       <form
         method="POST"
         action="{{ url_for('non_laptop.show_RMA_non_laptop_sheet') }}"
@@ -119,7 +118,13 @@
           justify-content: space-between;
         "
       >
-        <span>Total Count: {{total_count}}</span>
+        <div style="display: flex; align-items: center">
+          <span>Total Count: {{total_count}} | Selected Count: <span id="selected-count">0</span></span>
+          <div id="selection-buttons" style="margin: 0px 10px; display: none; gap: 10px;">
+            <button id="action-button-1" class="red">Request</button>
+            <button id="action-button-2" class="orange">Condition</button>
+          </div>
+        </div>
         <div class="column-filter-container">
           <button id="column-filter-btn">Filter ▼</button>
           <div id="column-filter-menu" class="column-filter-menu hidden">
@@ -162,7 +167,7 @@
     {% if items|length > 0 %}
     <table id="rma-table">
       <tr>
-        <th class="selection-col hidden" data-sort="selection">Select</th>
+        <th class="sortable selection-col hidden" data-sort="selection">Select</th>
         <th data-sort="ReceivedDate" class="sortable rec-date-nonlaptop-col">
           Rec Date ↕
         </th>
@@ -188,7 +193,7 @@
       </tr>
       {% for item in items %}
       <tr class="clickable-row" data-id="{{ item.ID }}">
-        <td class="selection-col hidden clickable-copy">
+        <td class="selection-col hidden clickable-copy" style="display: flex; justify-content: center;" onclick="toggleCheckbox(this)">
           <input type="checkbox" class="row-select" data-id="{{ item.ID }}" />
         </td>
         <td class="rec-date-nonlaptop-col">{{ item.ReceivedDate}}</td>
@@ -221,5 +226,36 @@
     <p>No Record in inventory.</p>
     {% endif %}
     <script src="{{ url_for('static', filename='js/laptop.js') }}"></script>
+    <script>
+      function toggleCheckbox(tdElement) {
+        const checkbox = tdElement.querySelector('.row-select');
+        if (checkbox) {
+          checkbox.checked = !checkbox.checked;
+          updateSelectedCount();
+        }
+      }
+
+      function updateSelectedCount() {
+        const selectedCheckboxes = document.querySelectorAll('.row-select:checked');
+        const selectedCount = selectedCheckboxes.length;
+        const selectedCountElement = document.getElementById('selected-count');
+        const selectionButtons = document.getElementById('selection-buttons');
+
+        selectedCountElement.textContent = selectedCount;
+
+        // Show or hide buttons based on selected count
+        if (selectedCount >= 1) {
+          selectionButtons.style.display = 'flex'; // Show buttons
+        } else {
+          selectionButtons.style.display = 'none'; // Hide buttons
+        }
+      }
+
+      document.querySelectorAll('.row-select').forEach(checkbox => {
+        checkbox.addEventListener('change', updateSelectedCount);
+      });
+
+      updateSelectedCount();
+    </script>
   </body>
 </html>
