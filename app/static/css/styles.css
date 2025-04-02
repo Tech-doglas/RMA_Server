@@ -54,6 +54,10 @@ h1 {
     background-color: #f79646;
 }
 
+.condition-red {
+    background-color: #ff5c5c;
+}
+
 .search-form {
     margin-bottom: 20px;
     padding: 15px;
@@ -269,11 +273,23 @@ select:hover {
     padding-bottom: 10px;
 }
 
-.brand-col, .condition-col, .model-col, .spec-col, .sn-col, .odoo-ref-col, .sku-col, .order-number-col, .stock-col, .sealed-col, .odoo-record-col {
+/* Default visibility for all columns */
+.brand-laptop-col, .condition-laptop-col, .model-laptop-col, .spec-laptop-col, .sn-laptop-col, 
+.odoo-ref-laptop-col, .sku-laptop-col, .order-number-laptop-col, .stock-laptop-col, 
+.sealed-laptop-col, .odoo-record-laptop-col,
+.rec-date-nonlaptop-col, .tracking-nonlaptop-col, .name-nonlaptop-col, .location-nonlaptop-col, 
+.category-nonlaptop-col, .inspectReq-nonlaptop-col, .condition-nonlaptop-col {
     display: table-cell;
 }
 
-.brand-col.hidden, .condition-col.hidden, .model-col.hidden, .spec-col.hidden, .sn-col.hidden, .odoo-ref-col.hidden, .sku-col.hidden, .order-number-col.hidden, .stock-col.hidden, .sealed-col.hidden, .odoo-record-col.hidden {
+/* Hide columns when .hidden is applied */
+.brand-laptop-col.hidden, .condition-laptop-col.hidden, .model-laptop-col.hidden, 
+.spec-laptop-col.hidden, .sn-laptop-col.hidden, .odoo-ref-laptop-col.hidden, 
+.sku-laptop-col.hidden, .order-number-laptop-col.hidden, .stock-laptop-col.hidden, 
+.sealed-laptop-col.hidden, .odoo-record-laptop-col.hidden,
+.rec-date-nonlaptop-col.hidden, .tracking-nonlaptop-col.hidden, .name-nonlaptop-col.hidden, 
+.location-nonlaptop-col.hidden, .category-nonlaptop-col.hidden, .inspectReq-nonlaptop-col.hidden, 
+.condition-nonlaptop-col.hidden {
     display: none;
 }
 
@@ -299,7 +315,7 @@ select:hover {
 .column-filter-menu {
     position: absolute;
     top: 100%;
-    transform: translateX(-50%); /* Center the menu */
+    transform: translateX(-50%);
     background-color: #fff;
     border: 1px solid #ccc;
     border-radius: 4px;
@@ -310,7 +326,7 @@ select:hover {
     flex-direction: column;
     gap: 5px;
     min-width: 150px;
-    max-width: 200px; /* Prevent the menu from being too wide */
+    max-width: 200px;
 }
 
 .column-filter-menu.hidden {

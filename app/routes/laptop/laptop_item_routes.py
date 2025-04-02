@@ -16,7 +16,7 @@ def laptop_item_detail(id):
         if not data:
             return "Item not found", 404
         laptop = dict(zip([column[0] for column in cursor.description], data))
-        image_files = get_laptop_image_files(laptop['ID'])
+        image_files = get_laptop_image_files("laptop", laptop['ID'])
         conn.close()
         return render_template('laptop/laptop_item_detail.html', laptop=laptop, image_files=image_files)
     except Exception as e:
@@ -60,7 +60,7 @@ def submit_item():
         """, (brand, model, spec, serial_number,odooRef, condition, sealed, stock, remark, odoo_record, sku, tech_done, user))
         
         primary_key = cursor.fetchone()[0]
-        save_laptop_images(request.files.getlist('images'), primary_key)
+        save_laptop_images(request.files.getlist('images'), "laptop", primary_key)
         conn.commit()
         conn.close()
         return redirect(url_for('laptop.laptop_input'))
@@ -77,7 +77,7 @@ def edit_item(id):
         if not data:
             return "Item not found", 404
         laptop = dict(zip([column[0] for column in cursor.description], data))
-        image_files = get_laptop_image_files(laptop['ID'])
+        image_files = get_laptop_image_files("laptop", laptop['ID'])
 
         cursor.execute("SELECT * FROM RMA_user")
         data = cursor.fetchall()
@@ -125,7 +125,7 @@ def update_item(id):
         if images:
             image_dir = os.path.join(get_project_root(), 'images', 'laptop', str(id))
             os.makedirs(image_dir, exist_ok=True)
-            existing_images = get_laptop_image_files(id)
+            existing_images = get_laptop_image_files("laptop", id)
             next_image_num = len(existing_images) + 1
             for image in images:
                 if image and image.filename:
@@ -160,11 +160,6 @@ def delete_item(id):
 @laptop_item_bp.route('/delete_image/<id>/<filename>', methods=['POST'])
 def delete_image(id, filename):
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("SELECT ID FROM RMA_laptop_sheet WHERE ID = ?", id)
-        if not cursor.fetchone():
-            return "Item not found", 404
         image_dir = os.path.join(get_project_root(), 'images', 'laptop', str(id))
         image_path = os.path.join(image_dir, filename)
         if os.path.exists(image_path):
@@ -173,8 +168,6 @@ def delete_image(id, filename):
         return "Image not found", 404
     except Exception as e:
         return f"Error deleting image: {str(e)}", 500
-    finally:
-        conn.close()
 
 @laptop_item_bp.route('/tech_done/<id>')
 def tech_done(id):

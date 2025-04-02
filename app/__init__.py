@@ -21,9 +21,11 @@ def create_app():
     from app.routes.laptop.laptop_routes import laptop_bp
     from app.routes.return_receiving_routes import return_receiving_bp
     from app.routes.user_routes import user_bp
+    from app.routes.non_laptop.non_laptop_routes import non_laptop_bp
     
     app.register_blueprint(index_bp)
     app.register_blueprint(laptop_bp, url_prefix='/laptop')
+    app.register_blueprint(non_laptop_bp, url_prefix='/non_laptop')
     app.register_blueprint(return_receiving_bp, url_prefix='/return_receiving')
     app.register_blueprint(user_bp, url_prefix='/user')
     return app
