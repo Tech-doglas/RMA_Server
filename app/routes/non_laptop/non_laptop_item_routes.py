@@ -1,6 +1,6 @@
 # app/routes/item_routes.py
 from flask import Blueprint, render_template, request, redirect, send_from_directory, url_for
-from app.models import get_db_connection, save_laptop_images, get_laptop_image_files, get_project_root
+from app.models import get_db_connection, save_laptop_images, get_laptop_image_files, get_modi_rma_root
 import os
 import shutil
 
@@ -25,7 +25,7 @@ def non_laptop_item_detail(id):
 @non_laptop_item_bp.route('/images/<id>/<filename>')
 def serve_image(id, filename):
     try:
-        image_dir = os.path.join(get_project_root(), 'images', 'non_laptop' ,str(id))
+        image_dir = os.path.join(get_modi_rma_root(), 'images', 'non_laptop' ,str(id))
         if not os.path.exists(image_dir):
             return "Image directory not found", 404
         return send_from_directory(image_dir, filename)
@@ -154,7 +154,7 @@ def update_item(id):
         
         images = request.files.getlist('new_images')
         if images:
-            image_dir = os.path.join(get_project_root(), 'images', 'non_laptop', tracking_number)
+            image_dir = os.path.join(get_modi_rma_root(), 'images', 'non_laptop', tracking_number)
             os.makedirs(image_dir, exist_ok=True)
             existing_images = get_laptop_image_files("non_laptop", tracking_number)
             next_image_num = len(existing_images) + 1
@@ -197,7 +197,7 @@ def delete_item(id):
 @non_laptop_item_bp.route('/delete_image/<id>/<filename>', methods=['POST'])
 def delete_image(id, filename):
     try:
-        image_dir = os.path.join(get_project_root(), 'images', "non_laptop", str(id))
+        image_dir = os.path.join(get_modi_rma_root(), 'images', "non_laptop", str(id))
         image_path = os.path.join(image_dir, filename)
         if os.path.exists(image_path):
             os.remove(image_path)

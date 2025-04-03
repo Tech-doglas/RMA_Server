@@ -1,6 +1,6 @@
 import os
 from flask import Blueprint, render_template, request, redirect, send_from_directory, url_for
-from app.models import get_db_connection, get_project_root, get_shipping_label_image, save_shipping_label_image
+from app.models import get_db_connection, get_modi_rma_root, get_shipping_label_image, save_shipping_label_image
 
 return_receiving_bp = Blueprint('return_receiving', __name__)
 
@@ -97,7 +97,7 @@ def submit_record():
 @return_receiving_bp.route('/images/return_receiving/<filename>')
 def serve_image(filename):
     try:
-        image_dir = os.path.join(get_project_root(), 'images', 'return_receiving')
+        image_dir = os.path.join(get_modi_rma_root(), 'images', 'return_receiving')
         if not os.path.exists(image_dir):
             return "Image directory not found", 404
         return send_from_directory(image_dir, filename)

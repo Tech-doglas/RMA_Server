@@ -16,6 +16,8 @@ def create_app():
         f"TrustServerCertificate={Config.TRUST_CERT};"
     )
 
+    app.config['MODI_RMA_DIR'] = Config.MODI_RMA_DIR
+
     # Register blueprints
     from app.routes.index_routes import index_bp
     from app.routes.laptop.laptop_routes import laptop_bp
