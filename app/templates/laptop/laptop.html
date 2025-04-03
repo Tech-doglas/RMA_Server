@@ -89,6 +89,7 @@
                     <label><input type="checkbox" id="toggle-laptop-stock" > Stock</label>
                     <label><input type="checkbox" id="toggle-laptop-sealed" > Sealed</label>
                     <label><input type="checkbox" id="toggle-laptop-odoo-record" > Odoo Record</label>
+                    <label><input type="checkbox" id="toggle-laptop-checking" >Check</label>
                 </div>
             </div>
         </div>
@@ -107,6 +108,7 @@
             <th data-sort="Stock" class="sortable stock-laptop-col">Stock ↕</th>
             <th data-sort="Sealed" class="sortable sealed-laptop-col">Sealed ↕</th>
             <th data-sort="OdooRecord" class="sortable odoo-record-laptop-col">Odoo Record ↕</th>
+            <th data-sort="Checking" class="sortable checking-laptop-col">Checking ↕</th>
         </tr>
         {% for item in items %}
         {% if item.ID %}
@@ -135,6 +137,7 @@
             <td class="stock-laptop-col">{{ item.Stock }}</td>
             <td class="sealed-laptop-col">{{ '✅' if item.Sealed else '❌' }}</td>
             <td class="odoo-record-laptop-col">{{ '✅' if item.OdooRecord else '❌' }}</td>
+            <td class="checking-laptop-col">{{ '✅' if item.Checking else '' }}</td>
         </tr>
         {% else %}
         <tr>

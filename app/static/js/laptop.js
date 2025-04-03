@@ -98,6 +98,8 @@ document.addEventListener('DOMContentLoaded', function () {
         { id: 'toggle-nonlaptop-category', class: 'category-nonlaptop-col' },
         { id: 'toggle-nonlaptop-inspectReq', class: 'inspectReq-nonlaptop-col' },
         { id: 'toggle-nonlaptop-condition', class: 'condition-nonlaptop-col' },
+        // test
+        { id: 'toggle-laptop-checking', class: 'checking-laptop-col' },
     ];
 
     function toggleColumn(checkbox, columnClass) {
