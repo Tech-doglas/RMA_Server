@@ -21,7 +21,7 @@ def get_db_connection():
     return pyodbc.connect(current_app.config['CONN_STR'])
 
 def save_laptop_images(images, type, item_id):
-    image_dir = os.path.join('images', type, str(item_id))
+    image_dir = os.path.join(get_modi_rma_root(), 'images', type, str(item_id))
     os.makedirs(image_dir, exist_ok=True)
     
     from werkzeug.utils import secure_filename
