@@ -180,16 +180,3 @@ def tech_done(id):
         return redirect(url_for('laptop.laptop_item.laptop_item_detail', id=id))
     except Exception as e:
         return f"Error updating TechDone: {str(e)}", 500
-    
-
-@laptop_item_bp.route('/check_item/<id>')
-def check_item(id):
-    try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("UPDATE RMA_laptop_sheet SET Checking = 1 WHERE ID = ?", (id))
-        conn.commit()
-        conn.close()
-        return redirect(url_for('laptop.laptop_item.laptop_item_detail', id=id))
-    except Exception as e:
-        return f"Error: {str(e)}", 500

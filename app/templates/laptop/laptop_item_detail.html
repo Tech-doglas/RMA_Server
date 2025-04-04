@@ -31,11 +31,6 @@
         Done
     </button>
 
-    <button onclick="window.location.href='{{ url_for('laptop.laptop_item.check_item', id=laptop.ID) }}';"
-    class="red {% if laptop.Checking == 1 %} disabled{% endif %}">
-    Checked
-    </button>
-
 
     <table>
         {% if laptop %}

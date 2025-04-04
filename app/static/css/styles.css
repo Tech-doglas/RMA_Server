@@ -276,7 +276,7 @@ select:hover {
 /* Default visibility for all columns */
 .brand-laptop-col, .condition-laptop-col, .model-laptop-col, .spec-laptop-col, .sn-laptop-col, 
 .odoo-ref-laptop-col, .sku-laptop-col, .order-number-laptop-col, .stock-laptop-col, 
-.sealed-laptop-col, .odoo-record-laptop-col, .checking-laptop-col, 
+.sealed-laptop-col, .odoo-record-laptop-col,
 .rec-date-nonlaptop-col, .tracking-nonlaptop-col, .name-nonlaptop-col, .location-nonlaptop-col, 
 .category-nonlaptop-col, .inspectReq-nonlaptop-col, .condition-nonlaptop-col {
     display: table-cell;
@@ -286,7 +286,7 @@ select:hover {
 .brand-laptop-col.hidden, .condition-laptop-col.hidden, .model-laptop-col.hidden, 
 .spec-laptop-col.hidden, .sn-laptop-col.hidden, .odoo-ref-laptop-col.hidden, 
 .sku-laptop-col.hidden, .order-number-laptop-col.hidden, .stock-laptop-col.hidden, 
-.sealed-laptop-col.hidden, .odoo-record-laptop-col.hidden, .checking-laptop-col.hidden, 
+.sealed-laptop-col.hidden, .odoo-record-laptop-col.hidden,
 .rec-date-nonlaptop-col.hidden, .tracking-nonlaptop-col.hidden, .name-nonlaptop-col.hidden, 
 .location-nonlaptop-col.hidden, .category-nonlaptop-col.hidden, .inspectReq-nonlaptop-col.hidden, 
 .condition-nonlaptop-col.hidden {
