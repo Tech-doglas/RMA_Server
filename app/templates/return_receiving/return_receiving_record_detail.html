@@ -14,9 +14,9 @@
         Back
     </button>
     <button {% if not record.Recorded %}onclick="window.location.href='{{ url_for('return_receiving.mark_recorded', tracking_number=record.TrackingNumber) }}';"{% endif %}
-        class="lightgreen{% if record.Recorded %} disabled{% endif %}"
+        class="skyblue{% if record.Recorded %} disabled{% endif %}"
         {% if record.Recorded %}disabled{% endif %}>
-        Recorded
+        {% if record.Recorded %}Recorded{% else %}Record{% endif %}
     </button>
 
     <table>
