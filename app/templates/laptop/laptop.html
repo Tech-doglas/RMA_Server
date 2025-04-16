@@ -20,6 +20,9 @@
         <button class="orange" onclick="window.location.href='{{ url_for('index.show_landing_page') }}'">
             Home
         </button>
+        <button onclick="callRoute('/laptop/laptop_SRP')" style="display: none;">SRP</button>
+        <button onclick="callRoute('/laptop/laptop_TRP')">TRP</button>
+
         <form method="POST" action="{{ url_for('laptop.show_RMA_laptop_sheet') }}" class="search-form">
             <div style="display: flex;">
                 <div style="width: 100%; display: grid;">
@@ -146,7 +149,7 @@
     {% else %}
     <p>No items in inventory.</p>
     {% endif %}
-    <script src="{{ url_for('static', filename='js/laptop.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/laptop.js') }}" defer></script>
 </body>
 
 </html>

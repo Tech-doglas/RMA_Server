@@ -52,13 +52,27 @@ def submit_item():
         sku = request.form.get('sku', '')
         tech_done = True if request.form.get('tech_done') else False
         user= request.form.get('user')
-
-        cursor.execute("""
-            INSERT INTO RMA_laptop_sheet (Brand, Model, Spec, SerialNumber,OdooRef ,Condition, Sealed, Stock, Remark, OdooRecord, SKU, TechDone, LastModifiedUser, LastModifiedDateTime) 
-            OUTPUT INSERTED.ID
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, GETDATE())
-        """, (brand, model, spec, serial_number,odooRef, condition, sealed, stock, remark, odoo_record, sku, tech_done, user))
         
+        if sealed:
+            query = """
+                INSERT INTO RMA_laptop_sheet 
+                (Brand, Model, Spec, SerialNumber, OdooRef, Condition, Sealed, Stock, Remark, OdooRecord, SKU, TechDone, TechDoneDate, LastModifiedUser, LastModifiedDateTime, InputDate) 
+                OUTPUT INSERTED.ID
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, GETDATE(), ?, GETDATE(), GETDATE())
+            """
+            values = (brand, model, spec, serial_number, odooRef, condition, sealed, stock, remark,
+                      odoo_record, sku, tech_done, user)
+        else:
+            query = """
+                INSERT INTO RMA_laptop_sheet 
+                (Brand, Model, Spec, SerialNumber, OdooRef, Condition, Sealed, Stock, Remark, OdooRecord, SKU, TechDone, LastModifiedUser, LastModifiedDateTime, InputDate) 
+                OUTPUT INSERTED.ID
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, GETDATE(), GETDATE())
+            """
+            values = (brand, model, spec, serial_number, odooRef, condition, sealed, stock, remark,
+                      odoo_record, sku, tech_done, user)
+        
+        cursor.execute(query, values)
         primary_key = cursor.fetchone()[0]
         save_laptop_images(request.files.getlist('images'), "laptop", primary_key)
         conn.commit()
@@ -98,28 +112,43 @@ def update_item(id):
         odooRef = request.form.get('odooRef')
         condition = request.form.get('condition')
         sealed = True if request.form.get('sealed') else False
-        stock = request.form.get('stock')
+        stock_checkbox = request.form.get('stock')
         order_number = request.form.get('order_number')
         updated_spec = request.form.get('updated_spec')
         remark = request.form.get('remark')
         odoo_record = True if request.form.get('odoorecord') else False
         sku = request.form.get('sku', '')
-        tech_done = True if request.form.get('tech_done') else False
         user = request.form.get('user')
 
-        if stock is None:
-            stock = ""
+        if stock_checkbox == "SOLD":
+            stock = ""  # Checkbox is checked, meaning item is in stock (empty string)
+        else:
+            stock = "SOLD"  # Checkbox is unchecked, meaning item is sold
 
         conn = get_db_connection()
         cursor = conn.cursor()
-
-        cursor.execute("""
+        
+        cursor.execute("SELECT Stock FROM RMA_laptop_sheet WHERE ID = ?", (id,))
+        result = cursor.fetchone()
+        current_stock = result[0] if result else ""
+        
+        sale_date_sql = ""
+        
+        if current_stock == "SOLD" and stock == '':
+            sale_date_sql = ", SaleDate = NULL"
+            
+        
+        query = f"""
                 UPDATE RMA_laptop_sheet 
-                SET Brand = ?, Model = ?, Spec = ?, SerialNumber = ?, OdooRef = ? ,Condition = ?, 
-                    Sealed = ?, Stock = ?, OrderNumber = ?, UpDatedSpec = ?, Remark = ?, OdooRecord = ?, SKU = ?, TechDone = ?, LastModifiedUser = ?, LastModifiedDateTime = GETDATE()
+                SET Brand = ?, Model = ?, Spec = ?, SerialNumber = ?, OdooRef = ?, Condition = ?, 
+                    Sealed = ?, Stock = ?, OrderNumber = ?, UpDatedSpec = ?, Remark = ?, OdooRecord = ?, 
+                    SKU = ?, LastModifiedUser = ?, LastModifiedDateTime = GETDATE()
+                    {sale_date_sql}
                 WHERE ID = ?
-            """, (brand, model, spec, serial_number_new,odooRef ,condition, sealed, stock, 
-                order_number, updated_spec, remark, odoo_record, sku, tech_done, user, id))
+            """
+            
+        cursor.execute(query, (brand, model, spec, serial_number_new, odooRef, condition, sealed, stock, 
+                order_number, updated_spec, remark, odoo_record, sku, user, id))
         
         images = request.files.getlist('new_images')
         if images:
@@ -174,7 +203,7 @@ def tech_done(id):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("UPDATE RMA_laptop_sheet SET TechDone = 1 WHERE ID = ?", (id,))
+        cursor.execute("UPDATE RMA_laptop_sheet SET TechDone = 1  WHERE ID = ?", (id,))
         conn.commit()
         conn.close()
         return redirect(url_for('laptop.laptop_item.laptop_item_detail', id=id))

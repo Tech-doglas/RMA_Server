@@ -77,6 +77,7 @@
                 <label for="ssd">Storage:</label>
                 <select id="ssd" name="ssd" required>
                     <option value="" disabled>Select storage</option>
+                    <option value="16GB" {% if laptop.Spec.split('+')[1]=='16GB' %}selected{% endif %}>16GB EMMC</option>
                     <option value="64GB" {% if laptop.Spec.split('+')[1]=='64GB' %}selected{% endif %}>64GB EMMC SSD</option>
                     <option value="128GBe" {% if laptop.Spec.split('+')[1]=='128GBe' %}selected{% endif %}>128GB EMMC SSD</option>
                     <option value="128GB" {% if laptop.Spec.split('+')[1]=='128GB' %}selected{% endif %}>128GB SSD</option>
