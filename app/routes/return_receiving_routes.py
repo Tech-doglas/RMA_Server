@@ -83,9 +83,18 @@ def submit_record():
         remark = request.form.get('remark')
 
         cursor.execute("""
-            INSERT INTO RMA_return_receiving (TrackingNumber, Company, Remark) 
-            VALUES (?, ?, ?)
-        """, (tracking_number, company, remark))
+            IF EXISTS (SELECT 1 FROM RMA_return_receiving WHERE TrackingNumber = ?)  
+            BEGIN  
+                UPDATE RMA_return_receiving   
+                SET Company = ?, Remark = ?
+                WHERE TrackingNumber = ?;  
+            END  
+            ELSE  
+            BEGIN  
+                INSERT INTO RMA_return_receiving (TrackingNumber, Company, Remark) 
+                VALUES (?, ?, ?)
+            END  
+        """, (tracking_number, company, remark, tracking_number, tracking_number, company, remark))
         
         save_shipping_label_image(request.files.get('image'), tracking_number)
         conn.commit()
