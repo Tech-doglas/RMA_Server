@@ -62,10 +62,11 @@ def submit_item():
                     Remark, 
                     LastModifiedUser, 
                     LastModifiedDateTime, 
-                    Location
+                    Location,
+                    InputDate
                 ) 
                 OUTPUT INSERTED.ID
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, GETDATE(), ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, GETDATE(), ?, GETDATE())
                 """,
                 (
                     tracking_number,

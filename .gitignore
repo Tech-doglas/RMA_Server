@@ -5,3 +5,4 @@ app/routes/__pycache__/
 *.pyc
 .env
 venv/
+frontend/node_modules/

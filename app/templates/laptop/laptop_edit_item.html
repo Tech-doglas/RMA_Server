@@ -82,7 +82,7 @@
 
         <div class="form-group">
             <label for="stock">Stock:</label>
-            <input type="checkbox" id="stock" name="stock" value="SOLD" {% if laptop.Stock=='SOLD' %}checked{% endif %}>
+            <input type="checkbox" id="stock" name="stock" value="SOLD" {% if laptop.Stock=='' %}checked{% endif %}>
         </div>
 
         <div class="form-group">
