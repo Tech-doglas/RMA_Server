@@ -197,3 +197,29 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 });
+
+function callRoute(route) {
+    fetch(route)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("Network response was not ok");
+            }
+            return response.blob(); // Convert to blob for file download
+        })
+        .then(blob => {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'trp_report.pdf';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+}
+
+// Make it globally available for inline onclick use
+window.callRoute = callRoute;
