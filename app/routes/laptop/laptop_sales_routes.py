@@ -53,13 +53,13 @@ def sales_order():
         if new_spec != current_spec:
             cursor.execute("""
                 UPDATE RMA_laptop_sheet 
-                SET OrderNumber = ?, Stock = 'SOLD', UpDatedSpec = ? 
+                SET OrderNumber = ?, Stock = 'SOLD', UpDatedSpec = ?, SaleDate = GETDATE()
                 WHERE ID = ?
             """, (order_number, new_spec, id))
         else:
             cursor.execute("""
                 UPDATE RMA_laptop_sheet 
-                SET OrderNumber = ?, Stock = 'SOLD' 
+                SET OrderNumber = ?, Stock = 'SOLD', SaleDate = GETDATE()
                 WHERE ID = ?
             """, (order_number, id))
         
