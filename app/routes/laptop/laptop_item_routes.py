@@ -52,13 +52,27 @@ def submit_item():
         sku = request.form.get('sku', '')
         tech_done = True if request.form.get('tech_done') else False
         user= request.form.get('user')
-
-        cursor.execute("""
-            INSERT INTO RMA_laptop_sheet (Brand, Model, Spec, SerialNumber,OdooRef ,Condition, Sealed, Stock, Remark, OdooRecord, SKU, TechDone, LastModifiedUser, LastModifiedDateTime, InputDate) 
-            OUTPUT INSERTED.ID
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, GETDATE(), GETDATE())
-        """, (brand, model, spec, serial_number,odooRef, condition, sealed, stock, remark, odoo_record, sku, tech_done, user))
         
+        if sealed:
+            query = """
+                INSERT INTO RMA_laptop_sheet 
+                (Brand, Model, Spec, SerialNumber, OdooRef, Condition, Sealed, Stock, Remark, OdooRecord, SKU, TechDone, TechDoneDate, LastModifiedUser, LastModifiedDateTime, InputDate) 
+                OUTPUT INSERTED.ID
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, GETDATE(), ?, GETDATE(), GETDATE())
+            """
+            values = (brand, model, spec, serial_number, odooRef, condition, sealed, stock, remark,
+                      odoo_record, sku, tech_done, user)
+        else:
+            query = """
+                INSERT INTO RMA_laptop_sheet 
+                (Brand, Model, Spec, SerialNumber, OdooRef, Condition, Sealed, Stock, Remark, OdooRecord, SKU, TechDone, LastModifiedUser, LastModifiedDateTime, InputDate) 
+                OUTPUT INSERTED.ID
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, GETDATE(), GETDATE())
+            """
+            values = (brand, model, spec, serial_number, odooRef, condition, sealed, stock, remark,
+                      odoo_record, sku, tech_done, user)
+        
+        cursor.execute(query, values)
         primary_key = cursor.fetchone()[0]
         save_laptop_images(request.files.getlist('images'), "laptop", primary_key)
         conn.commit()
@@ -119,8 +133,6 @@ def update_item(id):
         current_stock = result[0] if result else ""
         
         sale_date_sql = ""
-        
-        print(f"Current stock: '{current_stock}', New stock: '{stock}'")
         
         if current_stock == "SOLD" and stock == '':
             sale_date_sql = ", SaleDate = NULL"
@@ -191,7 +203,7 @@ def tech_done(id):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("UPDATE RMA_laptop_sheet SET TechDone = 1, TechDoneDate = GETDATE()  WHERE ID = ?", (id,))
+        cursor.execute("UPDATE RMA_laptop_sheet SET TechDone = 1  WHERE ID = ?", (id,))
         conn.commit()
         conn.close()
         return redirect(url_for('laptop.laptop_item.laptop_item_detail', id=id))
