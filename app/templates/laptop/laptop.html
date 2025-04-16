@@ -20,7 +20,7 @@
         <button class="orange" onclick="window.location.href='{{ url_for('index.show_landing_page') }}'">
             Home
         </button>
-        <button onclick="callRoute('/laptop/laptop_SRP')">SRP</button>
+        <button onclick="callRoute('/laptop/laptop_SRP')" style="display: none;">SRP</button>
         <button onclick="callRoute('/laptop/laptop_TRP')">TRP</button>
 
         <form method="POST" action="{{ url_for('laptop.show_RMA_laptop_sheet') }}" class="search-form">
