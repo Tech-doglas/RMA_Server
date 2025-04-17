@@ -1,7 +1,8 @@
 # app/routes/main_routes.py
-from flask import Blueprint, render_template, request, jsonify, make_response
+from flask import Blueprint, render_template, request, jsonify, make_response, send_file
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
+from openpyxl import Workbook
 from io import BytesIO
 from collections import defaultdict
 from datetime import datetime
@@ -229,41 +230,32 @@ def laptop_ARP():
         sold_rows = [row for row in rows if row[0] == "SOLD"]
         sold_count = len(sold_rows)
 
-        # Create PDF in memory
+        # Create Excel in memory
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "ARP Stock Report"
+
+        # Header
+        ws["A1"] = "ARP Stock Report"
+        ws["A3"] = "SOLD:"
+        ws["B3"] = sold_count
+        ws["A5"] = "Order Numbers"
+
+        # Add Order Numbers
+        for idx, (_, order_number) in enumerate(sold_rows, start=6):
+            ws[f"A{idx}"] = order_number
+
+        # Save to memory
         buffer = BytesIO()
-        p = canvas.Canvas(buffer, pagesize=letter)
-        width, height = letter
-
-        p.setFont("Helvetica", 14)
-        p.drawString(100, height - 50, "ARP Stock Report")
-
-        y = height - 100
-        p.setFont("Helvetica", 12)
-        p.drawString(50, y, f"SOLD: {sold_count}")
-        y -= 20
-
-        p.setFont("Helvetica", 10)
-        p.drawString(50, y, "Order Numbers:")
-        y -= 15
-
-        for _, order_number in sold_rows:
-            if y < 50:
-                p.showPage()
-                y = height - 50
-                p.setFont("Helvetica", 10)
-
-            p.drawString(60, y, str(order_number))
-            y -= 15
-
-        p.showPage()
-        p.save()
-
+        wb.save(buffer)
         buffer.seek(0)
 
-        response = make_response(buffer.read())
-        response.headers['Content-Type'] = 'application/pdf'
-        response.headers['Content-Disposition'] = 'attachment; filename=arp_report.pdf'
-        return response
+        return send_file(
+            buffer,
+            as_attachment=True,
+            download_name="arp_report.xlsx",
+            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
 
     except Exception as e:
         return f"Error: {str(e)}"
