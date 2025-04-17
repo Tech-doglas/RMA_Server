@@ -210,7 +210,7 @@ function callRoute(route) {
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'trp_report.pdf';
+            a.download = 'report.pdf';
             document.body.appendChild(a);
             a.click();
             a.remove();

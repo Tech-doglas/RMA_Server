@@ -109,31 +109,166 @@ def laptop_input():
         return render_template('laptop/laptop_input.html', users=results)
     except Exception as e:
         return f"Error: {str(e)}"
-    
+
 @laptop_bp.route('/laptop_SRP', methods=['GET'])
 def laptop_SRP():
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-
-        cursor.execute("SELECT SaleDate FROM RMA_laptop_sheet")
+        cursor.execute("SELECT SaleDate, Stock, Condition FROM RMA_laptop_sheet")
         rows = cursor.fetchall()
         conn.close()
 
-        sale_date_group = defaultdict(int)
+        valid_grades = {'N', 'A', 'B', 'C', 'F'}
+        grades_seen = set()
 
-        for row in rows:
-            sale_date = row[0]
+        # Track sales by month and grade
+        sold_by_month_and_grade = defaultdict(lambda: defaultdict(int))
 
-            if sale_date:
+        # Count total inventory by grade
+        total_inventory_by_grade = defaultdict(int)
+        
+        # Track all months for ordering
+        all_months = set()
+
+        # First pass: Count total inventory and identify all grades
+        for sale_date, stock, grade in rows:
+            grade = (grade or '').strip().upper()
+            if grade not in valid_grades:
+                grade = 'Unknown'
+            grades_seen.add(grade)
+            
+            # Count all items in inventory regardless of status
+            total_inventory_by_grade[grade] += 1
+            
+            # Record sales by month
+            if stock == 'SOLD' and sale_date:
                 sale_month = sale_date.strftime('%Y-%m')
-                sale_date_group[sale_month] += 1
+                sold_by_month_and_grade[sale_month][grade] += 1
+                all_months.add(sale_month)
 
-        return jsonify({
-            'sale_date': dict(sale_date_group),
-        })
+        sorted_months = sorted(all_months)
+        
+        # Calculate stock at the end of each month
+        stock_by_month = defaultdict(lambda: defaultdict(int))
+        cumulative_sold_by_grade = defaultdict(int)
+        
+        for month in sorted_months:
+            for grade in grades_seen:
+                # Add sales for this month to the running total
+                sold_this_month = sold_by_month_and_grade[month].get(grade, 0)
+                cumulative_sold_by_grade[grade] += sold_this_month
+                
+                # Stock at end of month = total inventory - cumulative sold
+                stock_by_month[month][grade] = total_inventory_by_grade[grade] - cumulative_sold_by_grade[grade]
+
+        # --- PDF Generation ---
+        buffer = BytesIO()
+        p = canvas.Canvas(buffer, pagesize=letter)
+        width, height = letter
+        y = height - 50
+
+        p.setFont("Helvetica-Bold", 16)
+        p.drawString(50, y, "Sales & Stock Report by Grade")
+        y -= 30
+
+        p.setFont("Helvetica", 12)
+        for month in sorted_months:
+            p.drawString(50, y, f"Month: {month}")
+            y -= 20
+
+            # SOLD section
+            p.drawString(70, y, "SOLD:")
+            y -= 15
+            sold_total = 0
+            for grade in sorted(grades_seen):
+                qty = sold_by_month_and_grade[month].get(grade, 0)
+                sold_total += qty
+                p.drawString(90, y, f"Grade {grade}: {qty}")
+                y -= 15
+            p.drawString(90, y, f"total: {sold_total}")
+            y -= 25
+
+            # In Stock section
+            p.drawString(70, y, "In Stock (End of Month):")
+            y -= 15
+            stock_total = 0
+            for grade in sorted(grades_seen):
+                qty = stock_by_month[month].get(grade, 0)
+                stock_total += qty
+                p.drawString(90, y, f"Grade {grade}: {qty}")
+                y -= 15
+            p.drawString(90, y, f"total: {stock_total}")
+            y -= 30
+
+            if y < 100:
+                p.showPage()
+                y = height - 50
+                p.setFont("Helvetica", 12)
+
+        p.save()
+        buffer.seek(0)
+
+        response = make_response(buffer.read())
+        response.headers['Content-Type'] = 'application/pdf'
+        response.headers['Content-Disposition'] = 'attachment; filename=sales_stock_report.pdf'
+        return response
     except Exception as e:
         return f"Error: {str(e)}"
+
+@laptop_bp.route('/laptop_ARP', methods=['GET'])
+def laptop_ARP():
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT Stock, OrderNumber FROM RMA_laptop_sheet")
+        rows = cursor.fetchall()
+        conn.close()
+
+        sold_rows = [row for row in rows if row[0] == "SOLD"]
+        sold_count = len(sold_rows)
+
+        # Create PDF in memory
+        buffer = BytesIO()
+        p = canvas.Canvas(buffer, pagesize=letter)
+        width, height = letter
+
+        p.setFont("Helvetica", 14)
+        p.drawString(100, height - 50, "ARP Stock Report")
+
+        y = height - 100
+        p.setFont("Helvetica", 12)
+        p.drawString(50, y, f"SOLD: {sold_count}")
+        y -= 20
+
+        p.setFont("Helvetica", 10)
+        p.drawString(50, y, "Order Numbers:")
+        y -= 15
+
+        for _, order_number in sold_rows:
+            if y < 50:
+                p.showPage()
+                y = height - 50
+                p.setFont("Helvetica", 10)
+
+            p.drawString(60, y, str(order_number))
+            y -= 15
+
+        p.showPage()
+        p.save()
+
+        buffer.seek(0)
+
+        response = make_response(buffer.read())
+        response.headers['Content-Type'] = 'application/pdf'
+        response.headers['Content-Disposition'] = 'attachment; filename=arp_report.pdf'
+        return response
+
+    except Exception as e:
+        return f"Error: {str(e)}"
+
+
     
 @laptop_bp.route('/laptop_TRP', methods=['GET'])
 def laptop_TRP():
