@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import MultiSelect from './MultiSelect';
 import { getOptionClass } from './styles';
 
-function GenericList({ items, columns, searchFields, filterFields, basePath, itemKey }) {
+function GenericList({ items, columns, searchFields, filterFields, basePath, itemKey, onSearch  }) {
   const [search, setSearch] = useState(
     Object.fromEntries([...searchFields.map((f) => [f.name, '']), ...filterFields.map((f) => [f.name, []])])
   );
@@ -118,50 +118,62 @@ function GenericList({ items, columns, searchFields, filterFields, basePath, ite
               </div>
             ))}
           </div>
-          <div className="flex flex-wrap gap-4 items-end">
-            {filterFields.map((field) => (
-              <div key={field.name}>
-                <label className="block text-gray-700 font-bold mb-2">{field.label}</label>
-                {field.type === 'select' ? (
-                  <select
-                    name={field.name}
-                    value={search[field.name]}
-                    onChange={handleSearchChange}
-                    className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-600"
-                  >
-                    {field.options.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                ) : field.type === 'checkbox' ? (
-                  <div className="flex flex-wrap gap-2">
-                    {field.options.map((option) => (
-                      <label key={option.value} className="flex items-center">
-                        <input
-                          type="checkbox"
-                          name={field.name}
-                          value={option.value}
-                          checked={search[field.name].includes(option.value)}
-                          onChange={handleSearchChange}
-                          className="mr-1"
-                        />
-                        {option.label}
-                      </label>
-                    ))}
-                  </div>
-                ) : field.type === 'multiselect' ? (
-                  <MultiSelect
-                    name={field.name}
-                    options={field.options}
-                    value={search[field.name]}
-                    onChange={handleSearchChange}
-                    label={field.label}
-                  />
-                ) : null}
-              </div>
-            ))}
+          <div className="flex flex-wrap gap-4 items-center justify-between">
+            <div className="flex flex-wrap gap-4">
+              {filterFields.map((field) => (
+                <div key={field.name}>
+                  <label className="block text-gray-700 font-bold mb-2">{field.label}</label>
+
+                  {field.type === 'select' ? (
+                    <select
+                      name={field.name}
+                      value={search[field.name]}
+                      onChange={handleSearchChange}
+                      className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-600"
+                    >
+                      {field.options.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  ) : field.type === 'checkbox' ? (
+                    <div className="flex flex-wrap gap-2">
+                      {field.options.map((option) => (
+                        <label key={option.value} className="flex items-center">
+                          <input
+                            type="checkbox"
+                            name={field.name}
+                            value={option.value}
+                            checked={search[field.name].includes(option.value)}
+                            onChange={handleSearchChange}
+                            className="mr-1"
+                          />
+                          {option.label}
+                        </label>
+                      ))}
+                    </div>
+                  ) : field.type === 'multiselect' ? (
+                    <MultiSelect
+                      name={field.name}
+                      options={field.options}
+                      value={search[field.name]}
+                      onChange={handleSearchChange}
+                      label={field.label}
+                    />
+                  ) : null}
+                </div>
+              ))}
+            </div>
+            <div className="flex items-center h-full">
+              <button
+                type="button"
+                onClick={() => onSearch(search)}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded shadow"
+              >
+                🔍 Search
+              </button>
+            </div>
           </div>
         </div>
 

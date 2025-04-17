@@ -22,77 +22,75 @@ condition_mapping = {
     'Grade F': 'F'
 }
 
-@laptop_bp.route('/', methods=['GET', 'POST'])
-def show_RMA_laptop_sheet():
+@laptop_bp.route('/api/laptops/search', methods=['POST'])
+def api_search_laptops():
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        
-        if request.method == 'POST':
-            brand = request.form.get('brand', '').strip()
-            model = request.form.get('model', '').strip()
-            serial_number = request.form.get('serial_number', '').strip()
-            tech_done = '1' if request.form.get('tech_done') else None
-            tech_not_done = '0' if request.form.get('tech_not_done') else None
-            stock_sold = 'SOLD' if request.form.get('stock_sold') else None
-            stock_null = True if request.form.get('stock_null') else None
-            
-            conditions = request.form.get('conditions', '') 
-            condition_list = [condition.strip() for condition in conditions.split(',') if condition.strip()]
-            db_conditions = [condition_mapping.get(condition, condition) for condition in condition_list]
+        filters = request.json  # Get JSON POST data
 
-            query = "SELECT * FROM RMA_laptop_sheet WHERE 1=1"
-            params = []
-            
-            if brand:
-                query += " AND Brand = ?"
-                params.append(brand)
-            if model:
-                query += " AND Model LIKE ?"
-                params.append(f"%{model}%")
-            if serial_number:
-                query += " AND SerialNumber LIKE ?"
-                params.append(f"%{serial_number}%")
-            if db_conditions:
-                query += " AND Condition IN (" + ",".join(["?"] * len(db_conditions)) + ")"
-                params.extend(db_conditions)
-            tech_conditions = []
-            if tech_done is not None:
-                tech_conditions.append("TechDone = ?")
-                params.append(tech_done)
-            if tech_not_done is not None:
-                tech_conditions.append("TechDone = ? OR TechDone IS NULL")
-                params.append(tech_not_done)
-            if tech_conditions:
-                query += " AND (" + " OR ".join(tech_conditions) + ")"
-            # Handle Stock conditions
-            if stock_null and not stock_sold:
-                # If only "Not Sold" is checked, show only NULL or empty Stock
-                query += " AND (Stock IS NULL OR Stock = ?)"
-                params.append('')  # Empty string
-            elif stock_sold or stock_null:
-                # If "Sold" is checked, or both, combine conditions
-                stock_conditions = []
-                if stock_sold:
-                    stock_conditions.append("Stock = ?")
-                    params.append(stock_sold)
-                if stock_null:
-                    stock_conditions.append("(Stock IS NULL OR Stock = ?)")
-                    params.append('')  # Empty string
-                if stock_conditions:
-                    query += " AND (" + " OR ".join(stock_conditions) + ")"
-            cursor.execute(query, params) if params else cursor.execute("SELECT * FROM RMA_laptop_sheet WHERE TechDone = '0'")
-        else:
-            cursor.execute("SELECT * FROM RMA_laptop_sheet WHERE TechDone = '0'")
-        
+        brand = filters.get('brand', '').strip()
+        model = filters.get('model', '').strip()
+        serial_number = filters.get('serialNumber', '').strip()
+        tech_done = '1' if 'Done' in filters.get('techDone', []) else None
+        tech_not_done = '0' if 'Not yet' in filters.get('techDone', []) else None
+        stock_sold = 'SOLD' if 'SOLD' in filters.get('stock', []) else None
+        stock_null = 'In Stock' in filters.get('stock', [])
+
+        condition_mapping = {
+            'Back to New': 'N', 'Grade A': 'A', 'Grade B': 'B',
+            'Grade C': 'C', 'Grade F': 'F'
+        }
+
+        condition_list = filters.get('conditions', [])
+        db_conditions = [condition_mapping.get(c, c) for c in condition_list]
+
+        query = "SELECT * FROM RMA_laptop_sheet WHERE 1=1"
+        params = []
+
+        if brand:
+            query += " AND Brand = ?"
+            params.append(brand)
+        if model:
+            query += " AND Model LIKE ?"
+            params.append(f"%{model}%")
+        if serial_number:
+            query += " AND SerialNumber LIKE ?"
+            params.append(f"%{serial_number}%")
+        if db_conditions:
+            query += " AND Condition IN (" + ",".join(["?"] * len(db_conditions)) + ")"
+            params.extend(db_conditions)
+
+        tech_conditions = []
+        if tech_done is not None:
+            tech_conditions.append("TechDone = ?")
+            params.append(tech_done)
+        if tech_not_done is not None:
+            tech_conditions.append("TechDone = ? OR TechDone IS NULL")
+            params.append(tech_not_done)
+        if tech_conditions:
+            query += " AND (" + " OR ".join(tech_conditions) + ")"
+
+        if stock_null and not stock_sold:
+            query += " AND (Stock IS NULL OR Stock = '')"
+        elif stock_sold or stock_null:
+            stock_conditions = []
+            if stock_sold:
+                stock_conditions.append("Stock = ?")
+                params.append(stock_sold)
+            if stock_null:
+                stock_conditions.append("(Stock IS NULL OR Stock = '')")
+            if stock_conditions:
+                query += " AND (" + " OR ".join(stock_conditions) + ")"
+
+        print(query, params)  # Debugging line to check the query and parameters
+        cursor.execute(query, params)
         data = cursor.fetchall()
         columns = [column[0] for column in cursor.description]
-        results = [dict(zip(columns, row)) for row in data]
-        total_count = len(results)
         conn.close()
-        return render_template('laptop/laptop.html', items=results, total_count=total_count)
+        return jsonify([dict(zip(columns, row)) for row in data])
     except Exception as e:
-        return f"Error: {str(e)}"
+        return jsonify({'error': str(e)}), 500
 
 @laptop_bp.route('/laptop_input')
 def laptop_input():

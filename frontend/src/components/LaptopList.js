@@ -1,8 +1,11 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import GenericList from './common/GenericList';
 import laptops from '../data/laptops';
 
 function LaptopList() {
+  const [laptops, setLaptops] = useState([]);
+  const [loading, setLoading] = useState(false);
+
   const columns = [
     { key: 'Brand', label: 'Brand' },
     { key: 'Condition', label: 'Condition', render: (item) => item.Condition === 'N' ? 'Back to New' : `Grade ${item.Condition}` },
@@ -77,6 +80,44 @@ function LaptopList() {
     },
   ];
 
+  const handleSearch = (searchParams) => {
+    setLoading(true);
+  
+    // Check if the user entered any filters
+    const hasAnyFilters = Object.entries(searchParams).some(([key, value]) => {
+      if (Array.isArray(value)) return value.length > 0;
+      return value?.trim?.();
+    });
+  
+    // If no filters, default to only TechDone = 'Not yet'
+    const finalParams = hasAnyFilters ? searchParams : { techDone: ['Not yet'] };
+  
+    fetch('http://localhost:5000/laptop/api/laptops/search', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(finalParams),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setLaptops(data);
+        } else {
+          console.error('Unexpected data format:', data);
+          setLaptops([]);
+        }
+      })
+      .catch((err) => {
+        console.error('Fetch error:', err);
+        setLaptops([]);
+      })
+      .finally(() => setLoading(false));
+  };
+  
+  
+  useEffect(() => {
+    handleSearch({ techDone: ['Not yet'] });
+  }, []);
+
   return (
     <GenericList
       items={laptops}
@@ -85,6 +126,7 @@ function LaptopList() {
       filterFields={filterFields}
       basePath="/pc"
       itemKey="ID"
+      onSearch={handleSearch}
     />
   );
 }
