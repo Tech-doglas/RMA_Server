@@ -1,11 +1,13 @@
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import { useParams } from 'react-router-dom';
 import GenericForm from './common/GenericForm';
-import laptops from '../data/laptops';
+import { ClipLoader } from 'react-spinners';
 
 function LaptopEdit() {
   const { id } = useParams();
-  const laptop = laptops.find((l) => l.ID === parseInt(id));
+  const [laptop, setLaptop] = useState(null);
+
+  const [userOptions, setUserOptions] = useState([]);
 
   const initialData = {
     brand: laptop?.Brand || '',
@@ -22,7 +24,6 @@ function LaptopEdit() {
     orderNumber: laptop?.OrderNumber || '',
     remark: laptop?.Remark || '',
     newImages: [],
-    user: laptop?.LastModifiedUser || '',
   };
 
   const fields = [
@@ -125,19 +126,80 @@ function LaptopEdit() {
       name: 'user',
       label: 'User',
       type: 'select',
-      options: [
-        { value: '', label: 'Select User', disabled: true },
-        { value: 'admin', label: 'admin' },
-        { value: 'user1', label: 'user1' },
-        { value: 'user2', label: 'user2' },
-      ],
+      options: userOptions,
       required: true,
     },
   ];
 
-  const handleSubmit = (data) => {
-    console.log('Updated Laptop:', { id: laptop?.ID, ...data });
-  };
+    useEffect(() => {
+      fetch('http://localhost:5000/laptop/api/users')
+        .then((res) => res.json())
+        .then((data) => {
+          if (Array.isArray(data)) {
+            setUserOptions([
+              { value: '', label: 'Select User', disabled: true },
+              ...data.map((user) => ({ value: user, label: user })),
+            ]);
+          }
+        })
+        .catch((err) => console.error('Error fetching users:', err));
+    }, []);
+
+    useEffect(() => {
+      fetch(`http://localhost:5000/laptop/item/${id}`)
+        .then((res) => res.json())
+        .then((data) => setLaptop(data))
+        .catch((err) => console.error('Error fetching laptop:', err));
+    }, [id]);
+
+    if (!laptop) {
+      return (
+        <div className="p-6 flex justify-center items-center">
+          <ClipLoader color="#4B5563" size={40} />
+        </div>
+      );
+    }
+
+    const handleSubmit = (formData) => {
+      const payload = new FormData();
+    
+      payload.append('brand', formData.brand);
+      payload.append('model', formData.model);
+      payload.append('spec', formData.spec);
+      payload.append('updatedSpec', formData.updatedSpec);
+      payload.append('serialNumber', formData.serialNumber);
+      payload.append('condition', formData.condition);
+      payload.append('sealed', formData.sealed ? '1' : '');
+      payload.append('odooRecord', formData.odooRecord ? '1' : '');
+      payload.append('odooRef', formData.odooRef);
+      payload.append('sku', formData.sku);
+      payload.append('stock', formData.stock ? 'SOLD' : '');
+      payload.append('orderNumber', formData.orderNumber);
+      payload.append('remark', formData.remark);
+      payload.append('user', formData.user);
+    
+      // Handle new images
+      if (formData.newImages?.length > 0) {
+        Array.from(formData.newImages).forEach((file) => {
+          payload.append('new_images', file);
+        });
+      }
+    
+      fetch(`http://localhost:5000/laptop/item/update/${id}`, {
+        method: 'POST',
+        body: payload,
+      })
+        .then((res) => {
+          if (res.redirected) {
+            window.location.href = res.url;
+          } else {
+            return res.text().then(console.log);
+          }
+        })
+        .catch((err) => {
+          console.error('Edit failed:', err);
+        });
+    };
 
   return (
     <GenericForm

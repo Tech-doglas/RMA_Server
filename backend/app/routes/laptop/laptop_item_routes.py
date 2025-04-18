@@ -66,8 +66,8 @@ def submit_item():
     except Exception as e:
         return f"Error submitting item: {str(e)}"
 
-@laptop_item_bp.route('/edit/<id>')
-def edit_item(id):
+@laptop_item_bp.route('/edit/<id>', methods=['POST'])
+def edit_laptop(id):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -83,7 +83,7 @@ def edit_item(id):
 
         users = [row[0] for row in data]
         conn.close()
-        return render_template('laptop/laptop_edit_item.html', laptop=laptop, image_files=image_files, users=users)
+        return "OK", 200
     except Exception as e:
         return f"Error: {str(e)}", 500
 
@@ -152,7 +152,7 @@ def update_item(id):
         
         conn.commit()
         conn.close()
-        return redirect(url_for('laptop.laptop_item.laptop_item_detail', id=id))
+        return "OK", 200
     except Exception as e:
         return f"Error updating item: {str(e)}"
 
