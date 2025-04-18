@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import GenericList from './common/GenericList';
-import laptops from '../data/laptops';
 
 function LaptopList() {
   const [laptops, setLaptops] = useState([]);
-  const [loading, setLoading] = useState(false);
 
   const columns = [
     { key: 'Brand', label: 'Brand' },
@@ -81,8 +79,6 @@ function LaptopList() {
   ];
 
   const handleSearch = (searchParams) => {
-    setLoading(true);
-  
     // Check if the user entered any filters
     const hasAnyFilters = Object.entries(searchParams).some(([key, value]) => {
       if (Array.isArray(value)) return value.length > 0;
@@ -110,7 +106,7 @@ function LaptopList() {
         console.error('Fetch error:', err);
         setLaptops([]);
       })
-      .finally(() => setLoading(false));
+      .finally();
   };
   
   

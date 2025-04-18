@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import GenericForm from './common/GenericForm';
 
 function LaptopInput() {
+  const [userOptions, setUserOptions] = useState([]);
+
   const initialData = {
     brand: '',
     model: '',
@@ -134,19 +136,66 @@ function LaptopInput() {
       name: 'user',
       label: 'User',
       type: 'select',
-      options: [
-        { value: '', label: 'Select User', disabled: true },
-        { value: 'admin', label: 'admin' },
-        { value: 'user1', label: 'user1' },
-        { value: 'user2', label: 'user2' },
-      ],
+      options: userOptions,
       required: true,
     },
   ];
 
-  const handleSubmit = (data) => {
-    console.log('New Laptop:', data);
+  useEffect(() => {
+    fetch('http://localhost:5000/laptop/api/users')
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setUserOptions([
+            { value: '', label: 'Select User', disabled: true },
+            ...data.map((user) => ({ value: user, label: user })),
+          ]);
+        }
+      })
+      .catch((err) => console.error('Error fetching users:', err));
+  }, []);
+
+  const handleSubmit = async (formData) => {
+    try {
+      const data = new FormData();
+  
+      // Append basic fields
+      data.append('brand', formData.brand);
+      data.append('model', formData.model);
+      data.append('ram', formData.ram);
+      data.append('ssd', formData.ssd);
+      data.append('serial_number', formData.serialNumber);
+      data.append('OdooRef', formData.odooRef);
+      data.append('condition', formData.condition);
+      data.append('sealed', formData.sealed ? '1' : '');
+      data.append('odoorecord', formData.odooRecord ? '1' : '');
+      data.append('remark', formData.remark);
+      data.append('user', formData.user);
+  
+      // Append images
+      if (formData.images && formData.images.length > 0) {
+        const images = Array.from(formData.images);
+        images.forEach((file) => {
+          data.append('images', file);
+        });
+      }
+      
+      const response = await fetch('http://localhost:5000/laptop/item/submit', {
+        method: 'POST',
+        body: data,
+      });
+  
+      if (response.redirected) {
+        window.location.href = response.url;
+      } else {
+        const text = await response.text();
+        console.log('Server response:', text);
+      }
+    } catch (error) {
+      console.error('Submit error:', error);
+    }
   };
+  
 
   return (
     <GenericForm

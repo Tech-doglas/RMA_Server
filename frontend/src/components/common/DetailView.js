@@ -1,11 +1,16 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ClipLoader } from 'react-spinners';
 
-function DetailView({ item, fields, basePath, itemId, actions = [] }) {
+function DetailView({ item, fields, basePath, itemId, actions = [], images = [] }) {
   const navigate = useNavigate();
 
   if (!item) {
-    return <div className="p-6">No item found with this ID.</div>;
+    return (
+      <div className="p-6 flex justify-center items-center">
+        <ClipLoader color="#4B5563" size={40} />
+      </div>
+    );
   }
 
   return (
@@ -51,7 +56,21 @@ function DetailView({ item, fields, basePath, itemId, actions = [] }) {
 
       <div className="mt-6">
         <h2 className="text-xl font-bold mb-2">Images</h2>
-        <p className="text-gray-500">No images available for this item.</p>
+        {images.length > 0 ? (
+          <div className="flex flex-wrap gap-4">
+            {images.map((filename) => (
+              <div key={filename} className="relative">
+                <img
+                  src={`http://localhost:5000/laptop/item/images/${itemId}/${filename}`}
+                  alt={filename}
+                  className="w-[600px] h-auto rounded shadow"
+                />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-gray-500">No images available for this item.</p>
+        )}
       </div>
     </div>
   );

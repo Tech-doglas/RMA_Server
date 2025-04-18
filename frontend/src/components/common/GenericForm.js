@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-function GenericForm({ initialData, fields, onSubmit, basePath, itemId, isEdit = false }) {
+function GenericForm({ initialData, fields, onSubmit, basePath, itemId, isEdit = false, hideBackButton = false }) {
   const [formData, setFormData] = useState(initialData);
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
@@ -49,17 +49,19 @@ function GenericForm({ initialData, fields, onSubmit, basePath, itemId, isEdit =
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
+    <div className="w-full bg-white rounded-lg shadow p-6 max-w-xl mx-auto mt-4">
       <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-2xl">
         <h1 className="text-2xl font-bold mb-4 text-center">
           {isEdit ? 'Edit' : 'Input New'} {basePath.charAt(1).toUpperCase() + basePath.slice(2).replace('-', ' ')} Item
         </h1>
-        <button
-          onClick={() => navigate(basePath)}
-          className="mb-4 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-        >
-          Back
-        </button>
+        {!hideBackButton && (
+          <button
+            onClick={() => navigate(basePath)}
+            className="mb-4 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+          >
+            Back
+          </button>
+        )}
         <form onSubmit={handleSubmit}>
           {fields.map((field) => (
             <div key={field.name} className="mb-4">

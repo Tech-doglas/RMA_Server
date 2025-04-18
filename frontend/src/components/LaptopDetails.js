@@ -1,11 +1,14 @@
-import React from 'react';
-import { useParams, Link } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useParams, Link, useNavigate  } from 'react-router-dom';
 import DetailView from './common/DetailView';
-import laptops from '../data/laptops';
+import Toast from './common/Toast';
 
 function LaptopDetails() {
   const { id } = useParams();
-  const laptop = laptops.find((l) => l.ID === parseInt(id));
+  const navigate = useNavigate();
+  const [laptop, setLaptop] = useState(null);
+  const [images, setImages] = useState([]);
+  const [toast, setToast] = useState(null);
 
   const fields = [
     { key: 'Brand', label: 'Brand' },
@@ -25,6 +28,18 @@ function LaptopDetails() {
     { key: 'LastModifiedDateTime', label: 'Last Edited DateTime' },
   ];
 
+  useEffect(() => {
+    fetch(`http://localhost:5000/laptop/item/${id}`)
+      .then((res) => res.json())
+      .then((data) => setLaptop(data))
+      .catch((err) => console.error('Error fetching laptop:', err));
+
+    fetch(`http://localhost:5000/laptop/item/api/images/${id}`)
+      .then((res) => res.json())
+      .then((data) => setImages(data))
+      .catch((err) => console.error('Error fetching images:', err));
+  }, [id]);
+
   const actions = [
     {
       label: 'Sales',
@@ -38,7 +53,7 @@ function LaptopDetails() {
           }`}
           onClick={(e) => {
             if (laptop?.Stock === 'SOLD') {
-              e.preventDefault(); // Prevent navigation if disabled
+              e.preventDefault();
             }
           }}
         >
@@ -53,20 +68,43 @@ function LaptopDetails() {
     },
     {
       label: 'Done',
-      onClick: () => console.log('Marked as Tech Done:', laptop?.ID),
-      className: laptop?.Stock !== 'SOLD' || laptop?.TechDone ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600',
+      onClick: () => {
+        fetch(`http://localhost:5000/laptop/item/tech_done/${id}`, {
+          method: 'POST',
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.status === 'success') {
+              setToast({ message: 'Marked as Tech Done ✔️', type: 'success' });
+              setTimeout(() => navigate('/pc'), 500);
+            } else {
+              setToast({ message: data.error || 'Failed to update', type: 'error' });
+            }
+          })
+          .catch(() =>
+            setToast({ message: 'Server error. Try again later.', type: 'error' })
+          );
+      },
+      className:
+        laptop?.Stock !== 'SOLD' || laptop?.TechDone
+          ? 'bg-gray-400 cursor-not-allowed'
+          : 'bg-green-500 hover:bg-green-600',
       disabled: laptop?.Stock !== 'SOLD' || laptop?.TechDone,
-    },
+    }
   ];
 
   return (
+    <>
+    {toast && <Toast {...toast} onClose={() => setToast(null)} />}
     <DetailView
       item={laptop}
       fields={fields}
       basePath="/pc"
       itemId={id}
       actions={actions}
+      images={images}
     />
+    </>
   );
 }
 

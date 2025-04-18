@@ -4,13 +4,6 @@ from app.models import get_db_connection
 
 laptop_sales_bp = Blueprint('laptop_sales', __name__)
 
-@laptop_sales_bp.route('/')
-def sales():
-    try:
-        return render_template('laptop/sales.html')
-    except Exception as e:
-        return f"Error: {str(e)}"
-
 @laptop_sales_bp.route('/<id>')
 def sales_detail(id):
     try:

@@ -1,11 +1,10 @@
 # app/routes/main_routes.py
-from flask import Blueprint, render_template, request, jsonify, make_response, send_file
+from flask import Blueprint, request, jsonify, make_response, send_file
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from openpyxl import Workbook
 from io import BytesIO
 from collections import defaultdict
-from datetime import datetime
 from app.models import get_db_connection
 
 from app.routes.laptop.laptop_item_routes import laptop_item_bp
@@ -26,88 +25,105 @@ condition_mapping = {
 @laptop_bp.route('/api/laptops/search', methods=['POST'])
 def api_search_laptops():
     try:
+        filters = request.json
+
         conn = get_db_connection()
         cursor = conn.cursor()
-        filters = request.json  # Get JSON POST data
-
-        brand = filters.get('brand', '').strip()
-        model = filters.get('model', '').strip()
-        serial_number = filters.get('serialNumber', '').strip()
-        tech_done = '1' if 'Done' in filters.get('techDone', []) else None
-        tech_not_done = '0' if 'Not yet' in filters.get('techDone', []) else None
-        stock_sold = 'SOLD' if 'SOLD' in filters.get('stock', []) else None
-        stock_null = 'In Stock' in filters.get('stock', [])
-
-        condition_mapping = {
-            'Back to New': 'N', 'Grade A': 'A', 'Grade B': 'B',
-            'Grade C': 'C', 'Grade F': 'F'
-        }
-
-        condition_list = filters.get('conditions', [])
-        db_conditions = [condition_mapping.get(c, c) for c in condition_list]
 
         query = "SELECT * FROM RMA_laptop_sheet WHERE 1=1"
         params = []
 
-        if brand:
-            query += " AND Brand = ?"
-            params.append(brand)
-        if model:
-            query += " AND Model LIKE ?"
-            params.append(f"%{model}%")
+        # === Serial Number ===
+        serial_number = filters.get('serialNumber', '').strip()
         if serial_number:
             query += " AND SerialNumber LIKE ?"
             params.append(f"%{serial_number}%")
+
+        # === Model ===
+        model = filters.get('model', '').strip()
+        if model:
+            query += " AND Model LIKE ?"
+            params.append(f"%{model}%")
+
+        # === Brand ===
+        brand = filters.get('brand', '')
+        if isinstance(brand, list):
+            brand = brand[0] if brand else ''
+        brand = brand.strip() if brand else ''
+        if brand:
+            query += " AND Brand = ?"
+            params.append(brand)
+
+        condition_list = filters.get('conditions', [])
+        db_conditions = [condition_mapping.get(c, c) for c in condition_list]
         if db_conditions:
-            query += " AND Condition IN (" + ",".join(["?"] * len(db_conditions)) + ")"
+            placeholders = ','.join(['?'] * len(db_conditions))
+            query += f" AND Condition IN ({placeholders})"
             params.extend(db_conditions)
 
+        # === Stock ===
+        stock_list = filters.get('stock', [])
+        stock_conditions = []
+
+        if 'SOLD' in stock_list:
+            stock_conditions.append("Stock = ?")
+            params.append('SOLD')
+
+        if 'In Stock' in stock_list:
+            stock_conditions.append("(Stock IS NULL OR Stock = '')")  # no param
+
+        if stock_conditions:
+            query += " AND (" + " OR ".join(stock_conditions) + ")"
+
+        # === Tech Done ===
+        tech_done_list = filters.get('techDone', [])
         tech_conditions = []
-        if tech_done is not None:
+
+        if 'Done' in tech_done_list:
             tech_conditions.append("TechDone = ?")
-            params.append(tech_done)
-        if tech_not_done is not None:
-            tech_conditions.append("TechDone = ? OR TechDone IS NULL")
-            params.append(tech_not_done)
+            params.append(1)
+
+        if 'Not yet' in tech_done_list:
+            tech_conditions.append("TechDone = ?")
+            params.append(0)
+            tech_conditions.append("TechDone IS NULL")  # no param
+
         if tech_conditions:
             query += " AND (" + " OR ".join(tech_conditions) + ")"
 
-        if stock_null and not stock_sold:
-            query += " AND (Stock IS NULL OR Stock = '')"
-        elif stock_sold or stock_null:
-            stock_conditions = []
-            if stock_sold:
-                stock_conditions.append("Stock = ?")
-                params.append(stock_sold)
-            if stock_null:
-                stock_conditions.append("(Stock IS NULL OR Stock = '')")
-            if stock_conditions:
-                query += " AND (" + " OR ".join(stock_conditions) + ")"
-
-        print(query, params)  # Debugging line to check the query and parameters
+        # === Execute ===
         cursor.execute(query, params)
         data = cursor.fetchall()
-        columns = [column[0] for column in cursor.description]
+
+        result = []
+        if data:
+            columns = [col[0] for col in cursor.description]
+            result = [dict(zip(columns, row)) for row in data]
+
         conn.close()
-        return jsonify([dict(zip(columns, row)) for row in data])
+        return jsonify(result)
+
     except Exception as e:
+        import traceback
+        traceback.print_exc()
+        print("❌ ERROR:", str(e))
         return jsonify({'error': str(e)}), 500
 
-@laptop_bp.route('/laptop_input')
-def laptop_input():
+
+
+@laptop_bp.route('/api/users', methods=['GET'])
+def get_users():
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM RMA_user")
         data = cursor.fetchall()
-
         conn.close()
 
         results = [row[0] for row in data]
-
-        return render_template('laptop/laptop_input.html', users=results)
+        return jsonify(results)
     except Exception as e:
-        return f"Error: {str(e)}"
+        return jsonify({'error': str(e)}), 500
 
 @laptop_bp.route('/laptop_SRP', methods=['GET'])
 def laptop_SRP():

@@ -1,36 +1,25 @@
 # app/routes/item_routes.py
-from flask import Blueprint, render_template, request, redirect, send_from_directory, url_for
+from flask import Blueprint, render_template, request, redirect, send_from_directory, url_for, jsonify
 from app.models import get_db_connection, get_modi_rma_root, save_laptop_images, get_laptop_image_files
 import os
 import shutil
 
 laptop_item_bp = Blueprint('laptop_item', __name__)
 
-@laptop_item_bp.route('/<id>')
-def laptop_item_detail(id):
+@laptop_item_bp.route('/<id>', methods=['GET'])
+def laptop_item_detail_api(id):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM RMA_laptop_sheet WHERE ID = ?", id)
+        cursor.execute("SELECT * FROM RMA_laptop_sheet WHERE ID = ?", (id,))
         data = cursor.fetchone()
         if not data:
-            return "Item not found", 404
+            return jsonify({'error': 'Item not found'}), 404
         laptop = dict(zip([column[0] for column in cursor.description], data))
-        image_files = get_laptop_image_files("laptop", laptop['ID'])
         conn.close()
-        return render_template('laptop/laptop_item_detail.html', laptop=laptop, image_files=image_files)
+        return jsonify(laptop)
     except Exception as e:
-        return f"Error: {str(e)}", 500
-
-@laptop_item_bp.route('/images/<id>/<filename>')
-def serve_image(id, filename):
-    try:
-        image_dir = os.path.join(get_modi_rma_root(), 'images', 'laptop', str(id))
-        if not os.path.exists(image_dir):
-            return "Image directory not found", 404
-        return send_from_directory(image_dir, filename)
-    except Exception as e:
-        return f"Error: {str(e)}", 500
+        return jsonify({'error': str(e)}), 500
 
 @laptop_item_bp.route('/submit', methods=['POST'])
 def submit_item():
@@ -49,35 +38,31 @@ def submit_item():
         odoo_record = True if request.form.get('odoorecord') else False
         stock = ""
         remark = request.form.get('remark')
-        sku = request.form.get('sku', '')
-        tech_done = True if request.form.get('tech_done') else False
         user= request.form.get('user')
         
         if sealed:
             query = """
                 INSERT INTO RMA_laptop_sheet 
-                (Brand, Model, Spec, SerialNumber, OdooRef, Condition, Sealed, Stock, Remark, OdooRecord, SKU, TechDone, TechDoneDate, LastModifiedUser, LastModifiedDateTime, InputDate) 
+                (Brand, Model, Spec, SerialNumber, OdooRef, Condition, Sealed, Stock, Remark, OdooRecord, LastModifiedUser,TechDoneDate, LastModifiedDateTime, InputDate) 
                 OUTPUT INSERTED.ID
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, GETDATE(), ?, GETDATE(), GETDATE())
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, GETDATE(), GETDATE(), GETDATE())
             """
-            values = (brand, model, spec, serial_number, odooRef, condition, sealed, stock, remark,
-                      odoo_record, sku, tech_done, user)
+            values = (brand, model, spec, serial_number, odooRef, condition, sealed, stock, remark, odoo_record, user)
         else:
             query = """
                 INSERT INTO RMA_laptop_sheet 
-                (Brand, Model, Spec, SerialNumber, OdooRef, Condition, Sealed, Stock, Remark, OdooRecord, SKU, TechDone, LastModifiedUser, LastModifiedDateTime, InputDate) 
+                (Brand, Model, Spec, SerialNumber, OdooRef, Condition, Sealed, Stock, Remark, OdooRecord, LastModifiedUser, LastModifiedDateTime, InputDate) 
                 OUTPUT INSERTED.ID
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, GETDATE(), GETDATE())
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, GETDATE(), GETDATE())
             """
-            values = (brand, model, spec, serial_number, odooRef, condition, sealed, stock, remark,
-                      odoo_record, sku, tech_done, user)
+            values = (brand, model, spec, serial_number, odooRef, condition, sealed, stock, remark, odoo_record, user)
         
         cursor.execute(query, values)
         primary_key = cursor.fetchone()[0]
         save_laptop_images(request.files.getlist('images'), "laptop", primary_key)
         conn.commit()
         conn.close()
-        return redirect(url_for('laptop.laptop_input'))
+        return "OK", 200
     except Exception as e:
         return f"Error submitting item: {str(e)}"
 
@@ -197,15 +182,42 @@ def delete_image(id, filename):
         return "Image not found", 404
     except Exception as e:
         return f"Error deleting image: {str(e)}", 500
+    
+@laptop_item_bp.route('/images/<id>/<filename>')
+def serve_image(id, filename):
+    try:
+        image_dir = os.path.join(get_modi_rma_root(), 'images', 'laptop', str(id))
+        if not os.path.exists(image_dir):
+            return "Image directory not found", 404
+        return send_from_directory(image_dir, filename)
+    except Exception as e:
+        return f"Error: {str(e)}", 500
+    
+@laptop_item_bp.route('/api/images/<id>')
+def list_laptop_images(id):
+    try:
+        image_dir = os.path.join(get_modi_rma_root(), 'images', 'laptop', str(id))
+        if not os.path.exists(image_dir):
+            return jsonify([])
+        filenames = os.listdir(image_dir)
+        return jsonify(filenames)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
-@laptop_item_bp.route('/tech_done/<id>')
-def tech_done(id):
+
+@laptop_item_bp.route('/tech_done/<id>', methods=['POST'])
+def mark_tech_done(id):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("UPDATE RMA_laptop_sheet SET TechDone = 1  WHERE ID = ?", (id,))
+        cursor.execute("""
+            UPDATE RMA_laptop_sheet 
+            SET TechDone = 1, LastModifiedDateTime = GETDATE()
+            WHERE ID = ?
+        """, (id,))
         conn.commit()
         conn.close()
-        return redirect(url_for('laptop.laptop_item.laptop_item_detail', id=id))
+        return jsonify({'status': 'success'})
     except Exception as e:
-        return f"Error updating TechDone: {str(e)}", 500
+        return jsonify({'error': str(e)}), 500
+
