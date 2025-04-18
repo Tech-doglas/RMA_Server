@@ -204,13 +204,25 @@ function callRoute(route) {
             if (!response.ok) {
                 throw new Error("Network response was not ok");
             }
-            return response.blob(); // Convert to blob for file download
+
+            // Get the file name from headers
+            const disposition = response.headers.get('Content-Disposition');
+            let filename = "report";
+
+            if (disposition && disposition.includes("filename=")) {
+                const matches = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+                if (matches && matches[1]) {
+                    filename = matches[1].replace(/['"]/g, '');
+                }
+            }
+
+            return response.blob().then(blob => ({ blob, filename }));
         })
-        .then(blob => {
+        .then(({ blob, filename }) => {
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'trp_report.pdf';
+            a.download = filename;
             document.body.appendChild(a);
             a.click();
             a.remove();
@@ -220,6 +232,7 @@ function callRoute(route) {
             console.error('Error:', error);
         });
 }
+
 
 // Make it globally available for inline onclick use
 window.callRoute = callRoute;
