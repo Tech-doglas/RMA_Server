@@ -116,11 +116,11 @@ def get_users():
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM RMA_user")
+        cursor.execute("SELECT * FROM RMA_users")
         data = cursor.fetchall()
         conn.close()
 
-        results = [row[0] for row in data]
+        results = [row[1] for row in data]
         return jsonify(results)
     except Exception as e:
         return jsonify({'error': str(e)}), 500

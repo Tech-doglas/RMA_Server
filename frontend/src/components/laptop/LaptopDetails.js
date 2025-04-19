@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate  } from 'react-router-dom';
-import DetailView from './common/DetailView';
-import Toast from './common/Toast';
+import DetailView from '../common/DetailView';
+import Toast from '../common/Toast';
 
 function LaptopDetails() {
   const { id } = useParams();

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import GenericForm from './common/GenericForm';
+import GenericForm from '../common/GenericForm';
 
 function LaptopInput() {
   const [userOptions, setUserOptions] = useState([]);

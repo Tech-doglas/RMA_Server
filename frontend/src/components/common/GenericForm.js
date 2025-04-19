@@ -40,13 +40,32 @@ function GenericForm({ initialData, fields, onSubmit, basePath, itemId, isEdit =
     }
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (window.confirm('Are you sure you want to delete this item?')) {
-      // Simulate delete (in a real app, this would be an API call)
-      console.log('Deleted Item:', itemId);
-      navigate(basePath);
+      fetch(`http://localhost:5000/laptop/api/item/${itemId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+        .then((res) => {
+          if (!res.ok) {
+            return res.json().then((errorData) => {
+              throw new Error(errorData.error || 'Failed to delete the item.');
+            });
+          } else {
+            console.log('Deleted Item:', itemId);
+            navigate(basePath);
+          }
+        })
+        .catch((err) => {
+          console.error('Delete failed:', err);
+          alert('Delete failed: ' + err.message);
+        });
+      
     }
   };
+  
 
   return (
     <div className="w-full bg-white rounded-lg shadow p-6 max-w-xl mx-auto mt-4">

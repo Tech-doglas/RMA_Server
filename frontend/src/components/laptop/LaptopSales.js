@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import GenericForm from './common/GenericForm';
+import GenericForm from '../common/GenericForm';
 import { ClipLoader } from 'react-spinners';
 
 function LaptopSales() {

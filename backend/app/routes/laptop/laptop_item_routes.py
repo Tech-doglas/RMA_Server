@@ -156,20 +156,21 @@ def update_item(id):
     except Exception as e:
         return f"Error updating item: {str(e)}"
 
-@laptop_item_bp.route('/delete/<id>')
+@laptop_item_bp.route('/api/item/<id>', methods=['DELETE'])
 def delete_item(id):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("DELETE FROM RMA_laptop_sheet WHERE ID = ?", id)
+        cursor.execute("DELETE FROM RMA_laptop_sheet WHERE ID = ?", (id,))
         image_dir = os.path.join('images', 'laptop', str(id))
         if os.path.exists(image_dir):
             shutil.rmtree(image_dir)
         conn.commit()
         conn.close()
-        return redirect(url_for('laptop.show_RMA_laptop_sheet'))
+        return {"message": "Item deleted successfully"}, 200
     except Exception as e:
-        return f"Error deleting item: {str(e)}", 500
+        return {"error": f"Error deleting item: {str(e)}"}, 500
+
 
 @laptop_item_bp.route('/delete_image/<id>/<filename>', methods=['POST'])
 def delete_image(id, filename):

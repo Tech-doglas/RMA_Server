@@ -1,6 +1,6 @@
 import React, {useState, useEffect} from 'react';
 import { useParams } from 'react-router-dom';
-import GenericForm from './common/GenericForm';
+import GenericForm from '../common/GenericForm';
 import { ClipLoader } from 'react-spinners';
 
 function LaptopEdit() {
@@ -209,6 +209,7 @@ function LaptopEdit() {
       basePath="/pc"
       itemId={id}
       isEdit={true}
+      hideBackButton={true}
     />
   );
 }

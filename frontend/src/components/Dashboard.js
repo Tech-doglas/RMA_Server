@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-function Dashboard() {
+function Dashboard({ role, department, onLogout }) {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="bg-white p-8 rounded-lg shadow-lg text-center">
@@ -27,6 +27,15 @@ function Dashboard() {
               Return Receiving
             </button>
           </Link>
+
+          {role === 'manager' && (
+            <Link to="/manager-tools">
+              <button className="w-full bg-red-600 text-white p-4 rounded-lg">Manager</button>
+            </Link>
+          )}
+          <button onClick={onLogout} className="bg-red-500 w-full text-white px-4 py-2 rounded">
+            Logout
+          </button>
         </div>
       </div>
     </div>

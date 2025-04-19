@@ -1,22 +1,37 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-function Login({ onLogin }) {
+function Login({ onLogin, onLogout }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Simulate login validation
-    if (username && password) {
-      onLogin();
-      navigate('/dashboard');
-    } else {
-      setError('Please enter both username and password.');
+    setError('');
+  
+    try {
+      const response = await fetch('http://localhost:5000/auth/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+  
+      const data = await response.json();
+  
+      if (response.ok) {
+        onLogin(data.role, data.department);
+        navigate('/dashboard');
+      } else {
+        setError(data.error || 'Login failed.');
+      }
+    } catch (err) {
+      console.log(err);
+      setError('Server error. Please try again later.');
     }
   };
+  
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -52,9 +67,16 @@ function Login({ onLogin }) {
           {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 transition-colors"
+            className="w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 transition-colors mb-2"
           >
             Login
+          </button>
+          <button
+            type="button"
+            className="w-full bg-gray-600 text-white p-3 rounded-lg hover:bg-gray-700 transition-colors"
+            onClick={() => navigate('/register')}
+          >
+            Register
           </button>
         </form>
       </div>

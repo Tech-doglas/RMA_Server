@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import GenericList from './common/GenericList';
+import GenericList from '../common/GenericList';
 
 function LaptopList() {
   const [laptops, setLaptops] = useState([]);
