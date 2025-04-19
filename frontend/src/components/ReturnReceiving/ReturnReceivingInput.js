@@ -1,7 +1,10 @@
-import React from 'react';
-import GenericForm from './common/GenericForm';
+import React, {useState} from 'react';
+import GenericForm from '../common/GenericForm';
+import Toast from '../common/Toast';
 
 function ReturnReceivingInput() {
+    const [toast, setToast] = useState(null);
+
   const initialData = {
     trackingNumber: '',
     company: '',
@@ -45,16 +48,41 @@ function ReturnReceivingInput() {
     },
   ];
 
-  const handleSubmit = (data) => {
-    console.log('New Return Receiving Record:', data);
+  const handleSubmit = async (formData) => {
+    const data = new FormData();
+    data.append('tracking_number', formData.trackingNumber);
+    data.append('company', formData.company);
+    data.append('remark', formData.remark);
+    if (formData.image) {
+      data.append('image', formData.image);
+    }
+  
+    try {
+      const res = await fetch('http://localhost:5000/return/submit', {
+        method: 'POST',
+        body: data,
+      });
+  
+      if (res.ok) {
+        setToast({ message: '✔️ Submitted successfully', type: 'success' });
+        setTimeout(() => window.location.href = '/return', 500);
+      } else {
+        const errorText = await res.text();
+        setToast({ message: errorText || 'Failed to Submit', type: 'error' });
+      }
+    } catch (err) {
+      setToast({ message: 'Submit error. Try again later.', type: 'error' })
+    }
   };
+  
+  
 
   return (
     <GenericForm
       initialData={initialData}
       fields={fields}
       onSubmit={handleSubmit}
-      basePath="/return-receiving"
+      basePath="/return"
     />
   );
 }

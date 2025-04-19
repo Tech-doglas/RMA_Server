@@ -1,8 +1,8 @@
 import os
-from flask import Blueprint, render_template, request, redirect, send_from_directory, url_for
+from flask import Blueprint, render_template, request, redirect, send_from_directory, url_for, jsonify
 from app.models import get_db_connection, get_modi_rma_root, get_shipping_label_image, save_shipping_label_image
 
-return_receiving_bp = Blueprint('return_receiving', __name__)
+return_receiving_bp = Blueprint('return', __name__)
 
 @return_receiving_bp.route('/', methods=['GET', 'POST'])
 def show_return_receiving_sheet():
@@ -43,19 +43,10 @@ def show_return_receiving_sheet():
         data = cursor.fetchall()
         columns = [column[0] for column in cursor.description]
         results = [dict(zip(columns, row)) for row in data]
-        total_count = len(results)
         conn.close()
-
-        return render_template('return_receiving/return_receiving.html', records=results, total_count=total_count)
+        return jsonify(results)
     except Exception as e:
-        return f"Error: {str(e)}"
-
-@return_receiving_bp.route('/return_receiving_input')
-def return_receiving_input():
-    try:
-        return render_template('return_receiving/return_receiving_input.html')
-    except Exception as e:
-        return f"Error: {str(e)}"
+        return jsonify({'error': str(e)}), 500
     
 @return_receiving_bp.route('/detail/<tracking_number>')
 def return_receiving_record_detail(tracking_number):

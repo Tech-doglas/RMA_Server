@@ -1,4 +1,4 @@
-# app/routes/sales_routes.py
+# routes/laptop/sales.py
 from flask import Blueprint, render_template, request, redirect, url_for
 from app.models import get_db_connection
 
@@ -22,27 +22,26 @@ def sales_detail(id):
 @laptop_sales_bp.route('/order', methods=['POST'])
 def sales_order():
     try:
-        # Get form data
         ram = request.form.get('ram')
         ssd = request.form.get('ssd')
         new_spec = f"{ram}+{ssd}"
         order_number = request.form.get('order')
         id = request.form.get('id')
-        
+
         if not order_number:
             return "Order Number is required", 400
 
         conn = get_db_connection()
         cursor = conn.cursor()
-        
+
         cursor.execute("SELECT Spec FROM RMA_laptop_sheet WHERE ID = ?", id)
         result = cursor.fetchone()
         if not result:
             conn.close()
             return "Item not found", 404
-        
+
         current_spec = result[0]
-        
+
         if new_spec != current_spec:
             cursor.execute("""
                 UPDATE RMA_laptop_sheet 
@@ -55,7 +54,7 @@ def sales_order():
                 SET OrderNumber = ?, Stock = 'SOLD', SaleDate = GETDATE()
                 WHERE ID = ?
             """, (order_number, id))
-        
+
         conn.commit()
         conn.close()
         return redirect(url_for('laptop.show_RMA_laptop_sheet'))

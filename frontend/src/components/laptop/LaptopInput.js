@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import GenericForm from '../common/GenericForm';
+import Toast from '../common/Toast';
 
 function LaptopInput() {
   const [userOptions, setUserOptions] = useState([]);
+  const [toast, setToast] = useState(null);
 
   const initialData = {
     brand: '',
@@ -142,7 +144,7 @@ function LaptopInput() {
   ];
 
   useEffect(() => {
-    fetch('http://localhost:5000/laptop/api/users')
+    fetch('http://localhost:5000/auth/api/users')
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) {
@@ -186,24 +188,28 @@ function LaptopInput() {
       });
   
       if (response.redirected) {
-        window.location.href = response.url;
+        setToast({ message: '✔️ Submitted successfully', type: 'success' });
+        setTimeout(() => window.location.href = response.url, 500);
       } else {
         const text = await response.text();
-        console.log('Server response:', text);
+        setToast({ message: text || 'Failed to Submit', type: 'error' });
       }
     } catch (error) {
-      console.error('Submit error:', error);
+      setToast({ message: 'Submit error. Try again later.', type: 'error' })
     }
   };
   
 
   return (
-    <GenericForm
-      initialData={initialData}
-      fields={fields}
-      onSubmit={handleSubmit}
-      basePath="/pc"
-    />
+      <>
+        {toast && <Toast {...toast} onClose={() => setToast(null)} />}
+            <GenericForm
+              initialData={initialData}
+              fields={fields}
+              onSubmit={handleSubmit}
+              basePath="/pc"
+            />
+      </>
   );
 }
 

@@ -6,6 +6,7 @@ import { ClipLoader } from 'react-spinners';
 function LaptopEdit() {
   const { id } = useParams();
   const [laptop, setLaptop] = useState(null);
+  const [images, setImages] = useState([]);
 
   const [userOptions, setUserOptions] = useState([]);
 
@@ -132,7 +133,7 @@ function LaptopEdit() {
   ];
 
     useEffect(() => {
-      fetch('http://localhost:5000/laptop/api/users')
+      fetch('http://localhost:5000/auth/api/users')
         .then((res) => res.json())
         .then((data) => {
           if (Array.isArray(data)) {
@@ -150,6 +151,10 @@ function LaptopEdit() {
         .then((res) => res.json())
         .then((data) => setLaptop(data))
         .catch((err) => console.error('Error fetching laptop:', err));
+      fetch(`http://localhost:5000/laptop/item/api/images/${id}`)
+        .then((res) => res.json())
+        .then((data) => setImages(data))
+        .catch((err) => console.error('Error fetching images:', err));
     }, [id]);
 
     if (!laptop) {
@@ -163,22 +168,23 @@ function LaptopEdit() {
     const handleSubmit = (formData) => {
       const payload = new FormData();
     
+      // Append fields
       payload.append('brand', formData.brand);
       payload.append('model', formData.model);
       payload.append('spec', formData.spec);
       payload.append('updatedSpec', formData.updatedSpec);
-      payload.append('serialNumber', formData.serialNumber);
+      payload.append('serial_number', formData.serialNumber);
       payload.append('condition', formData.condition);
       payload.append('sealed', formData.sealed ? '1' : '');
-      payload.append('odooRecord', formData.odooRecord ? '1' : '');
+      payload.append('odoorecord', formData.odooRecord ? '1' : '');
       payload.append('odooRef', formData.odooRef);
       payload.append('sku', formData.sku);
-      payload.append('stock', formData.stock ? 'SOLD' : '');
-      payload.append('orderNumber', formData.orderNumber);
+      payload.append('stock', formData.stock ? '' : 'SOLD');
+      payload.append('order_number', formData.orderNumber);
       payload.append('remark', formData.remark);
       payload.append('user', formData.user);
     
-      // Handle new images
+      // Append new images
       if (formData.newImages?.length > 0) {
         Array.from(formData.newImages).forEach((file) => {
           payload.append('new_images', file);
@@ -190,17 +196,23 @@ function LaptopEdit() {
         body: payload,
       })
         .then((res) => {
-          if (res.redirected) {
-            window.location.href = res.url;
+          if (res.ok) {
+            return res.text().then((text) => {
+              console.log('Update successful:', text);
+              window.location.href = `/pc/${id}`; // Redirect to details page
+            });
           } else {
-            return res.text().then(console.log);
+            return res.text().then((text) => {
+              throw new Error(text);
+            });
           }
         })
         .catch((err) => {
           console.error('Edit failed:', err);
+          alert('Update failed: ' + err.message);
         });
     };
-
+    
   return (
     <GenericForm
       initialData={initialData}
@@ -210,6 +222,7 @@ function LaptopEdit() {
       itemId={id}
       isEdit={true}
       hideBackButton={true}
+      existingImages={images || []}
     />
   );
 }

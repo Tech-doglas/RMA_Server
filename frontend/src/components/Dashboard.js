@@ -22,7 +22,7 @@ function Dashboard({ role, department, onLogout }) {
               Xie
             </button>
           </Link>
-          <Link to="/return-receiving">
+          <Link to="/return">
             <button className="w-full bg-orange-500 text-white p-4 rounded-lg hover:bg-orange-600 transition-colors">
               Return Receiving
             </button>

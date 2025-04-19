@@ -18,9 +18,9 @@ import NonPCList from "./components/NonPCList";
 import NonPCInput from "./components/NonPCInput";
 import NonPCDetails from "./components/NonPCDetails";
 import NonPCEdit from "./components/NonPCEdit";
-import ReturnReceivingList from "./components/ReturnReceivingList";
-import ReturnReceivingInput from "./components/ReturnReceivingInput";
-import ReturnReceivingDetails from "./components/ReturnReceivingDetails";
+import ReturnReceivingList from "./components/ReturnReceiving/ReturnReceivingList";
+import ReturnReceivingInput from "./components/ReturnReceiving/ReturnReceivingInput";
+import ReturnReceivingDetails from "./components/ReturnReceiving/ReturnReceivingDetails";
 import Xie from "./components/Xie";
 import Managment from "./components/Managment";
 
@@ -124,19 +124,19 @@ function App() {
               element={isAuthenticated ? <NonPCEdit /> : <Navigate to="/" />}
             />
             <Route
-              path="/return-receiving"
+              path="/return"
               element={
                 isAuthenticated ? <ReturnReceivingList /> : <Navigate to="/" />
               }
             />
             <Route
-              path="/return-receiving/input"
+              path="/return/input"
               element={
                 isAuthenticated ? <ReturnReceivingInput /> : <Navigate to="/" />
               }
             />
             <Route
-              path="/return-receiving/:id"
+              path="/return/:id"
               element={
                 isAuthenticated ? (
                   <ReturnReceivingDetails />

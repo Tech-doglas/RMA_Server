@@ -1,5 +1,5 @@
-# app/routes/item_routes.py
-from flask import Blueprint, render_template, request, redirect, send_from_directory, url_for, jsonify
+# routes/laptop/item.py
+from flask import Blueprint, request, send_from_directory, jsonify
 from app.models import get_db_connection, get_modi_rma_root, save_laptop_images, get_laptop_image_files
 import os
 import shutil

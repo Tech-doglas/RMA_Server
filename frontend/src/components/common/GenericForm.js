@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-function GenericForm({ initialData, fields, onSubmit, basePath, itemId, isEdit = false, hideBackButton = false }) {
+function GenericForm({ initialData, fields, onSubmit, basePath, itemId, isEdit = false, hideBackButton = false, existingImages = [] }) {
   const [formData, setFormData] = useState(initialData);
   const [errors, setErrors] = useState({});
+  const [imageList, setImageList] = useState(existingImages || []);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -42,7 +43,7 @@ function GenericForm({ initialData, fields, onSubmit, basePath, itemId, isEdit =
 
   const handleDelete = async () => {
     if (window.confirm('Are you sure you want to delete this item?')) {
-      fetch(`http://localhost:5000/laptop/api/item/${itemId}`, {
+      fetch(`http://localhost:5000/laptop/item/api/item/${itemId}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -65,6 +66,36 @@ function GenericForm({ initialData, fields, onSubmit, basePath, itemId, isEdit =
       
     }
   };
+
+  const handleImageDelete = (filename) => {
+    if (!window.confirm('Are you sure you want to delete this image?')) return;
+  
+    fetch(`http://localhost:5000/laptop/item/delete_image/${itemId}/${filename}`, {
+      method: 'POST',
+    })
+      .then((res) => {
+        if (res.ok) {
+          setImageList((prev) => prev.filter((img) => img !== filename)); // <- this triggers re-render
+        } else {
+          return res.text().then((text) => {
+            throw new Error(text);
+          });
+        }
+      })
+      .catch((err) => {
+        console.error('Error deleting image:', err);
+        alert('Failed to delete image');
+      });
+  };
+
+  useEffect(() => {
+    if (Array.isArray(existingImages) && existingImages.join(',') !== imageList.join(',')) {
+      setImageList(existingImages);
+    }
+  }, [existingImages]);
+  
+  
+  
   
 
   return (
@@ -133,9 +164,31 @@ function GenericForm({ initialData, fields, onSubmit, basePath, itemId, isEdit =
               ) : field.type === 'file' ? (
                 <>
                   {isEdit && (
-                    <div className="mb-2">
+                    <div className="mb-4">
                       <label className="block text-gray-700 font-bold mb-2">Current Images</label>
-                      <p className="text-gray-500">No images available</p>
+                      {imageList.length > 0 ? (
+                        <div className="flex flex-wrap gap-4">
+                          {imageList.map((filename, index) => (
+                            <div key={index} className="relative w-32 h-32 rounded overflow-hidden group">
+                              <img
+                                src={`http://localhost:5000/laptop/item/images/${itemId}/${filename}`}
+                                alt={`Laptop photo ${index + 1}`}
+                                className="w-full h-full object-cover rounded-xl border"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => handleImageDelete(filename)}
+                                className="absolute top-1 right-1 bg-red-600 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-700 shadow-md"
+                                title="Delete image"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-gray-500">No images available</p>
+                      )}
                     </div>
                   )}
                   <input

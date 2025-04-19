@@ -106,7 +106,6 @@ function LaptopList() {
         console.error('Fetch error:', err);
         setLaptops([]);
       })
-      .finally();
   };
   
   
