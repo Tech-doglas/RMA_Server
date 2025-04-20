@@ -37,7 +37,8 @@ function GenericForm({ initialData, fields, onSubmit, basePath, itemId, isEdit =
     e.preventDefault();
     if (validateForm()) {
       onSubmit(formData);
-      navigate(basePath);
+      console.log(formData)
+      // navigate(basePath);
     }
   };
 

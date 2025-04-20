@@ -87,10 +87,10 @@ def submit_record():
             END  
         """, (tracking_number, company, remark, tracking_number, tracking_number, company, remark))
         
-        save_shipping_label_image(request.files.get('image'), tracking_number)
+        save_shipping_label_image(request.form.get('image'), tracking_number)
         conn.commit()
         conn.close()
-        return redirect(url_for('return_receiving.return_receiving_input'))
+        return "OK", 200
     except Exception as e:
         return f"Error submitting record: {str(e)}"
 

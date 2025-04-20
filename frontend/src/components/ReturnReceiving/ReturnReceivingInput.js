@@ -65,7 +65,6 @@ function ReturnReceivingInput() {
   
       if (res.ok) {
         setToast({ message: '✔️ Submitted successfully', type: 'success' });
-        setTimeout(() => window.location.href = '/return', 500);
       } else {
         const errorText = await res.text();
         setToast({ message: errorText || 'Failed to Submit', type: 'error' });
@@ -78,12 +77,15 @@ function ReturnReceivingInput() {
   
 
   return (
+    <>
+    {toast && <Toast {...toast} onClose={() => setToast(null)} />}
     <GenericForm
       initialData={initialData}
       fields={fields}
       onSubmit={handleSubmit}
       basePath="/return"
     />
+    </>
   );
 }
 
