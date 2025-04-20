@@ -45,23 +45,21 @@ def save_shipping_label_image(image, tracking_number):
     os.makedirs(image_dir, exist_ok=True)
     
     from werkzeug.utils import secure_filename
-    if image:
-        if image.filename:
-            filename = secure_filename(image.filename)
-            ext = os.path.splitext(filename)[1]
-            saved_filename = f"{tracking_number}{ext}"
 
-            image_dir = os.path.join(get_modi_rma_root(), 'images', 'return_receiving')
-            os.makedirs(image_dir, exist_ok=True)  # Ensure dir exists
-
+    if image and image.filename:
+        filename = secure_filename(image.filename)
+        ext = os.path.splitext(filename)[1]
+        saved_filename = f"{tracking_number}{ext}"
+        image_dir = os.path.join(get_modi_rma_root(), 'images', 'return_receiving')
+        try:
+            os.makedirs(image_dir, exist_ok=True)
             image_path = os.path.join(image_dir, saved_filename)
             image.save(image_path)
-
-            print(f"✅ Image saved: {image_path}")
-        else:
-            print("⚠️ Image has no filename.")
+            print(f"✅ Image saved to: {image_path}")
+        except Exception as e:
+            print(f"❌ Failed to save image: {e}")
     else:
-        print("❌ No image received in request.files.")
+        print("⚠️ Image missing or empty filename")
     return image_dir
 
 def get_shipping_label_image(tracking_number):

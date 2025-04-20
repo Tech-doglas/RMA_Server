@@ -9,7 +9,7 @@ function ReturnReceivingInput() {
     trackingNumber: '',
     company: '',
     remark: '',
-    image: null,
+    image: [],
   };
 
   const fields = [
@@ -53,8 +53,11 @@ function ReturnReceivingInput() {
     data.append('tracking_number', formData.trackingNumber);
     data.append('company', formData.company);
     data.append('remark', formData.remark);
-    if (formData.image) {
-      data.append('image', formData.image);
+    if (formData.image && formData.image.length > 0) {
+      const images = Array.from(formData.image);
+      images.forEach((file) => {
+        data.append('image', file);
+      });
     }
   
     try {

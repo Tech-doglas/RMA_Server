@@ -1,10 +1,13 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import { useParams } from 'react-router-dom';
 import DetailView from '../common/DetailView';
+import { ClipLoader } from 'react-spinners';
 
 function ReturnReceivingDetails() {
   const { id } = useParams();
   const [records, setRecords] = useState([]);
+  const [image, setImage] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const fields = [
     { key: 'TrackingNumber', label: 'Tracking #' },
@@ -31,6 +34,30 @@ function ReturnReceivingDetails() {
     },
   ];
 
+  useEffect(() => {
+    fetch(`http://localhost:5000/return/api/return/${id}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.error) throw new Error(data.error);
+        setRecords(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error(err);
+        setLoading(false);
+      });
+    fetch(`http://localhost:5000/return/api/images/${id}`)
+      .then((res) => res.json())
+      .then((data) => setImage(data))
+      .catch((err) => console.error('Error fetching images:', err));
+  }, [id]);
+
+  if (loading) return (
+          <div className="p-6 flex justify-center items-center">
+            <ClipLoader color="#4B5563" size={40} />
+          </div>
+        );
+
   return (
     <DetailView
       item={records}
@@ -38,6 +65,7 @@ function ReturnReceivingDetails() {
       basePath="/return"
       itemId={id}
       actions={actions}
+      images={image}
     />
   );
 }
