@@ -151,7 +151,7 @@ function LaptopEdit() {
         .then((res) => res.json())
         .then((data) => setLaptop(data))
         .catch((err) => console.error('Error fetching laptop:', err));
-      fetch(`http://localhost:5000/laptop/item/api/images/${id}`)
+      fetch(`http://localhost:5000/images/api/laptop/${id}`)
         .then((res) => res.json())
         .then((data) => setImages(data))
         .catch((err) => console.error('Error fetching images:', err));

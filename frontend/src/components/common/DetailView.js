@@ -56,12 +56,12 @@ function DetailView({ item, fields, basePath, itemId, actions = [], images = [] 
 
       <div className="mt-6">
         <h2 className="text-xl font-bold mb-2">Images</h2>
-        {images.length > 0 ? (
+        {images.list && images.list.length > 0 ? (
           <div className="flex flex-wrap gap-4">
-            {images.map((filename) => (
+            {images.list.map((filename) => (
               <div key={filename} className="relative">
                 <img
-                  src={`http://localhost:5000/laptop/item/images/${itemId}/${filename}`}
+                  src={`http://localhost:5000/images/${images.type}/${itemId}/${filename}`}
                   alt={filename}
                   className="w-[600px] h-auto rounded shadow"
                 />

@@ -70,7 +70,7 @@ function GenericForm({ initialData, fields, onSubmit, basePath, itemId, isEdit =
   const handleImageDelete = (filename) => {
     if (!window.confirm('Are you sure you want to delete this image?')) return;
   
-    fetch(`http://localhost:5000/laptop/item/delete_image/${itemId}/${filename}`, {
+    fetch(`http://localhost:5000/images/delete_image/${itemId}/${filename}`, {
       method: 'POST',
     })
       .then((res) => {
@@ -171,7 +171,7 @@ function GenericForm({ initialData, fields, onSubmit, basePath, itemId, isEdit =
                           {imageList.map((filename, index) => (
                             <div key={index} className="relative w-32 h-32 rounded overflow-hidden group">
                               <img
-                                src={`http://localhost:5000/laptop/item/images/${itemId}/${filename}`}
+                                src={`http://localhost:5000/images/${itemId}/${filename}`}
                                 alt={`Laptop photo ${index + 1}`}
                                 className="w-full h-full object-cover rounded-xl border"
                               />

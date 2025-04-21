@@ -46,7 +46,7 @@ function ReturnReceivingDetails() {
         console.error(err);
         setLoading(false);
       });
-    fetch(`http://localhost:5000/return/api/images/${id}`)
+    fetch(`http://localhost:5000/images/api/images/${id}`)
       .then((res) => res.json())
       .then((data) => setImage(data))
       .catch((err) => console.error('Error fetching images:', err));
