@@ -59,20 +59,18 @@ document.addEventListener('DOMContentLoaded', function () {
         const columnIndex = Array.from(headers).findIndex(
             header => header.getAttribute('data-sort') === column
         );
-
+    
+        const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
+    
         const sorted = rows.sort((a, b) => {
-            const aValue = a.cells[columnIndex]?.textContent.trim().toLowerCase() || '';
-            const bValue = b.cells[columnIndex]?.textContent.trim().toLowerCase() || '';
-            const aNum = parseFloat(aValue);
-            const bNum = parseFloat(bValue);
-            if (!isNaN(aNum) && !isNaN(bNum)) {
-                return direction === 'asc' ? aNum - bNum : bNum - aNum;
-            }
+            const aValue = a.cells[columnIndex]?.textContent.trim() || '';
+            const bValue = b.cells[columnIndex]?.textContent.trim() || '';
+    
             return direction === 'asc'
-                ? aValue.localeCompare(bValue)
-                : bValue.localeCompare(aValue);
+                ? collator.compare(aValue, bValue)
+                : collator.compare(bValue, aValue);
         });
-
+    
         sorted.forEach(row => table.appendChild(row));
     }
 
