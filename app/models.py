@@ -9,12 +9,12 @@ def get_project_root():
     return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 def get_modi_rma_root():
-    # try:
-    #     path = current_app.config['MODI_RMA_DIR']
-    #     if not os.path.exists(path):
-    #         os.makedirs(path)
-    #     return path
-    # except:
+    try:
+        path = current_app.config['MODI_RMA_DIR']
+        if not os.path.exists(path):
+            os.makedirs(path)
+        return path
+    except:
         return get_project_root()
 
 def get_db_connection():
