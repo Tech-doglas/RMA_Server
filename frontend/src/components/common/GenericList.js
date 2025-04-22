@@ -21,6 +21,8 @@ function GenericList({ items, columns, searchFields, filterFields, basePath, ite
   const [toast, setToast] = useState({ message: '', visible: false }); // State for toast notification
   const navigate = useNavigate();
 
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
+
   const handleSearchChange = (e) => {
     const { name, value, type, checked } = e.target;
     if (type === 'checkbox') {
@@ -36,13 +38,11 @@ function GenericList({ items, columns, searchFields, filterFields, basePath, ite
     }
   };
 
-  const filteredItems = items.filter((item) => {
+  let filteredItems = items.filter((item) => {
     return searchFields.every((field) => {
       const value = search[field.name];
       if (!value) return true;
-      return String(item[field.key])
-        .toLowerCase()
-        .includes(value.toLowerCase());
+      return String(item[field.key]).toLowerCase().includes(value.toLowerCase());
     }) && filterFields.every((field) => {
       const values = search[field.name];
       if (values.length === 0) return true;
@@ -50,6 +50,19 @@ function GenericList({ items, columns, searchFields, filterFields, basePath, ite
       return values.includes(itemValue);
     });
   });
+  
+  if (sortConfig.key) {
+    const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
+  
+    filteredItems = [...filteredItems].sort((a, b) => {
+      const aVal = a[sortConfig.key]?.toString().trim() ?? '';
+      const bVal = b[sortConfig.key]?.toString().trim() ?? '';
+  
+      return sortConfig.direction === 'asc'
+        ? collator.compare(aVal, bVal)
+        : collator.compare(bVal, aVal);
+    });
+  }
 
   const toggleColumn = (column) => {
     setVisibleColumns((prev) => {
@@ -65,6 +78,16 @@ function GenericList({ items, columns, searchFields, filterFields, basePath, ite
     copy(text)
     setToast({ message: `Copied: ${text}`, visible: true });
     setTimeout(() => setToast({ message: '', visible: false }), 2000);
+  };
+
+  const handleSort = (key) => {
+    setSortConfig((prev) => {
+      if (prev.key === key) {
+        return { key, direction: prev.direction === 'asc' ? 'desc' : 'asc' };
+      } else {
+        return { key, direction: 'asc' };
+      }
+    });
   };
 
   // Define which columns should be copyable
@@ -207,7 +230,16 @@ function GenericList({ items, columns, searchFields, filterFields, basePath, ite
             <thead>
               <tr className="bg-gray-200 sticky z-40">
                 {columns.map((col) => visibleColumns[col.key] && (
-                  <th key={col.key} className="p-2 border">{col.label}</th>
+                  <th
+                  key={col.key}
+                  className="p-2 border cursor-pointer hover:bg-blue-100"
+                  onClick={() => handleSort(col.key)}
+                >
+                  {col.label}
+                  {sortConfig.key === col.key && (
+                    <span>{sortConfig.direction === 'asc' ? ' ▲' : ' ▼'}</span>
+                  )}
+                </th>
                 ))}
               </tr>
             </thead>
