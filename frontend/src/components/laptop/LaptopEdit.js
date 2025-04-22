@@ -3,6 +3,9 @@ import { useParams } from 'react-router-dom';
 import GenericForm from '../common/GenericForm';
 import { ClipLoader } from 'react-spinners';
 
+const apiHost = window.location.hostname;
+const apiBaseUrl = `${apiHost}:8088`;
+
 function LaptopEdit() {
   const { id } = useParams();
   const [laptop, setLaptop] = useState(null);
@@ -133,7 +136,7 @@ function LaptopEdit() {
   ];
 
     useEffect(() => {
-      fetch(`http://${process.env.REACT_APP_API_BASE}/auth/api/users`)
+      fetch(`http://${apiBaseUrl}/auth/api/users`)
         .then((res) => res.json())
         .then((data) => {
           if (Array.isArray(data)) {
@@ -147,11 +150,11 @@ function LaptopEdit() {
     }, []);
 
     useEffect(() => {
-      fetch(`http://${process.env.REACT_APP_API_BASE}/laptop/item/${id}`)
+      fetch(`http://${apiBaseUrl}/laptop/item/${id}`)
         .then((res) => res.json())
         .then((data) => setLaptop(data))
         .catch((err) => console.error('Error fetching laptop:', err));
-      fetch(`http://${process.env.REACT_APP_API_BASE}/images/api/laptop/${id}`)
+      fetch(`http://${apiBaseUrl}/images/api/laptop/${id}`)
         .then((res) => res.json())
         .then((data) => setImages({ list: data, type: 'laptop' }))
         .catch((err) => console.error('Error fetching images:', err));
@@ -191,7 +194,7 @@ function LaptopEdit() {
         });
       }
     
-      fetch(`http://${process.env.REACT_APP_API_BASE}/laptop/item/update/${id}`, {
+      fetch(`http://${apiBaseUrl}/laptop/item/update/${id}`, {
         method: 'POST',
         body: payload,
       })

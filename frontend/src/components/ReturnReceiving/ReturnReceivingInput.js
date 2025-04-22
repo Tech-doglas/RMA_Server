@@ -2,6 +2,9 @@ import React, {useState} from 'react';
 import GenericForm from '../common/GenericForm';
 import Toast from '../common/Toast';
 
+const apiHost = window.location.hostname;
+const apiBaseUrl = `${apiHost}:8088`;
+
 function ReturnReceivingInput() {
     const [toast, setToast] = useState(null);
 
@@ -61,7 +64,7 @@ function ReturnReceivingInput() {
     }
   
     try {
-      const res = await fetch(`http://${process.env.REACT_APP_API_BASE}/return/submit`, {
+      const res = await fetch(`http://${apiBaseUrl}/return/submit`, {
         method: 'POST',
         body: data,
       });

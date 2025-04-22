@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+const apiHost = window.location.hostname;
+const apiBaseUrl = `${apiHost}:8088`;
+
 function GenericForm({ initialData, fields, onSubmit, basePath, itemId, isEdit = false, hideBackButton = false, existingImages = {} }) {
   const [formData, setFormData] = useState(initialData);
   const [errors, setErrors] = useState({});
@@ -43,7 +46,7 @@ function GenericForm({ initialData, fields, onSubmit, basePath, itemId, isEdit =
 
   const handleDelete = async () => {
     if (window.confirm('Are you sure you want to delete this item?')) {
-      fetch(`http://${process.env.REACT_APP_API_BASE}/laptop/item/api/item/${itemId}`, {
+      fetch(`http://${apiBaseUrl}/laptop/item/api/item/${itemId}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -70,7 +73,7 @@ function GenericForm({ initialData, fields, onSubmit, basePath, itemId, isEdit =
   const handleImageDelete = (filename, type) => {
     if (!window.confirm('Are you sure you want to delete this image?')) return;
   
-    fetch(`http://${process.env.REACT_APP_API_BASE}/images/delete_image/${type}/${itemId}/${filename}`, {
+    fetch(`http://${apiBaseUrl}/images/delete_image/${type}/${itemId}/${filename}`, {
       method: 'POST',
     })
       .then((res) => {
@@ -92,15 +95,16 @@ function GenericForm({ initialData, fields, onSubmit, basePath, itemId, isEdit =
   };
 
   useEffect(() => {
-    if (Array.isArray(existingImages) && existingImages.join(',') !== imageList.join(',')) {
+    if (
+      existingImages &&
+      typeof existingImages === 'object' &&
+      existingImages.list &&
+      Array.isArray(existingImages.list)
+    ) {
       setImageList(existingImages);
     }
   }, [existingImages]);
   
-  
-  
-  
-
   return (
     <div className="w-full bg-white rounded-lg shadow p-6 max-w-xl mx-auto mt-4">
       <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-2xl">
@@ -174,7 +178,7 @@ function GenericForm({ initialData, fields, onSubmit, basePath, itemId, isEdit =
                           {imageList.list.map((filename, index) => (
                             <div key={index} className="relative w-32 h-32 rounded overflow-hidden group">
                               <img
-                                src={`http://${process.env.REACT_APP_API_BASE}/images/${imageList.type}/${itemId}/${filename}`}
+                                src={`http://${apiBaseUrl}/images/${imageList.type}/${itemId}/${filename}`}
                                 alt={`Laptop photo ${index + 1}`}
                                 className="w-full h-full object-cover rounded-xl border"
                               />

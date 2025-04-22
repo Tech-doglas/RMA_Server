@@ -3,6 +3,9 @@ import { useParams, useNavigate } from 'react-router-dom';
 import GenericForm from '../common/GenericForm';
 import { ClipLoader } from 'react-spinners';
 
+const apiHost = window.location.hostname;
+const apiBaseUrl = `${apiHost}:8088`;
+
 function LaptopSales() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -59,7 +62,7 @@ function LaptopSales() {
   ];
 
   useEffect(() => {
-    fetch(`http://${process.env.REACT_APP_API_BASE}/laptop/item/${id}`)
+    fetch(`http://${apiBaseUrl}/laptop/item/${id}`)
       .then((res) => res.json())
       .then((data) => {
         setLaptop(data);
@@ -78,7 +81,7 @@ function LaptopSales() {
     form.append('ram', data.ram);
     form.append('ssd', data.ssd);
 
-    fetch(`http://${process.env.REACT_APP_API_BASE}/laptop/sales/order`, {
+    fetch(`http://${apiBaseUrl}/laptop/sales/order`, {
       method: 'POST',
       body: form,
     })

@@ -3,6 +3,9 @@ import { useParams, Link, useNavigate  } from 'react-router-dom';
 import DetailView from '../common/DetailView';
 import Toast from '../common/Toast';
 
+const apiHost = window.location.hostname;
+const apiBaseUrl = `${apiHost}:8088`;
+
 function LaptopDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -29,12 +32,12 @@ function LaptopDetails() {
   ];
 
   useEffect(() => {
-    fetch(`http://${process.env.REACT_APP_API_BASE}/laptop/item/${id}`)
+    fetch(`http://${apiBaseUrl}/laptop/item/${id}`)
       .then((res) => res.json())
       .then((data) => setLaptop(data))
       .catch((err) => console.error('Error fetching laptop:', err));
 
-    fetch(`http://${process.env.REACT_APP_API_BASE}/images/api/laptop/${id}`)
+    fetch(`http://${apiBaseUrl}/images/api/laptop/${id}`)
       .then((res) => res.json())
       .then((data) => setImages({ list: data, type: 'laptop' }))
       .catch((err) => console.error('Error fetching images:', err));
@@ -69,7 +72,7 @@ function LaptopDetails() {
     {
       label: 'Done',
       onClick: () => {
-        fetch(`http://${process.env.REACT_APP_API_BASE}/laptop/item/tech_done/${id}`, {
+        fetch(`http://${apiBaseUrl}/laptop/item/tech_done/${id}`, {
           method: 'POST',
         })
           .then((res) => res.json())
