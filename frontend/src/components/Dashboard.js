@@ -13,12 +13,12 @@ function Dashboard({ role, department, onLogout }) {
             </button>
           </Link>
           <Link to="/non-pc">
-            <button className="w-full bg-blue-500 text-white p-4 rounded-lg hover:bg-blue-600 transition-colors">
+            <button className="w-full bg-blue-500 text-white p-4 rounded-lg hover:bg-blue-600 transition-colors" disabled>
               Non-PC
             </button>
           </Link>
           <Link to="/xie">
-            <button className="w-full bg-purple-500 text-white p-4 rounded-lg hover:bg-purple-600 transition-colors">
+            <button className="w-full bg-purple-500 text-white p-4 rounded-lg hover:bg-purple-600 transition-colors" disabled>
               Xie
             </button>
           </Link>

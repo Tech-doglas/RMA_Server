@@ -59,7 +59,7 @@ function LaptopSales() {
   ];
 
   useEffect(() => {
-    fetch(`http://localhost:5000/laptop/item/${id}`)
+    fetch(`http://127.0.0.1:8088/laptop/item/${id}`)
       .then((res) => res.json())
       .then((data) => {
         setLaptop(data);
@@ -78,7 +78,7 @@ function LaptopSales() {
     form.append('ram', data.ram);
     form.append('ssd', data.ssd);
 
-    fetch('http://localhost:5000/laptop/sales/order', {
+    fetch('http://127.0.0.1:8088/laptop/sales/order', {
       method: 'POST',
       body: form,
     })

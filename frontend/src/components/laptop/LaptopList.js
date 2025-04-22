@@ -88,7 +88,7 @@ function LaptopList() {
     // If no filters, default to only TechDone = 'Not yet'
     const finalParams = hasAnyFilters ? searchParams : { techDone: ['Not yet'] };
   
-    fetch('http://localhost:5000/laptop/api/laptops/search', {
+    fetch('http://127.0.0.1:8088/laptop/api/laptops/search', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(finalParams),

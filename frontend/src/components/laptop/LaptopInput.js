@@ -144,7 +144,7 @@ function LaptopInput() {
   ];
 
   useEffect(() => {
-    fetch('http://localhost:5000/auth/api/users')
+    fetch('http://127.0.0.1:8088/auth/api/users')
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) {
@@ -182,7 +182,7 @@ function LaptopInput() {
         });
       }
       
-      const response = await fetch('http://localhost:5000/laptop/item/submit', {
+      const response = await fetch('http://127.0.0.1:8088/laptop/item/submit', {
         method: 'POST',
         body: data,
       });

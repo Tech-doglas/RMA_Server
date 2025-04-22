@@ -1,6 +1,5 @@
-import os
-from flask import Blueprint, render_template, request, redirect, send_from_directory, url_for, jsonify
-from app.models import get_db_connection, get_modi_rma_root, get_shipping_label_image, save_shipping_label_image
+from flask import Blueprint, request, redirect, url_for, jsonify
+from app.models import get_db_connection, save_shipping_label_image
 
 return_receiving_bp = Blueprint('return', __name__)
 
@@ -93,30 +92,6 @@ def submit_record():
         return "OK", 200
     except Exception as e:
         return f"Error submitting record: {str(e)}"
-
-@return_receiving_bp.route('/images/return/<filename>')
-def serve_image(filename):
-    try:
-        image_dir = os.path.join(get_modi_rma_root(), 'images', 'return_receiving')
-        if not os.path.exists(image_dir):
-            return "Image directory not found", 404
-        return send_from_directory(image_dir, filename)
-    except Exception as e:
-        return f"Error: {str(e)}", 500
-    
-@return_receiving_bp.route('/api/images/<tracking_number>')
-def list_return_images(tracking_number):
-    try:
-        img_dir = get_shipping_label_image(tracking_number)
-        if not os.path.exists(img_dir):
-            return jsonify([])
-
-        filenames = os.listdir(img_dir)
-        image_urls = filenames
-
-        return jsonify(image_urls)
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
     
 @return_receiving_bp.route('/recorded/<tracking_number>')
 def mark_recorded(tracking_number):

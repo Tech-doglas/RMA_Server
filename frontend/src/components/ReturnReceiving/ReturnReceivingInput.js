@@ -61,7 +61,7 @@ function ReturnReceivingInput() {
     }
   
     try {
-      const res = await fetch('http://localhost:5000/return/submit', {
+      const res = await fetch('http://127.0.0.1:8088/return/submit', {
         method: 'POST',
         body: data,
       });

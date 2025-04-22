@@ -2,12 +2,14 @@ import React, {useState, useEffect} from 'react';
 import { useParams } from 'react-router-dom';
 import DetailView from '../common/DetailView';
 import { ClipLoader } from 'react-spinners';
+import Toast from '../common/Toast';
 
 function ReturnReceivingDetails() {
   const { id } = useParams();
   const [records, setRecords] = useState([]);
-  const [image, setImage] = useState([]);
+  const [image, setImages] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [toast, setToast] = useState(null);
 
   const fields = [
     { key: 'TrackingNumber', label: 'Tracking #' },
@@ -22,11 +24,11 @@ function ReturnReceivingDetails() {
       label: records?.Recorded ? 'Recorded' : 'Record',
       onClick: async () => {
         try {
-          await fetch(`http://localhost:5000/return/recorded/${records?.TrackingNumber}`);
-          alert("Marked as Recorded");
+          await fetch(`http://127.0.0.1:8088/return/recorded/${records?.TrackingNumber}`);
+          setToast({ message: 'Marked as Tech Done ✔️', type: 'success' });
           window.location.reload();
         } catch (err) {
-          console.error(err);
+          setToast({ message: 'Server error. Try again later.', type: 'error' })
         }
       },
       className: records?.Recorded ? 'bg-gray-400 cursor-not-allowed' : 'bg-sky-500 hover:bg-sky-600',
@@ -35,7 +37,7 @@ function ReturnReceivingDetails() {
   ];
 
   useEffect(() => {
-    fetch(`http://localhost:5000/return/api/return/${id}`)
+    fetch(`http://127.0.0.1:8088/return/api/return/${id}`)
       .then(res => res.json())
       .then(data => {
         if (data.error) throw new Error(data.error);
@@ -46,9 +48,9 @@ function ReturnReceivingDetails() {
         console.error(err);
         setLoading(false);
       });
-    fetch(`http://localhost:5000/images/api/images/${id}`)
+    fetch(`http://127.0.0.1:8088/images/api/return_receiving/${id}`)
       .then((res) => res.json())
-      .then((data) => setImage(data))
+      .then((data) => setImages({ list: data, type: 'return_receiving' }))
       .catch((err) => console.error('Error fetching images:', err));
   }, [id]);
 
@@ -59,14 +61,17 @@ function ReturnReceivingDetails() {
         );
 
   return (
-    <DetailView
-      item={records}
-      fields={fields}
-      basePath="/return"
-      itemId={id}
-      actions={actions}
-      images={image}
-    />
+    <>
+      {toast && <Toast {...toast} onClose={() => setToast(null)} />}
+      <DetailView
+        item={records}
+        fields={fields}
+        basePath="/return"
+        itemId={id}
+        actions={actions}
+        images={image}
+      />
+    </>
   );
 }
 

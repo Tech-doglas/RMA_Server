@@ -29,12 +29,12 @@ function LaptopDetails() {
   ];
 
   useEffect(() => {
-    fetch(`http://localhost:5000/laptop/item/${id}`)
+    fetch(`http://127.0.0.1:8088/laptop/item/${id}`)
       .then((res) => res.json())
       .then((data) => setLaptop(data))
       .catch((err) => console.error('Error fetching laptop:', err));
 
-    fetch(`http://localhost:5000/images/api/laptop/${id}`)
+    fetch(`http://127.0.0.1:8088/images/api/laptop/${id}`)
       .then((res) => res.json())
       .then((data) => setImages({ list: data, type: 'laptop' }))
       .catch((err) => console.error('Error fetching images:', err));
@@ -69,7 +69,7 @@ function LaptopDetails() {
     {
       label: 'Done',
       onClick: () => {
-        fetch(`http://localhost:5000/laptop/item/tech_done/${id}`, {
+        fetch(`http://127.0.0.1:8088/laptop/item/tech_done/${id}`, {
           method: 'POST',
         })
           .then((res) => res.json())

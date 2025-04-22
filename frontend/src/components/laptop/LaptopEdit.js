@@ -6,7 +6,7 @@ import { ClipLoader } from 'react-spinners';
 function LaptopEdit() {
   const { id } = useParams();
   const [laptop, setLaptop] = useState(null);
-  const [images, setImages] = useState([]);
+  const [images, setImages] = useState({});
 
   const [userOptions, setUserOptions] = useState([]);
 
@@ -133,7 +133,7 @@ function LaptopEdit() {
   ];
 
     useEffect(() => {
-      fetch('http://localhost:5000/auth/api/users')
+      fetch('http://127.0.0.1:8088/auth/api/users')
         .then((res) => res.json())
         .then((data) => {
           if (Array.isArray(data)) {
@@ -147,13 +147,13 @@ function LaptopEdit() {
     }, []);
 
     useEffect(() => {
-      fetch(`http://localhost:5000/laptop/item/${id}`)
+      fetch(`http://127.0.0.1:8088/laptop/item/${id}`)
         .then((res) => res.json())
         .then((data) => setLaptop(data))
         .catch((err) => console.error('Error fetching laptop:', err));
-      fetch(`http://localhost:5000/images/api/laptop/${id}`)
+      fetch(`http://127.0.0.1:8088/images/api/laptop/${id}`)
         .then((res) => res.json())
-        .then((data) => setImages(data))
+        .then((data) => setImages({ list: data, type: 'laptop' }))
         .catch((err) => console.error('Error fetching images:', err));
     }, [id]);
 
@@ -191,7 +191,7 @@ function LaptopEdit() {
         });
       }
     
-      fetch(`http://localhost:5000/laptop/item/update/${id}`, {
+      fetch(`http://127.0.0.1:8088/laptop/item/update/${id}`, {
         method: 'POST',
         body: payload,
       })
@@ -222,7 +222,7 @@ function LaptopEdit() {
       itemId={id}
       isEdit={true}
       hideBackButton={true}
-      existingImages={images || []}
+      existingImages={images || {}}
     />
   );
 }
