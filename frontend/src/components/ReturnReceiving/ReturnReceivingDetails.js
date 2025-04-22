@@ -24,7 +24,7 @@ function ReturnReceivingDetails() {
       label: records?.Recorded ? 'Recorded' : 'Record',
       onClick: async () => {
         try {
-          await fetch(`http://127.0.0.1:8088/return/recorded/${records?.TrackingNumber}`);
+          await fetch(`http://${process.env.REACT_APP_API_BASE}/return/recorded/${records?.TrackingNumber}`);
           setToast({ message: 'Marked as Tech Done ✔️', type: 'success' });
           window.location.reload();
         } catch (err) {
@@ -37,7 +37,7 @@ function ReturnReceivingDetails() {
   ];
 
   useEffect(() => {
-    fetch(`http://127.0.0.1:8088/return/api/return/${id}`)
+    fetch(`http://${process.env.REACT_APP_API_BASE}/return/api/return/${id}`)
       .then(res => res.json())
       .then(data => {
         if (data.error) throw new Error(data.error);
@@ -48,7 +48,7 @@ function ReturnReceivingDetails() {
         console.error(err);
         setLoading(false);
       });
-    fetch(`http://127.0.0.1:8088/images/api/return_receiving/${id}`)
+    fetch(`http://${process.env.REACT_APP_API_BASE}/images/api/return_receiving/${id}`)
       .then((res) => res.json())
       .then((data) => setImages({ list: data, type: 'return_receiving' }))
       .catch((err) => console.error('Error fetching images:', err));

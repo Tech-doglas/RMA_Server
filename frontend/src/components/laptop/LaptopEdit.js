@@ -133,7 +133,7 @@ function LaptopEdit() {
   ];
 
     useEffect(() => {
-      fetch('http://127.0.0.1:8088/auth/api/users')
+      fetch(`http://${process.env.REACT_APP_API_BASE}/auth/api/users`)
         .then((res) => res.json())
         .then((data) => {
           if (Array.isArray(data)) {
@@ -147,11 +147,11 @@ function LaptopEdit() {
     }, []);
 
     useEffect(() => {
-      fetch(`http://127.0.0.1:8088/laptop/item/${id}`)
+      fetch(`http://${process.env.REACT_APP_API_BASE}/laptop/item/${id}`)
         .then((res) => res.json())
         .then((data) => setLaptop(data))
         .catch((err) => console.error('Error fetching laptop:', err));
-      fetch(`http://127.0.0.1:8088/images/api/laptop/${id}`)
+      fetch(`http://${process.env.REACT_APP_API_BASE}/images/api/laptop/${id}`)
         .then((res) => res.json())
         .then((data) => setImages({ list: data, type: 'laptop' }))
         .catch((err) => console.error('Error fetching images:', err));
@@ -191,7 +191,7 @@ function LaptopEdit() {
         });
       }
     
-      fetch(`http://127.0.0.1:8088/laptop/item/update/${id}`, {
+      fetch(`http://${process.env.REACT_APP_API_BASE}/laptop/item/update/${id}`, {
         method: 'POST',
         body: payload,
       })

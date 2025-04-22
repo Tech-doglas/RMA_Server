@@ -59,7 +59,7 @@ function LaptopSales() {
   ];
 
   useEffect(() => {
-    fetch(`http://127.0.0.1:8088/laptop/item/${id}`)
+    fetch(`http://${process.env.REACT_APP_API_BASE}/laptop/item/${id}`)
       .then((res) => res.json())
       .then((data) => {
         setLaptop(data);
@@ -78,7 +78,7 @@ function LaptopSales() {
     form.append('ram', data.ram);
     form.append('ssd', data.ssd);
 
-    fetch('http://127.0.0.1:8088/laptop/sales/order', {
+    fetch(`http://${process.env.REACT_APP_API_BASE}/laptop/sales/order`, {
       method: 'POST',
       body: form,
     })

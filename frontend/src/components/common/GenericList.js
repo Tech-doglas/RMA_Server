@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import MultiSelect from './MultiSelect';
 import { getOptionClass } from './styles';
+import copy from 'copy-to-clipboard';
 
 function GenericList({ items, columns, searchFields, filterFields, basePath, itemKey, onSearch  }) {
   const [search, setSearch] = useState(
@@ -61,14 +62,9 @@ function GenericList({ items, columns, searchFields, filterFields, basePath, ite
 
   const handleCopy = (text, e) => {
     e.stopPropagation(); // Prevent the row click event from firing
-    navigator.clipboard.writeText(text).then(() => {
-      // Show toast notification
-      setToast({ message: `Copied: ${text}`, visible: true });
-      // Hide toast after 2 seconds
-      setTimeout(() => setToast({ message: '', visible: false }), 2000);
-    }).catch((err) => {
-      console.error('Failed to copy:', err);
-    });
+    copy(text)
+    setToast({ message: `Copied: ${text}`, visible: true });
+    setTimeout(() => setToast({ message: '', visible: false }), 2000);
   };
 
   // Define which columns should be copyable

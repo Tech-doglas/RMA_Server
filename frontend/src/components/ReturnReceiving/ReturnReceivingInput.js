@@ -61,7 +61,7 @@ function ReturnReceivingInput() {
     }
   
     try {
-      const res = await fetch('http://127.0.0.1:8088/return/submit', {
+      const res = await fetch(`http://${process.env.REACT_APP_API_BASE}/return/submit`, {
         method: 'POST',
         body: data,
       });

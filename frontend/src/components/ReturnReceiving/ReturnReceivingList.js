@@ -58,7 +58,7 @@ function ReturnReceivingList() {
   ];
 
   const handleSearch = () => {
-    fetch("http://127.0.0.1:8088/return/", {
+    fetch(`http://${process.env.REACT_APP_API_BASE}/return/`, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
     })

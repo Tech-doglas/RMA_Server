@@ -61,7 +61,7 @@ function DetailView({ item, fields, basePath, itemId, actions = [], images = [] 
             {images.list.map((filename) => (
               <div key={filename} className="relative">
                 <img
-                  src={`http://127.0.0.1:8088/images/${images.type}/${itemId}/${filename}`}
+                  src={`http://${process.env.REACT_APP_API_BASE}/images/${images.type}/${itemId}/${filename}`}
                   alt={filename}
                   className="w-[600px] h-auto rounded shadow"
                 />
