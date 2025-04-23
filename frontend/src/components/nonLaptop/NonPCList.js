@@ -1,8 +1,9 @@
-import React from 'react';
-import GenericList from './common/GenericList';
-import nonLaptops from '../data/nonLaptops';
+import React, {useEffect, useState} from 'react';
+import GenericList from '../common/GenericList';
 
 function NonPCList() {
+  const [nonLaptops, set_nonLaptops] = useState([]);
+
   const columns = [
     { key: 'ReceivedDate', label: 'Rec Date', defaultVisible: false },
     { key: 'TrackingNumber', label: 'Tracking#' },
@@ -15,7 +16,14 @@ function NonPCList() {
       if (item.InspectionRequest === 'C') return 'As it';
       return item.InspectionRequest;
     }},
-    { key: 'Condition', label: 'Condition', render: (item) => item.Condition === 'N' ? 'Back to New' : `Grade ${item.Condition}` },
+    {
+      key: 'Condition',
+      label: 'Condition',
+      render: (item) => {
+        if (!item.Condition) return '';
+        return item.Condition === 'N' ? 'Back to New' : `Grade ${item.Condition}`;
+      }
+    },
   ];
 
   const searchFields = [
@@ -63,6 +71,38 @@ function NonPCList() {
     },
   ];
 
+  const handleSearch = (searchParams = {}) => {
+    const hasAnyFilters = Object.entries(searchParams).some(([key, value]) => {
+      if (Array.isArray(value)) return value.length > 0;
+      return value?.trim?.();
+    });
+  
+    fetch(`http://${window.location.hostname}:8088/non_laptop/api/search`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(hasAnyFilters),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) {
+          set_nonLaptops(data);
+        } else {
+          console.error('Unexpected data format:', data);
+          set_nonLaptops([]);
+        }
+      })
+      .catch((err) => {
+        console.error('Fetch error:', err);
+        set_nonLaptops([]);
+      });
+  };
+  
+
+  useEffect(() => {
+    handleSearch({});
+  }, []);
+  
+
   return (
     <GenericList
       items={nonLaptops}
@@ -71,6 +111,7 @@ function NonPCList() {
       filterFields={filterFields}
       basePath="/non-pc"
       itemKey="ID"
+      onSearch={handleSearch}
     />
   );
 }

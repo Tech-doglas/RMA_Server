@@ -1,11 +1,10 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import { useParams } from 'react-router-dom';
-import GenericForm from './common/GenericForm';
-import nonLaptops from '../data/nonLaptops';
+import GenericForm from '../common/GenericForm';
 
 function NonPCEdit() {
   const { id } = useParams();
-  const nonLaptop = nonLaptops.find((nl) => nl.ID === parseInt(id));
+  const [nonLaptop, setNonLaptop] = useState(null);
 
   const initialData = {
     trackingNumber: nonLaptop?.TrackingNumber || '',
@@ -108,13 +107,32 @@ function NonPCEdit() {
     },
   ];
 
-  const handleSubmit = (data) => {
-    console.log('Updated Non-Laptop:', { id: nonLaptop?.ID, ...data });
+  const handleSubmit = (formData) => {
+    const body = new FormData();
+    for (const [key, value] of Object.entries(formData)) {
+      if (Array.isArray(value)) {
+        value.forEach(file => body.append(key, file));
+      } else {
+        body.append(key, value);
+      }
+    }
+  
+    fetch(`http://${window.location.hostname}:8088/non_laptop/item/api/update/${id}`, {
+      method: 'POST',
+      body
+    }).then(res => res.json()).then(console.log);
   };
+
+  useEffect(() => {
+    fetch(`http://${window.location.hostname}:8088/non_laptop/item/api/${id}`)
+      .then(res => res.json())
+      .then(data => setNonLaptop(data));
+  }, [id]);
 
   return (
     <GenericForm
       initialData={initialData}
+      hideBackButton={true}
       fields={fields}
       onSubmit={handleSubmit}
       basePath="/non-pc"

@@ -1,6 +1,5 @@
-from werkzeug.security import generate_password_hash, check_password_hash
-from flask import Blueprint, request, send_from_directory, jsonify
-from app.models import get_db_connection, get_modi_rma_root, save_laptop_images, get_laptop_image_files, get_shipping_label_image
+from flask import Blueprint, send_from_directory, jsonify
+from app.models import get_modi_rma_root, get_shipping_label_image
 import os
 
 images_bp = Blueprint('images', __name__)
@@ -20,7 +19,7 @@ def delete_image(type, id, filename):
 @images_bp.route('/<type>/<id>/<filename>')
 def preview_image(type, id, filename):
     try:
-        if type == 'laptop':
+        if type in ['laptop', 'non_laptop']:
             image_dir = os.path.join(get_modi_rma_root(), 'images', type, str(id))
         else:
             image_dir = os.path.join(get_modi_rma_root(), 'images', 'return_receiving')

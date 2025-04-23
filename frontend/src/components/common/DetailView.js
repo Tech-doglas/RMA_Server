@@ -2,9 +2,6 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ClipLoader } from 'react-spinners';
 
-const apiHost = window.location.hostname;
-const apiBaseUrl = `${apiHost}:8088`;
-
 function DetailView({ item, fields, basePath, itemId, actions = [], images = [] }) {
   const navigate = useNavigate();
 
@@ -64,7 +61,7 @@ function DetailView({ item, fields, basePath, itemId, actions = [], images = [] 
             {images.list.map((filename) => (
               <div key={filename} className="relative">
                 <img
-                  src={`http://${apiBaseUrl}/images/${images.type}/${itemId}/${filename}`}
+                  src={`http://${window.location.hostname}:8088/images/${images.type}/${itemId}/${filename}`}
                   alt={filename}
                   className="w-[600px] h-auto rounded shadow"
                 />

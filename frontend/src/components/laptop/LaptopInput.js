@@ -2,9 +2,6 @@ import React, { useState, useEffect } from 'react';
 import GenericForm from '../common/GenericForm';
 import Toast from '../common/Toast';
 
-const apiHost = window.location.hostname;
-const apiBaseUrl = `${apiHost}:8088`;
-
 function LaptopInput() {
   const [userOptions, setUserOptions] = useState([]);
   const [toast, setToast] = useState(null);
@@ -147,7 +144,7 @@ function LaptopInput() {
   ];
 
   useEffect(() => {
-    fetch(`http://${apiBaseUrl}/auth/api/users`)
+    fetch(`http://${window.location.hostname}.8088/auth/api/users`)
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) {
@@ -185,7 +182,7 @@ function LaptopInput() {
         });
       }
       
-      const response = await fetch(`http://${apiBaseUrl}/laptop/item/submit`, {
+      const response = await fetch(`http://${window.location.hostname}.8088/laptop/item/submit`, {
         method: 'POST',
         body: data,
       });

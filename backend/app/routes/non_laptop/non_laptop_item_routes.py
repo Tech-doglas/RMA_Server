@@ -1,36 +1,25 @@
 # app/routes/item_routes.py
-from flask import Blueprint, render_template, request, redirect, send_from_directory, url_for
+from flask import Blueprint, render_template, request, redirect, send_from_directory, url_for, jsonify
 from app.models import get_db_connection, save_laptop_images, get_laptop_image_files, get_modi_rma_root
 import os
 import shutil
 
 non_laptop_item_bp = Blueprint('non_laptop_item', __name__)
 
-@non_laptop_item_bp.route('/<id>')
-def non_laptop_item_detail(id):
+@non_laptop_item_bp.route('/api/<id>')
+def api_get_non_laptop(id):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM RMA_non_laptop_sheet WHERE ID = ?", id)
         data = cursor.fetchone()
-        if not data:
-            return "Item not found", 404
-        non_laptop = dict(zip([column[0] for column in cursor.description], data))
-        image_files = get_laptop_image_files("non_laptop", non_laptop['TrackingNumber'])
         conn.close()
-        return render_template('non_laptop/non_laptop_item_detail.html', non_laptop=non_laptop, image_files=image_files)
+        if not data:
+            return jsonify({'error': 'Not found'}), 404
+        columns = [col[0] for col in cursor.description]
+        return jsonify(dict(zip(columns, data)))
     except Exception as e:
-        return f"Error: {str(e)}", 500
-
-@non_laptop_item_bp.route('/images/<id>/<filename>')
-def serve_image(id, filename):
-    try:
-        image_dir = os.path.join(get_modi_rma_root(), 'images', 'non_laptop' ,str(id))
-        if not os.path.exists(image_dir):
-            return "Image directory not found", 404
-        return send_from_directory(image_dir, filename)
-    except Exception as e:
-        return f"Error: {str(e)}", 500
+        return jsonify({'error': str(e)}), 500
 
 @non_laptop_item_bp.route('/submit', methods=['POST'])
 def submit_item():
@@ -45,6 +34,8 @@ def submit_item():
         remark = request.form.get('remark')
         user = request.form.get('user')
         location = request.form.get('location')
+        
+        print(tracking_number)
 
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -84,7 +75,7 @@ def submit_item():
         save_laptop_images(request.files.getlist('images'), "non_laptop" , tracking_number)
         conn.commit()
         conn.close()
-        return redirect(url_for('non_laptop.non_laptop_input'))
+        return "OK", 200
     except Exception as e:
         return f"Error submitting item: {str(e)}"
 
@@ -121,8 +112,8 @@ def edit_item(id):
     except Exception as e:
         return f"Error: {str(e)}", 500
 
-@non_laptop_item_bp.route('/update/<id>', methods=['POST'])
-def update_item(id):
+@non_laptop_item_bp.route('/api/update/<id>', methods=['POST'])
+def api_update_item(id):
     try:
         tracking_number = request.form.get('tracking_number')
         category = request.form.get('category')
@@ -170,9 +161,9 @@ def update_item(id):
         
         conn.commit()
         conn.close()
-        return redirect(url_for('non_laptop.non_laptop_item.non_laptop_item_detail', id=id))
+        return jsonify({'message': 'Updated successfully'})
     except Exception as e:
-        return f"Error updating item: {str(e)}"
+        return jsonify({'error': str(e)}), 500
 
 @non_laptop_item_bp.route('/delete/<id>')
 def delete_item(id):
@@ -195,14 +186,14 @@ def delete_item(id):
     except Exception as e:
         return f"Error deleting item: {str(e)}", 500
 
-@non_laptop_item_bp.route('/delete_image/<id>/<filename>', methods=['POST'])
-def delete_image(id, filename):
-    try:
-        image_dir = os.path.join(get_modi_rma_root(), 'images', "non_laptop", str(id))
-        image_path = os.path.join(image_dir, filename)
-        if os.path.exists(image_path):
-            os.remove(image_path)
-            return "Image deleted successfully", 200
-        return "Image not found", 404
-    except Exception as e:
-        return f"Error deleting image: {str(e)}", 500
+# @non_laptop_item_bp.route('/delete_image/<id>/<filename>', methods=['POST'])
+# def delete_image(id, filename):
+#     try:
+#         image_dir = os.path.join(get_modi_rma_root(), 'images', "non_laptop", str(id))
+#         image_path = os.path.join(image_dir, filename)
+#         if os.path.exists(image_path):
+#             os.remove(image_path)
+#             return "Image deleted successfully", 200
+#         return "Image not found", 404
+#     except Exception as e:
+#         return f"Error deleting image: {str(e)}", 500

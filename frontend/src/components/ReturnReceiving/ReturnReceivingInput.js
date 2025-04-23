@@ -2,9 +2,6 @@ import React, {useState} from 'react';
 import GenericForm from '../common/GenericForm';
 import Toast from '../common/Toast';
 
-const apiHost = window.location.hostname;
-const apiBaseUrl = `${apiHost}:8088`;
-
 function ReturnReceivingInput() {
     const [toast, setToast] = useState(null);
 
@@ -48,6 +45,12 @@ function ReturnReceivingInput() {
       multiple: false,
       accept: 'image/jpg,image/jpeg,image/png',
       required: true,
+      validate: (value) => {
+        if (!value || value.length === 0) {
+          return 'Please upload at least one shipping label image';
+        }
+        return null;
+      },
     },
   ];
 
@@ -64,7 +67,7 @@ function ReturnReceivingInput() {
     }
   
     try {
-      const res = await fetch(`http://${apiBaseUrl}/return/submit`, {
+      const res = await fetch(`http://${window.location.hostname}:8088/return/submit`, {
         method: 'POST',
         body: data,
       });

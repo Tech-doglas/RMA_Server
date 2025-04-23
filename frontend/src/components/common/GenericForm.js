@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const apiHost = window.location.hostname;
-const apiBaseUrl = `${apiHost}:8088`;
-
 function GenericForm({ initialData, fields, onSubmit, basePath, itemId, isEdit = false, hideBackButton = false, existingImages = {} }) {
   const [formData, setFormData] = useState(initialData);
   const [errors, setErrors] = useState({});
@@ -46,7 +43,7 @@ function GenericForm({ initialData, fields, onSubmit, basePath, itemId, isEdit =
 
   const handleDelete = async () => {
     if (window.confirm('Are you sure you want to delete this item?')) {
-      fetch(`http://${apiBaseUrl}/laptop/item/api/item/${itemId}`, {
+      fetch(`http://${window.location.hostname}:8088/laptop/item/api/item/${itemId}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -73,7 +70,7 @@ function GenericForm({ initialData, fields, onSubmit, basePath, itemId, isEdit =
   const handleImageDelete = (filename, type) => {
     if (!window.confirm('Are you sure you want to delete this image?')) return;
   
-    fetch(`http://${apiBaseUrl}/images/delete_image/${type}/${itemId}/${filename}`, {
+    fetch(`http://${window.location.hostname}:8088/images/delete_image/${type}/${itemId}/${filename}`, {
       method: 'POST',
     })
       .then((res) => {
@@ -178,7 +175,7 @@ function GenericForm({ initialData, fields, onSubmit, basePath, itemId, isEdit =
                           {imageList.list.map((filename, index) => (
                             <div key={index} className="relative w-32 h-32 rounded overflow-hidden group">
                               <img
-                                src={`http://${apiBaseUrl}/images/${imageList.type}/${itemId}/${filename}`}
+                                src={`http://${window.location.hostname}:8088/images/${imageList.type}/${itemId}/${filename}`}
                                 alt={`Laptop photo ${index + 1}`}
                                 className="w-full h-full object-cover rounded-xl border"
                               />

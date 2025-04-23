@@ -4,9 +4,6 @@ import DetailView from '../common/DetailView';
 import { ClipLoader } from 'react-spinners';
 import Toast from '../common/Toast';
 
-const apiHost = window.location.hostname;
-const apiBaseUrl = `${apiHost}:8088`;
-
 function ReturnReceivingDetails() {
   const { id } = useParams();
   const [records, setRecords] = useState([]);
@@ -27,7 +24,7 @@ function ReturnReceivingDetails() {
       label: records?.Recorded ? 'Recorded' : 'Record',
       onClick: async () => {
         try {
-          await fetch(`http://${apiBaseUrl}/return/recorded/${records?.TrackingNumber}`);
+          await fetch(`http://${window.location.hostname}:8088/return/recorded/${records?.TrackingNumber}`);
           setToast({ message: 'Marked as Tech Done ✔️', type: 'success' });
           window.location.reload();
         } catch (err) {
@@ -40,7 +37,7 @@ function ReturnReceivingDetails() {
   ];
 
   useEffect(() => {
-    fetch(`http://${apiBaseUrl}/return/api/return/${id}`)
+    fetch(`http://${window.location.hostname}:8088/return/api/return/${id}`)
       .then(res => res.json())
       .then(data => {
         if (data.error) throw new Error(data.error);
@@ -51,7 +48,7 @@ function ReturnReceivingDetails() {
         console.error(err);
         setLoading(false);
       });
-    fetch(`http://${apiBaseUrl}/images/api/return_receiving/${id}`)
+    fetch(`http://${window.location.hostname}:8088/images/api/return_receiving/${id}`)
       .then((res) => res.json())
       .then((data) => setImages({ list: data, type: 'return_receiving' }))
       .catch((err) => console.error('Error fetching images:', err));

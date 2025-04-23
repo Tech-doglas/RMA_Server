@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from "react";
 import GenericList from "../common/GenericList";
 
-const apiHost = window.location.hostname;
-const apiBaseUrl = `${apiHost}:8088`;
-
 function ReturnReceivingList() {
   const [records, setRecords] = useState([]);
 
@@ -61,7 +58,7 @@ function ReturnReceivingList() {
   ];
 
   const handleSearch = () => {
-    fetch(`http://${apiBaseUrl}/return/`, {
+    fetch(`http://${window.location.hostname}:8088/return/`, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
     })

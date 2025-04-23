@@ -1,9 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const apiHost = window.location.hostname;
-const apiBaseUrl = `${apiHost}:8088`;
-
 function Login({ onLogin, onLogout }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -15,7 +12,7 @@ function Login({ onLogin, onLogout }) {
     setError('');
   
     try {
-      const response = await fetch(`http://${apiBaseUrl}/auth/api/login`, {
+      const response = await fetch(`http://${window.location.hostname}:8088/auth/api/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password })

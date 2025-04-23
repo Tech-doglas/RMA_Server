@@ -260,7 +260,7 @@ function GenericList({ items, columns, searchFields, filterFields, basePath, ite
                         copyableColumns.includes(col.key) ? 'cursor-pointer hover:bg-gray-200' : ''
                       } ${
                         col.key === 'Condition' ? getOptionClass(
-                          col.render ? col.render(item) : item[col.key],
+                          col.render ? col.render(item) : (item[col.key] ?? 'Unknown'),
                           'conditions'
                         ) : col.key === 'InspectionRequest' ? getOptionClass(
                           col.render ? col.render(item) : item[col.key],

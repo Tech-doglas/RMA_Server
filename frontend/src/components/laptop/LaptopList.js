@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import GenericList from '../common/GenericList';
 
-const apiHost = window.location.hostname;
-const apiBaseUrl = `${apiHost}:8088`;
-
 function LaptopList() {
   const [laptops, setLaptops] = useState([]);
 
@@ -91,7 +88,7 @@ function LaptopList() {
     // If no filters, default to only TechDone = 'Not yet'
     const finalParams = hasAnyFilters ? searchParams : { techDone: ['Not yet'] };
   
-    fetch(`http://${apiBaseUrl}/laptop/api/laptops/search`, {
+    fetch(`http://${window.location.hostname}:8088/laptop/api/laptops/search`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(finalParams),
