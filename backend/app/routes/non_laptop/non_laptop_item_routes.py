@@ -6,20 +6,20 @@ import shutil
 
 non_laptop_item_bp = Blueprint('non_laptop_item', __name__)
 
-@non_laptop_item_bp.route('/api/<id>')
-def api_get_non_laptop(id):
-    try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM RMA_non_laptop_sheet WHERE ID = ?", id)
-        data = cursor.fetchone()
-        conn.close()
-        if not data:
-            return jsonify({'error': 'Not found'}), 404
-        columns = [col[0] for col in cursor.description]
-        return jsonify(dict(zip(columns, data)))
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+# @non_laptop_item_bp.route('/api/<id>')
+# def api_get_non_laptop(id):
+#     try:
+#         conn = get_db_connection()
+#         cursor = conn.cursor()
+#         cursor.execute("SELECT * FROM RMA_non_laptop_sheet WHERE ID = ?", id)
+#         data = cursor.fetchone()
+#         conn.close()
+#         if not data:
+#             return jsonify({'error': 'Not found'}), 404
+#         columns = [col[0] for col in cursor.description]
+#         return jsonify(dict(zip(columns, data)))
+#     except Exception as e:
+#         return jsonify({'error': str(e)}), 500
 
 @non_laptop_item_bp.route('/submit', methods=['POST'])
 def submit_item():
@@ -34,8 +34,6 @@ def submit_item():
         remark = request.form.get('remark')
         user = request.form.get('user')
         location = request.form.get('location')
-        
-        print(tracking_number)
 
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -79,36 +77,28 @@ def submit_item():
     except Exception as e:
         return f"Error submitting item: {str(e)}"
 
-@non_laptop_item_bp.route('/edit/<id>')
-def edit_item(id):
+@non_laptop_item_bp.route('/api/<id>', methods=['GET'])
+def get_non_laptop_item(id):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM RMA_non_laptop_sheet WHERE ID = ?", id)
+        cursor.execute("SELECT * FROM RMA_non_laptop_sheet WHERE ID = ?", (id,))
         data = cursor.fetchone()
         if not data:
-            return "Item not found", 404
-        non_laptop = dict(zip([column[0] for column in cursor.description], data))
+            return jsonify({'error': 'Item not found'}), 404
+        columns = [col[0] for col in cursor.description]
+        item = dict(zip(columns, data))
 
-        if non_laptop['ReceivedDate']:
-            if isinstance(non_laptop['ReceivedDate'], str):
-                # If it's already a string, parse it to a datetime first
-                from datetime import datetime
-                date_obj = datetime.strptime(non_laptop['ReceivedDate'], '%Y-%m-%d %H:%M:%S')
-                non_laptop['ReceivedDate'] = date_obj.strftime('%Y-%m-%d')
+        if item['ReceivedDate']:
+            from datetime import datetime
+            if isinstance(item['ReceivedDate'], str):
+                date_obj = datetime.strptime(item['ReceivedDate'], '%Y-%m-%d %H:%M:%S')
             else:
-                # If it's a datetime object from the database
-                non_laptop['ReceivedDate'] = non_laptop['ReceivedDate'].strftime('%Y-%m-%d')
-                
-        image_files = get_laptop_image_files("non_laptop", non_laptop['TrackingNumber'])
+                date_obj = item['ReceivedDate']
+            item['ReceivedDate'] = date_obj.strftime('%Y-%m-%d')
         
-
-        cursor.execute("SELECT * FROM RMA_user")
-        data = cursor.fetchall()
-
-        users = [row[0] for row in data]
         conn.close()
-        return render_template('non_laptop/non_laptop_edit_item.html', non_laptop=non_laptop, image_files=image_files, users=users)
+        return jsonify(item)
     except Exception as e:
         return f"Error: {str(e)}", 500
 

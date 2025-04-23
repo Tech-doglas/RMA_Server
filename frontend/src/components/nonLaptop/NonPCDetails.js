@@ -34,6 +34,7 @@ function NonPCDetails() {
       }
     },
     { key: 'Location', label: 'Location' },
+    { key: 'Remark', label: 'Remark' },
     { key: 'LastModifiedDateTime', label: 'Last Edited DateTime' },
     { key: 'LastModifiedUser', label: 'Last Edited User' },
   ];
@@ -41,7 +42,6 @@ function NonPCDetails() {
   const actions = [
     // {
     //   label: 'Edit',
-    //   onClick: () => {},
     //   className: 'bg-orange-500 hover:bg-orange-600',
     //   render: () => <Link to={`/non-pc/${id}/edit`} className="inline-block bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600">Edit</Link>,
     // },
