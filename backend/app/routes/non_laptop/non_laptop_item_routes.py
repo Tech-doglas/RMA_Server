@@ -6,21 +6,6 @@ import shutil
 
 non_laptop_item_bp = Blueprint('non_laptop_item', __name__)
 
-# @non_laptop_item_bp.route('/api/<id>')
-# def api_get_non_laptop(id):
-#     try:
-#         conn = get_db_connection()
-#         cursor = conn.cursor()
-#         cursor.execute("SELECT * FROM RMA_non_laptop_sheet WHERE ID = ?", id)
-#         data = cursor.fetchone()
-#         conn.close()
-#         if not data:
-#             return jsonify({'error': 'Not found'}), 404
-#         columns = [col[0] for col in cursor.description]
-#         return jsonify(dict(zip(columns, data)))
-#     except Exception as e:
-#         return jsonify({'error': str(e)}), 500
-
 @non_laptop_item_bp.route('/submit', methods=['POST'])
 def submit_item():
     try:
@@ -155,26 +140,28 @@ def api_update_item(id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@non_laptop_item_bp.route('/delete/<id>')
+@non_laptop_item_bp.route('/delete/<id>', methods=['DELETE'])
 def delete_item(id):
     try:
         tracking_number = request.args.get('TrackingNumber')
 
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("DELETE FROM RMA_non_laptop_sheet WHERE ID = ?", id)
-        cursor.execute("SELECT * FROM RMA_non_laptop_sheet WHERE TrackingNumber = ?", tracking_number)
-        data = cursor.fetchall()
-        non_laptop = dict(zip([column[0] for column in cursor.description], data))
-        if len(non_laptop) == 0:
+        cursor.execute("DELETE FROM RMA_non_laptop_sheet WHERE ID = ?", (id,))
+        cursor.execute("SELECT 1 FROM RMA_non_laptop_sheet WHERE TrackingNumber = ?", (tracking_number,))
+        remaining = cursor.fetchone()
+
+        if not remaining:
             image_dir = os.path.join('images', 'non_laptop', tracking_number)
             if os.path.exists(image_dir):
                 shutil.rmtree(image_dir)
+
         conn.commit()
         conn.close()
-        return redirect(url_for('non_laptop.show_RMA_non_laptop_sheet'))
+        return '', 204  # No Content (frontend can handle redirect or success)
     except Exception as e:
         return f"Error deleting item: {str(e)}", 500
+
 
 # @non_laptop_item_bp.route('/delete_image/<id>/<filename>', methods=['POST'])
 # def delete_image(id, filename):

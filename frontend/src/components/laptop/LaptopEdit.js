@@ -212,12 +212,31 @@ function LaptopEdit() {
           alert('Update failed: ' + err.message);
         });
     };
+
+    const handleDelete = () => {
+      fetch(`http://${window.location.hostname}:8088/laptop/item/api/item/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+        .then((res) => {
+          if (!res.ok) throw new Error('Failed to delete');
+          window.location.href = '/pc';
+        })
+        .catch((err) => {
+          console.error('Delete failed:', err);
+          alert('Delete failed: ' + err.message);
+        });
+    };
+    
     
   return (
     <GenericForm
       initialData={initialData}
       fields={fields}
       onSubmit={handleSubmit}
+      onDelete={handleDelete}
       basePath="/pc"
       itemId={id}
       isEdit={true}

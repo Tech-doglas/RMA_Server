@@ -40,11 +40,11 @@ function NonPCDetails() {
   ];
 
   const actions = [
-    // {
-    //   label: 'Edit',
-    //   className: 'bg-orange-500 hover:bg-orange-600',
-    //   render: () => <Link to={`/non-pc/${id}/edit`} className="inline-block bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600">Edit</Link>,
-    // },
+    {
+      label: 'Edit',
+      className: 'bg-orange-500 hover:bg-orange-600',
+      render: () => <Link to={`/non-pc/${id}/edit`} className="inline-block bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600">Edit</Link>,
+    },
   ];
 
   useEffect(() => {

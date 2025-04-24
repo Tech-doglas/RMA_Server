@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-function GenericForm({ initialData, fields, onSubmit, basePath, itemId, isEdit = false, hideBackButton = false, existingImages = {} }) {
+function GenericForm({ initialData, fields, onSubmit, onDelete , basePath, itemId, isEdit = false, hideBackButton = false, existingImages = {} }) {
   const [formData, setFormData] = useState(initialData);
   const [errors, setErrors] = useState({});
   const [imageList, setImageList] = useState(existingImages || {});
@@ -41,29 +41,9 @@ function GenericForm({ initialData, fields, onSubmit, basePath, itemId, isEdit =
     }
   };
 
-  const handleDelete = async () => {
+  const handleDeleteClick = () => {
     if (window.confirm('Are you sure you want to delete this item?')) {
-      fetch(`http://${window.location.hostname}:8088/laptop/item/api/item/${itemId}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
-        .then((res) => {
-          if (!res.ok) {
-            return res.json().then((errorData) => {
-              throw new Error(errorData.error || 'Failed to delete the item.');
-            });
-          } else {
-            console.log('Deleted Item:', itemId);
-            navigate(basePath);
-          }
-        })
-        .catch((err) => {
-          console.error('Delete failed:', err);
-          alert('Delete failed: ' + err.message);
-        });
-      
+      onDelete?.();
     }
   };
 
@@ -90,6 +70,10 @@ function GenericForm({ initialData, fields, onSubmit, basePath, itemId, isEdit =
         alert('Failed to delete image');
       });
   };
+
+  useEffect(() => {
+    console.log('Form data updated:', formData);
+  }, [formData]);
 
   useEffect(() => {
     if (
@@ -138,11 +122,16 @@ function GenericForm({ initialData, fields, onSubmit, basePath, itemId, isEdit =
                   onChange={handleChange}
                   className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-600"
                 >
-                  {field.options.map((option) => (
-                    <option key={option.value} value={option.value} disabled={option.disabled}>
-                      {option.label}
-                    </option>
-                  ))}
+                    {field.options.every(opt => opt.value !== '') && (
+                      <option value="" disabled>
+                        Select {field.label}
+                      </option>
+                    )}
+                    {field.options.map((option) => (
+                      <option key={option.value} value={option.value} disabled={option.disabled}>
+                        {option.label}
+                      </option>
+                    ))}
                 </select>
               ) : field.type === 'checkbox' ? (
                 <div className="flex items-center">
@@ -175,10 +164,11 @@ function GenericForm({ initialData, fields, onSubmit, basePath, itemId, isEdit =
                           {imageList.list.map((filename, index) => (
                             <div key={index} className="relative w-32 h-32 rounded overflow-hidden group">
                               <img
-                                src={`http://${window.location.hostname}:8088/images/${imageList.type}/${itemId}/${filename}`}
+                                src={`http://${window.location.hostname}:8088/images/${imageList.type}/${imageList.type === 'non_laptop' ? formData.trackingNumber : itemId}/${filename}`}
                                 alt={`Laptop photo ${index + 1}`}
                                 className="w-full h-full object-cover rounded-xl border"
                               />
+                              {imageList.type !== 'non_laptop' && 
                               <button
                                 type="button"
                                 onClick={() => handleImageDelete(filename, imageList.type)}
@@ -187,6 +177,7 @@ function GenericForm({ initialData, fields, onSubmit, basePath, itemId, isEdit =
                               >
                                 ✕
                               </button>
+                              }
                             </div>
                           ))}
                         </div>
@@ -195,6 +186,7 @@ function GenericForm({ initialData, fields, onSubmit, basePath, itemId, isEdit =
                       )}
                     </div>
                   )}
+                  {imageList.type !== 'non_laptop' && 
                   <input
                     type="file"
                     id={field.name}
@@ -204,6 +196,7 @@ function GenericForm({ initialData, fields, onSubmit, basePath, itemId, isEdit =
                     onChange={handleChange}
                     className="w-full p-2 border rounded"
                   />
+                  }
                   <div className="mt-2 flex flex-wrap gap-2">
                     {formData[field.name] && formData[field.name].length > 0 &&
                       Array.from(formData[field.name]).map((file, index) => (
@@ -240,7 +233,7 @@ function GenericForm({ initialData, fields, onSubmit, basePath, itemId, isEdit =
                 </button>
                 <button
                   type="button"
-                  onClick={handleDelete}
+                  onClick={handleDeleteClick}
                   className="w-full sm:w-auto bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
                 >
                   Delete Item

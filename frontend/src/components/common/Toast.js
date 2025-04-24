@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 
-function Toast({ message, type = 'success', onClose, duration = 3000 }) {
+function Toast({ message, type , onClose, duration = 3000 }) {
   useEffect(() => {
     const timer = setTimeout(onClose, duration);
     return () => clearTimeout(timer);

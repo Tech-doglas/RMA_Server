@@ -20,7 +20,6 @@ function NonPCEdit() {
     location: nonLaptop?.Location || "",
     remark: nonLaptop?.Remark || "",
     newImages: [],
-    user: nonLaptop?.LastModifiedUser || "",
   };
 
   const fields = [
@@ -75,14 +74,12 @@ function NonPCEdit() {
         { value: "C", label: "Grade C" },
         { value: "F", label: "Grade F" },
       ],
-      required: true,
     },
     {
       name: "location",
       label: "Location",
       type: "text",
       placeholder: "e.g., On Pallet/A1",
-      required: true,
     },
     {
       name: "remark",
@@ -132,25 +129,42 @@ function NonPCEdit() {
       .then(console.log);
   };
 
-  useEffect(() => {
-    fetch(`http://${window.location.hostname}:8088/auth/api/users`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (Array.isArray(data)) {
-          setUserOptions([
-            { value: "", label: "Select User", disabled: true },
-            ...data.map((user) => ({ value: user, label: user })),
-          ]);
-        }
+  const handleDelete = () => {
+    const trackingNumber = nonLaptop?.TrackingNumber;
+
+    fetch(`http://${window.location.hostname}:8088/non_laptop/item/delete/${id}?TrackingNumber=${trackingNumber}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error('Failed to delete');
+        window.location.href = '/non-pc';
       })
-      .catch((err) => console.error("Error fetching users:", err));
-  }, []);
+      .catch((err) => {
+        console.error('Delete failed:', err);
+        alert('Delete failed: ' + err.message);
+      });
+  };
 
   useEffect(() => {
     fetch(`http://${window.location.hostname}:8088/non_laptop/item/api/${id}`)
       .then((res) => res.json())
       .then((data) => setNonLaptop(data))
       .catch((err) => console.error("Error fetching laptop:", err));
+
+      fetch(`http://${window.location.hostname}:8088/auth/api/users`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setUserOptions([
+            { value: '', label: 'Select User', disabled: true },
+            ...data.map((user) => ({ value: user, label: user })),
+          ]);
+        }
+      })
+      .catch((err) => console.error('Error fetching users:', err));
   }, [id]);
 
     useEffect(() => {
@@ -175,6 +189,7 @@ function NonPCEdit() {
       hideBackButton={true}
       fields={fields}
       onSubmit={handleSubmit}
+      onDelete={handleDelete}
       basePath="/non-pc"
       itemId={id}
       isEdit={true}
