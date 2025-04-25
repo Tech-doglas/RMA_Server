@@ -94,8 +94,8 @@ function NonPCEdit() {
       accept: "image/*",
       validate: (value, formData) =>
         ["B", "C", "F"].includes(formData.condition) &&
-        value.length === 0 &&
-        nonLaptop?.images.length === 0
+        (!value || value.length === 0) &&
+        (!images?.list || images.list.length === 0)
           ? "Grades B, C, and F require at least one photo"
           : null,
     },

@@ -72,10 +72,6 @@ function GenericForm({ initialData, fields, onSubmit, onDelete , basePath, itemI
   };
 
   useEffect(() => {
-    console.log('Form data updated:', formData);
-  }, [formData]);
-
-  useEffect(() => {
     if (
       existingImages &&
       typeof existingImages === 'object' &&

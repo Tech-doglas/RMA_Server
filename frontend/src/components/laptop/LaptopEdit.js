@@ -121,7 +121,12 @@ function LaptopEdit() {
       type: 'file',
       multiple: true,
       accept: 'image/*',
-      validate: (value, formData) => ['B', 'C', 'F'].includes(formData.condition) && value.length === 0 && laptop?.images.length === 0 ? 'Grades B, C, and F require at least one photo' : null,
+      validate: (value, formData) =>
+        ['B', 'C', 'F'].includes(formData.condition) &&
+        (!value || value.length === 0) &&
+        (!images?.list || images.list.length === 0)
+          ? 'Grades B, C, and F require at least one photo'
+          : null,
     },
     {
       name: 'user',
