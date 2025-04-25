@@ -18,7 +18,7 @@ function Dashboard({ role, department, onLogout }) {
             </button>
           </Link>
           <Link to="/xie">
-            <button className="w-full bg-purple-500 text-white p-4 rounded-lg hover:bg-purple-600 transition-colors" disabled>
+            <button className="w-full bg-purple-500 text-white p-4 rounded-lg hover:bg-purple-600 transition-colors">
               Xie
             </button>
           </Link>

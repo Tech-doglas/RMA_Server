@@ -21,7 +21,7 @@ import NonPCEdit from "./components/nonLaptop/NonPCEdit";
 import ReturnReceivingList from "./components/ReturnReceiving/ReturnReceivingList";
 import ReturnReceivingInput from "./components/ReturnReceiving/ReturnReceivingInput";
 import ReturnReceivingDetails from "./components/ReturnReceiving/ReturnReceivingDetails";
-import Xie from "./components/Xie";
+import Xie from "./components/Xie/Xie";
 import Managment from "./components/Managment";
 
 import { ClipLoader } from "react-spinners";
@@ -153,7 +153,7 @@ function App() {
               path="/manager-tools"
               element={
                 isAuthenticated && userRole === "manager" ? (
-                  <Managment />
+                  <Managment department={department}/>
                 ) : (
                   <Navigate to="/" />
                 )
