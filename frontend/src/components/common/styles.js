@@ -33,6 +33,17 @@ export const getOptionClass = (item, filterName) => {
       default:
         return '';
     }
+  } else if (filterName === 'return_type') {
+    switch (item) {
+      case 'New Bulk':
+        return 'bg-blue-300';
+      case 'Old Bulk':
+        return 'bg-gray-300';
+      case 'Buyer':
+        return 'bg-purple-300';
+      default:
+        return '';
+    }
   }
   return '';
 };

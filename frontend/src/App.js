@@ -21,7 +21,7 @@ import NonPCEdit from "./components/nonLaptop/NonPCEdit";
 import ReturnReceivingList from "./components/ReturnReceiving/ReturnReceivingList";
 import ReturnReceivingInput from "./components/ReturnReceiving/ReturnReceivingInput";
 import ReturnReceivingDetails from "./components/ReturnReceiving/ReturnReceivingDetails";
-import Xie from "./components/Xie/Xie";
+import XieList from "./components/Xie/XieList";
 import Managment from "./components/Managment";
 
 import { ClipLoader } from "react-spinners";
@@ -147,7 +147,7 @@ function App() {
             />
             <Route
               path="/xie"
-              element={isAuthenticated ? <Xie /> : <Navigate to="/" />}
+              element={isAuthenticated ? <XieList /> : <Navigate to="/" />}
             />
             <Route
               path="/manager-tools"

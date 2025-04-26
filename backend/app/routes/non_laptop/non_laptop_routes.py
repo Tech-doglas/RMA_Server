@@ -51,24 +51,27 @@ def api_nonlaptop_search():
             query += " AND Category = ?"
             params.append(category)
 
-        if not isinstance(inspection_request, list):
-            inspection_request = [inspection_request]
-        if inspection_request:
-            query += " AND InspectionRequest IN (" + ",".join(["?"] * len(inspection_request)) + ")"
+        if isinstance(inspection_request, list) and inspection_request:
+            placeholders = ','.join(['?'] * len(inspection_request))
+            query += f" AND InspectionRequest IN ({placeholders})"
             params.extend(inspection_request)
 
-        if not isinstance(conditions, list):
-            conditions = [conditions]
-        if conditions:
-            query += " AND Condition IN (" + ",".join(["?"] * len(conditions)) + ")"
+        if isinstance(conditions, list) and conditions:
+            placeholders = ','.join(['?'] * len(conditions))
+            query += f" AND Condition IN ({placeholders})"
             params.extend(conditions)
 
         cursor.execute(query, params)
         rows = cursor.fetchall()
-        columns = [col[0] for col in cursor.description]
-        result = [dict(zip(columns, row)) for row in rows]
+
+        result = []
+        if rows:
+            columns = [col[0] for col in cursor.description]
+            result = [dict(zip(columns, row)) for row in rows]
 
         conn.close()
         return jsonify(result)
+
     except Exception as e:
+        print("Error in search:", str(e))
         return jsonify({'error': str(e)}), 500

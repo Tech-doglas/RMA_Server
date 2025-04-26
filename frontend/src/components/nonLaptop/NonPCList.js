@@ -77,10 +77,12 @@ function NonPCList() {
       return value?.trim?.();
     });
   
+    const finalParams = hasAnyFilters ? searchParams : {};
+  
     fetch(`http://${window.location.hostname}:8088/non_laptop/api/search`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(hasAnyFilters),
+      body: JSON.stringify(finalParams),
     })
       .then((res) => res.json())
       .then((data) => {
@@ -97,7 +99,7 @@ function NonPCList() {
       });
   };
   
-
+  
   useEffect(() => {
     handleSearch({});
   }, []);
