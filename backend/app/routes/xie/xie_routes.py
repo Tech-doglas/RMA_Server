@@ -54,41 +54,50 @@ def api_search_xie_laptops():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-
 @xie_bp.route('/api/xie-insert', methods=['POST'])
 def insert_xie_item():
-    data = request.json
-    conn = get_db_connection()
-    cursor = conn.cursor()
+    try:
+        data = request.json.get('data', [])
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
 
-    cursor.execute("""
-        INSERT INTO xie_laptop_return (
-            order_number, tracking_number, qty, laptop_name, customer_name, remark,
-            serial_number, return_id, grading, tracking_received_date, inspection_date,
-            delivery_date, last_modified_user, last_modified_datetime, return_type
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """, (
-        data['order_number'],
-        data['tracking_number'],
-        data['qty'],
-        data['laptop_name'],
-        data.get('customer_name'),
-        data.get('remark'),
-        data['serial_number'],
-        data['return_id'],
-        data['grading'],
-        data['tracking_received_date'],
-        data.get('inspection_date'),
-        data.get('delivery_date'),
-        data['last_modified_user'],
-        data['last_modified_datetime'],
-        data['return_type']
-    ))
+        conn = get_db_connection()
+        cursor = conn.cursor()
 
-    conn.commit()
-    conn.close()
+        for item in data:
+            cursor.execute("""
+                INSERT INTO xie_laptop_return (
+                    order_number, tracking_number, laptop_name,
+                    customer_name, remark, serial_number, return_id,
+                    condition, location, tracking_received_date,
+                    inspection_date, last_modified_user, last_modified_datetime,
+                    return_type
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, GETDATE(), ?)
+            """, (
+                item.get('orderNumber'),
+                item.get('trackingNumber'),
+                item.get('laptopName'),
+                item.get('customerName'),
+                item.get('remark'),
+                item.get('serialNumber'),
+                item.get('returnId'),
+                item.get('condition'),
+                item.get('location'),
+                item.get('trackingReceivedDate'),
+                item.get('inspectionDate'),
+                item.get('user'),  # last_modified_user
+                item.get('returnType')
+            ))
 
-    return jsonify({"message": "Record inserted successfully"})
+        conn.commit()
+        conn.close()
+
+        return jsonify({'message': 'Xie items inserted successfully!'}), 200
+
+    except Exception as e:
+        print('Error inserting xie item:', e)
+        return jsonify({'error': str(e)}), 500
+
 
 @xie_bp.route('/api/xie-update/<int:id>', methods=['PUT'])
 def update_xie_item(id):
@@ -98,20 +107,20 @@ def update_xie_item(id):
 
     cursor.execute("""
         UPDATE xie_laptop_return SET
-            order_number = ?, tracking_number = ?, qty = ?, laptop_name = ?, customer_name = ?,
-            remark = ?, serial_number = ?, return_id = ?, grading = ?, tracking_received_date = ?,
+            order_number = ?, tracking_number = ?, location = ?, laptop_name = ?, customer_name = ?,
+            remark = ?, serial_number = ?, return_id = ?, condition = ?, tracking_received_date = ?,
             inspection_date = ?, delivery_date = ?, last_modified_user = ?, last_modified_datetime = ?, return_type = ?
         WHERE id = ?
     """, (
         data['order_number'],
         data['tracking_number'],
-        data['qty'],
+        data['location'],
         data['laptop_name'],
         data.get('customer_name'),
         data.get('remark'),
         data['serial_number'],
         data['return_id'],
-        data['grading'],
+        data['condition'],
         data['tracking_received_date'],
         data.get('inspection_date'),
         data.get('delivery_date'),

@@ -96,6 +96,7 @@ function LaptopList() {
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) {
+          console.log(data)
           setLaptops(data);
         } else {
           console.error('Unexpected data format:', data);
