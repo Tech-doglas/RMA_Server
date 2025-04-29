@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import DetailView from '../common/DetailView';
 import { ClipLoader } from 'react-spinners';
 import Toast from '../common/Toast';
@@ -10,6 +10,7 @@ function ReturnReceivingDetails() {
   const [image, setImages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState(null);
+  const navigate = useNavigate();
 
   const fields = [
     { key: 'TrackingNumber', label: 'Tracking #' },
@@ -25,13 +26,29 @@ function ReturnReceivingDetails() {
       onClick: async () => {
         try {
           await fetch(`http://${window.location.hostname}:8088/return/recorded/${records?.TrackingNumber}`);
-          setToast({ message: 'Marked as Tech Done ✔️', type: 'success' });
+          setToast({ message: 'Marked as Recorded ✔️', type: 'success' });
           window.location.reload();
         } catch (err) {
           setToast({ message: 'Server error. Try again later.', type: 'error' })
         }
       },
       className: records?.Recorded ? 'bg-gray-400 cursor-not-allowed' : 'bg-sky-500 hover:bg-sky-600',
+      disabled: records?.Recorded,
+    },
+    {
+      label: records?.Recorded ? 'Inputed' : 'Input',
+      onClick: async () => {
+        try {
+          if (records?.Company.includes('SNOWBELL')) {
+            navigate(`/xie/input`)
+          } else {
+            // navigate(`/pc/input`)
+          }
+        } catch (err) {
+          setToast({ message: 'Server error. Try again later.', type: 'error' })
+        }
+      },
+      className: records?.Recorded ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600',
       disabled: records?.Recorded,
     },
   ];

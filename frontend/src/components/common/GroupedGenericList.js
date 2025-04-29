@@ -99,6 +99,20 @@ function GroupedGenericList({ items, columns, searchFields, filterFields, basePa
     setTimeout(() => setToast({ message: '', visible: false }), 2000);
   };
 
+  const formatDate = (dateString) => {
+    if (!dateString) return "-";
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "-";
+  
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = date.toLocaleString("en-US", { month: "short" }); // like 'Apr'
+    const year = date.getFullYear();
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+  
+    return `${day}/${month}/${year} ${hours}:${minutes}`;
+  };
+
   const copyableColumns = ['SerialNumber', 'OdooRef', 'SKU', 'OrderNumber', 'TrackingNumber'];
 
   return (
@@ -117,6 +131,11 @@ function GroupedGenericList({ items, columns, searchFields, filterFields, basePa
             className="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600"
           >
             Home
+          </button>
+          <button
+            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+          >
+            Request
           </button>
         </div>
 
@@ -219,51 +238,64 @@ function GroupedGenericList({ items, columns, searchFields, filterFields, basePa
             </tr>
           </thead>
           <tbody>
-            {Object.entries(groupedItems).map(([trackingNumber, groupItems]) => (
-              <React.Fragment key={trackingNumber}>
-                <tr className="bg-gray-100">
-                  <td className="p-2 border text-center">
-                    <button
-                      onClick={() => toggleGroup(trackingNumber)}
-                      className="text-lg font-bold"
-                    >
-                      {expandedGroups[trackingNumber] ? '➖' : '➕'}
-                    </button>
-                  </td>
-                  {columns.map((col) => visibleColumns[col.key] && (
-                    <td
-                      key={col.key}
-                      className={`p-2 border font-bold ${isCenterAlign(col.key) ? 'text-center' : ''} ${col.key === 'return_type' ? getOptionClass(groupItems[0][col.key], 'return_type') : ''}`}
-                    >
-                      {col.key === 'condition' ? mapCondition(groupItems[0][col.key]) : groupItems[0][col.key]}
+            {Object.entries(groupedItems).map(([trackingNumber, groupItems]) => {
+              let chilList = groupItems.slice(1);
+              return (
+                <React.Fragment key={trackingNumber}>
+                  <tr className="bg-gray-100">
+                    <td className="p-2 border text-center">
+                      <button
+                        onClick={() => toggleGroup(trackingNumber)}
+                        className="text-lg font-bold"
+                      >
+                        {expandedGroups[trackingNumber] ? '➖' : '➕'}
+                      </button>
                     </td>
-                  ))}
-                </tr>
-                {expandedGroups[trackingNumber] && groupItems.map((item) => (
-                  <tr
-                    key={item[itemKey]}
-                    onClick={() => navigate(`${basePath}/${item[itemKey]}`)}
-                    className="hover:bg-gray-100 cursor-pointer"
-                  >
-                    <td className="p-2 border"></td>
                     {columns.map((col) => visibleColumns[col.key] && (
                       <td
                         key={col.key}
-                        className={`p-2 border ${copyableColumns.includes(col.key) ? 'cursor-pointer hover:bg-gray-200' : ''} ${isCenterAlign(col.key) ? 'text-center' : ''} ${col.key === 'return_type' ? getOptionClass(item[col.key], 'return_type') : ''}`}
-                        onClick={(e) => {
-                          if (copyableColumns.includes(col.key)) {
-                            const text = item[col.key] || '';
-                            handleCopy(text, e);
-                          }
-                        }}
+                        className={`p-2 border font-bold ${isCenterAlign(col.key) ? 'text-center' : ''} ${col.key === 'return_type' ? getOptionClass(groupItems[0][col.key], 'return_type') : ''}`}
                       >
-                        {col.key === 'tracking_number' ? '\u00A0' : (col.key === 'condition' ? mapCondition(item[col.key]) : item[col.key])}
+                        {col.key === 'condition'
+                        ? mapCondition(groupItems[0][col.key])
+                        : ['inspection_date', 'tracking_received_date', 'delivery_date'].includes(col.key)
+                          ? formatDate(groupItems[0][col.key])
+                          : groupItems[0][col.key]}
                       </td>
                     ))}
                   </tr>
-                ))}
-              </React.Fragment>
-            ))}
+                  {expandedGroups[trackingNumber] && chilList.map((item) => (
+                    <tr
+                      key={item[itemKey]}
+                      onClick={() => navigate(`${basePath}/${trackingNumber}`)}
+                      className="hover:bg-gray-100 cursor-pointer"
+                    >
+                      <td className="p-2 border"></td>
+                      {columns.map((col) => visibleColumns[col.key] && (
+                        <td
+                          key={col.key}
+                          className={`p-2 border ${copyableColumns.includes(col.key) ? 'cursor-pointer hover:bg-gray-200' : ''} ${isCenterAlign(col.key) ? 'text-center' : ''} ${col.key === 'return_type' ? getOptionClass(item[col.key], 'return_type') : ''}`}
+                          onClick={(e) => {
+                            if (copyableColumns.includes(col.key)) {
+                              const text = item[col.key] || '';
+                              handleCopy(text, e);
+                            }
+                          }}
+                        >
+                          {col.key === 'tracking_number'
+                            ? '\u00A0'
+                            : col.key === 'condition'
+                              ? mapCondition(item[col.key])
+                              : ['inspection_date', 'tracking_received_date', 'delivery_date'].includes(col.key)
+                                ? formatDate(item[col.key])
+                                : item[col.key]}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </React.Fragment>
+              )
+            })}
           </tbody>
         </table>
       </div>

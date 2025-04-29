@@ -135,13 +135,27 @@ def update_xie_item(id):
 
     return jsonify({"message": "Record updated successfully"})
 
-@xie_bp.route('/api/xie-delete/<int:id>', methods=['DELETE'])
-def delete_xie_item(id):
+# @xie_bp.route('/api/xie-delete/<int:id>', methods=['DELETE'])
+# def delete_xie_item(id):
+#     conn = get_db_connection()
+#     cursor = conn.cursor()
+
+#     cursor.execute("DELETE FROM xie_laptop_return WHERE id = ?", (id,))
+#     conn.commit()
+#     conn.close()
+
+#     return jsonify({"message": "Record deleted successfully"})
+
+@xie_bp.route('/api/tracking/<tracking_number>', methods=['GET'])
+def get_items_by_tracking(tracking_number):
     conn = get_db_connection()
     cursor = conn.cursor()
-
-    cursor.execute("DELETE FROM xie_laptop_return WHERE id = ?", (id,))
-    conn.commit()
+    cursor.execute("""
+        SELECT * FROM xie_laptop_return WHERE tracking_number = ?
+    """, (tracking_number,))
+    rows = cursor.fetchall()
     conn.close()
 
-    return jsonify({"message": "Record deleted successfully"})
+    # Convert to dicts if needed
+    items = [dict(zip([column[0] for column in cursor.description], row)) for row in rows]
+    return jsonify(items)
