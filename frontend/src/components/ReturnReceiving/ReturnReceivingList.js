@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import GenericList from "../common/GenericList";
 
-function ReturnReceivingList() {
+function ReturnReceivingList({ department }) {
   const [records, setRecords] = useState([]);
 
   const columns = [
@@ -14,6 +14,18 @@ function ReturnReceivingList() {
       render: (item) => (item.Recorded ? "✅" : "❌"),
     },
   ];
+
+  const companyOptions =
+  department === "SnowBell"
+    ? [
+        { value: "SNOWBELL/XIE/PITY TECH", label: "SNOWBELL/XIE/PITY TECH" },
+      ]
+    : [
+        { value: "", label: "All Companies" },
+        { value: "PX/LEO/KRIZY", label: "PX/LEO/KRIZY" },
+        { value: "SNOWBELL/XIE/PITY TECH", label: "SNOWBELL/XIE/PITY TECH" },
+        { value: "Others", label: "Others" },
+      ];
 
   const searchFields = [
     {
@@ -37,12 +49,7 @@ function ReturnReceivingList() {
       label: "Company",
       key: "Company",
       type: "select",
-      options: [
-        { value: "", label: "All Companies" },
-        { value: "PX/LEO/KRIZY", label: "PX/LEO/KRIZY" },
-        { value: "SNOWBELL/XIE/PITY TECH", label: "SNOWBELL/XIE/PITY TECH" },
-        { value: "Others", label: "Others" },
-      ],
+      options: companyOptions,
     },
     {
       name: "recorded",
@@ -59,13 +66,20 @@ function ReturnReceivingList() {
 
   const handleSearch = () => {
     fetch(`http://${window.location.hostname}:8088/return/`, {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
     })
       .then((res) => res.json())
-      .then(setRecords)
+      .then((data) => {
+        if (department === "SnowBell") {
+          setRecords(data.filter(item => item.Company === "SNOWBELL/XIE/PITY TECH"));
+        } else {
+          setRecords(data);
+        }
+      })
       .catch(console.error);
   };
+  
 
     useEffect(() => {
       handleSearch();

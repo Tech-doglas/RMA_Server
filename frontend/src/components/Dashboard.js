@@ -22,13 +22,13 @@ function Dashboard({ role, department, onLogout }) {
                   Non-PC
                 </button>
               </Link>
-              <Link to="/return">
-                <button className="w-full bg-orange-500 text-white p-4 rounded-lg hover:bg-orange-600 transition-colors">
-                  Return Receiving
-                </button>
-              </Link>
             </>
           )}
+          <Link to="/return">
+            <button className="w-full bg-orange-500 text-white p-4 rounded-lg hover:bg-orange-600 transition-colors">
+              Return Receiving
+            </button>
+          </Link>
           <Link to="/xie">
             <button className="w-full bg-purple-500 text-white p-4 rounded-lg hover:bg-purple-600 transition-colors">
               SnowBell Return

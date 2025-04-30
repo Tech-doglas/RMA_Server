@@ -23,7 +23,7 @@ import ReturnReceivingInput from "./components/ReturnReceiving/ReturnReceivingIn
 import ReturnReceivingDetails from "./components/ReturnReceiving/ReturnReceivingDetails";
 import XieList from "./components/Xie/XieList";
 import XieInput from "./components/Xie/XieInput";
-import XieDetails from './components/Xie/XieDetails'; 
+import XieDetails from './components/Xie/XieDetails';
 import Managment from "./components/Managment";
 
 import { ClipLoader } from "react-spinners";
@@ -128,7 +128,7 @@ function App() {
             <Route
               path="/return"
               element={
-                isAuthenticated ? <ReturnReceivingList /> : <Navigate to="/" />
+                isAuthenticated ? <ReturnReceivingList department={department} /> : <Navigate to="/" />
               }
             />
             <Route
