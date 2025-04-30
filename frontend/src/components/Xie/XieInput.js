@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation  } from 'react-router-dom';
 
 function XieInput() {
-  const [trackingNumber, setTrackingNumber] = useState('');
+  const location = useLocation();
+  const [trackingNumber, setTrackingNumber] = useState(location.state?.trackingNumber || '');
   const [qty, setQty] = useState(1);
-  const [trackingReceivedDate, setTrackingReceivedDate] = useState('');
+  const [trackingReceivedDate, setTrackingReceivedDate] = useState(location.state?.trackingReceivedDate || '');
   const [returnType, setReturnType] = useState('');
   const [items, setItems] = useState([
     {
@@ -38,23 +39,77 @@ function XieInput() {
       .catch((err) => console.error('Error fetching users:', err));
   }, []);
 
-  const handleQtyChange = (value) => {
-    const today = new Date().toISOString().split('T')[0]; // Format YYYY-MM-DD
+  const handleQtyChange = async (value) => {
+    const today = new Date().toISOString().split('T')[0];
     const parsedQty = Math.max(0, parseInt(value) || 0);
     setQty(parsedQty);
-    const newItems = Array.from({ length: parsedQty }, () => ({
-      orderNumber: '',
-      laptopName: '',
-      serialNumber: '',
-      condition: '',
-      location: '',
-      customerName: '',
-      remark: '',
-      returnId: '',
-      inspectionDate: today,
-    }));
-    setItems(newItems);
+  
+    try {
+      const res = await fetch(`http://${window.location.hostname}:8088/xie/api/return_number`);
+      const data = await res.json();
+      const start = (data.max_id || 0) + 1;
+  
+      const newItems = Array.from({ length: parsedQty }, (_, idx) => ({
+        orderNumber: '',
+        laptopName: '',
+        serialNumber: '',
+        condition: '',
+        location: '',
+        customerName: '',
+        remark: '',
+        returnId: `No.${String(start + idx).padStart(5, '0')}`,
+        inspectionDate: today,
+      }));
+  
+      setItems(newItems);
+    } catch (error) {
+      console.error('Failed to fetch return numbers:', error);
+      // fallback without returnId if fetch fails
+      const newItems = Array.from({ length: parsedQty }, () => ({
+        orderNumber: '',
+        laptopName: '',
+        serialNumber: '',
+        condition: '',
+        location: '',
+        customerName: '',
+        remark: '',
+        returnId: '',
+        inspectionDate: today,
+      }));
+      setItems(newItems);
+    }
   };
+
+  useEffect(() => {
+    const fetchReturnIdAndSetItems = async () => {
+      try {
+        const res = await fetch(`http://${window.location.hostname}:8088/xie/api/return_number`);
+        const data = await res.json();
+        const start = (data.max_id || 0) + 1;
+        const today = new Date().toISOString().split('T')[0];
+  
+        const newItems = Array.from({ length: qty }, (_, idx) => ({
+          orderNumber: '',
+          laptopName: '',
+          serialNumber: '',
+          condition: '',
+          location: '',
+          customerName: '',
+          remark: '',
+          returnId: `No.${String(start + idx).padStart(5, '0')}`,
+          inspectionDate: today,
+        }));
+  
+        setItems(newItems);
+      } catch (err) {
+        console.error('Failed to prefill return IDs:', err);
+      }
+    };
+  
+    fetchReturnIdAndSetItems();
+  }, []);
+  
+  
 
   const handleItemChange = (index, field, value) => {
     const updatedItems = [...items];
@@ -112,6 +167,44 @@ function XieInput() {
     }
   };
 
+  const handlePrint = () => {
+    const printWindow = window.open('', '_blank');
+    const html = `
+      <html>
+        <head>
+          <style>
+            @page {
+              size: 90mm 29mm;
+              margin: 0;
+            }
+            body {
+              margin: 0;
+              font-family: sans-serif;
+            }
+            .label {
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              width: 90mm;
+              height: 29mm;
+              font-size: 32pt;
+              font-weight: bold;
+              page-break-after: always;
+            }
+          </style>
+        </head>
+        <body>
+          ${items.map(item => `<div class="label">${item.returnId}</div>`).join('')}
+        </body>
+      </html>
+    `;
+    printWindow.document.write(html);
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+  };
+  
+
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-4">Xie Input</h1>
@@ -123,6 +216,12 @@ function XieInput() {
           className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded"
         >
           Submit
+        </button>
+        <button
+          onClick={handlePrint}
+          className="bg-sky-500 hover:bg-sky-600 text-white px-6 py-2 rounded"
+        >
+          Print Return ID
         </button>
         <button
           onClick={() => navigate('/xie')}

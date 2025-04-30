@@ -159,3 +159,12 @@ def get_items_by_tracking(tracking_number):
     # Convert to dicts if needed
     items = [dict(zip([column[0] for column in cursor.description], row)) for row in rows]
     return jsonify(items)
+
+@xie_bp.route('/api/return_number', methods=['GET'])
+def get_return_number():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT MAX(CAST(SUBSTRING(return_id, 4, 5) AS INT)) FROM xie_laptop_return")
+    max_id = cursor.fetchone()[0] or 0
+    conn.close()
+    return jsonify({'max_id': max_id})

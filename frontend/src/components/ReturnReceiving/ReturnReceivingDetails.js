@@ -40,7 +40,12 @@ function ReturnReceivingDetails() {
       onClick: async () => {
         try {
           if (records?.Company.includes('SNOWBELL')) {
-            navigate(`/xie/input`)
+            navigate(`/xie/input`, {
+              state: {
+                trackingNumber: records?.TrackingNumber,
+                trackingReceivedDate: new Date(records?.CreationDateTime).toISOString().split('T')[0],
+              }
+            })
           } else {
             // navigate(`/pc/input`)
           }

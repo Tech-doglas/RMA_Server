@@ -47,7 +47,7 @@ function Register() {
           >
             <option value="">Select Department</option>
             <option value="Tech">Tech</option>
-            <option value="Xie">Xie</option>
+            <option value="SnowBell">SnowBell</option>
             <option value="IT">IT</option>
             <option value="Accounting">Accounting</option>
             <option value="Sale">Sale</option>
