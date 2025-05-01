@@ -267,7 +267,10 @@ function GroupedGenericList({ items, columns, searchFields, filterFields, basePa
                   {expandedGroups[trackingNumber] && chilList.map((item) => (
                     <tr
                       key={item[itemKey]}
-                      onClick={() => navigate(`${basePath}/${trackingNumber}`)}
+                      onClick={() => {
+                        navigate(`${basePath}/${trackingNumber}`)
+                        window.open(`http://10.147.20.223:3000${basePath}/${trackingNumber}`, '_blank');
+                      }}
                       className="hover:bg-gray-100 cursor-pointer"
                     >
                       <td className="p-2 border"></td>
