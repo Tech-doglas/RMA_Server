@@ -247,10 +247,7 @@ function GenericList({ items, columns, searchFields, filterFields, basePath, ite
               {filteredItems.map((item) => (
                 <tr
                   key={item[itemKey]}
-                  onClick={() => {
-                    navigate(`${basePath}/${item[itemKey]}`)
-                    window.open(`http://10.147.20.223:3000${basePath}/${item[itemKey]}`, '_blank');
-                  }}
+                  onClick={() => window.open(`http://10.147.20.223:3000${basePath}/${item[itemKey]}`, '_blank')}
                   className={`cursor-pointer hover:bg-gray-100 ${
                     item.Stock === 'SOLD' && !item.TechDone ? 'bg-red-100' :
                     item.Stock === 'SOLD' && item.TechDone ? 'bg-gray-300' : ''
