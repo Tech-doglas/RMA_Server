@@ -91,7 +91,7 @@ function GenericList({ items, columns, searchFields, filterFields, basePath, ite
   };
 
   // Define which columns should be copyable
-  const copyableColumns = ['SerialNumber', 'OdooRef', 'SKU', 'OrderNumber', 'TrackingNumber'];
+  const copyableColumns = ['SerialNumber', 'OdooRef', 'SKU', 'OrderNumber', 'TrackingNumber', 'Model'];
 
   return (
     <div className="p-6">
