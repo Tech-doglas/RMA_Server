@@ -7,6 +7,7 @@ function ReturnReceivingList({ department }) {
   const columns = [
     { key: "TrackingNumber", label: "Tracking #" },
     { key: "Company", label: "Company" },
+    { key: "Code", label: "Code" },
     { key: "CreationDateTime", label: "Record DateTime" },
     {
       key: "Recorded",
@@ -50,6 +51,18 @@ function ReturnReceivingList({ department }) {
       key: "Company",
       type: "select",
       options: companyOptions,
+    },
+    {
+      name: "code",
+      label: "Code",
+      key: "Code",
+      type: "select",
+      options: [
+        { value: "", label: "All Codes" },
+        { value: "0000", label: "0000" },
+        { value: "000A", label: "000A" },
+        { value: "000B", label: "000B" },
+      ],
     },
     {
       name: "recorded",

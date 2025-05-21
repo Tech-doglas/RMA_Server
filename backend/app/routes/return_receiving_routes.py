@@ -71,21 +71,22 @@ def submit_record():
         cursor = conn.cursor()
         tracking_number = request.form.get('tracking_number')
         company = request.form.get('company')
+        code = request.form.get('code')
         remark = request.form.get('remark')
 
         cursor.execute("""
             IF EXISTS (SELECT 1 FROM RMA_return_receiving WHERE TrackingNumber = ?)  
             BEGIN  
                 UPDATE RMA_return_receiving   
-                SET Company = ?, Remark = ?
+                SET Company = ?, Code = ?, Remark = ?
                 WHERE TrackingNumber = ?;  
             END  
             ELSE  
             BEGIN  
-                INSERT INTO RMA_return_receiving (TrackingNumber, Company, Remark) 
-                VALUES (?, ?, ?)
+                INSERT INTO RMA_return_receiving (TrackingNumber, Company, Code, Remark) 
+                VALUES (?, ?, ?, ?)
             END  
-        """, (tracking_number, company, remark, tracking_number, tracking_number, company, remark))
+        """, (tracking_number, company, code, remark, tracking_number, tracking_number, company, code, remark))
         save_shipping_label_image(request.files.get('image'), tracking_number)
         conn.commit()
         conn.close()

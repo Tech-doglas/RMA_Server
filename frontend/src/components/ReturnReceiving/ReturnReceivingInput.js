@@ -7,6 +7,7 @@ function ReturnReceivingInput() {
 
   const initialData = {
     trackingNumber: '',
+    code: '',
     company: '',
     remark: '',
     image: [],
@@ -29,6 +30,18 @@ function ReturnReceivingInput() {
         { value: 'PX/LEO/KRIZY', label: 'PX/LEO/KRIZY' },
         { value: 'SNOWBELL/XIE/PITY TECH', label: 'SNOWBELL/XIE/PITY TECH' },
         { value: 'Others', label: 'Others' },
+      ],
+      required: true,
+    },
+    {
+      name: 'code',
+      label: 'Code',
+      type: 'select',
+      options: [
+        { value: '', label: 'Select code', disabled: true },
+        { value: '0000', label: '0000' },
+        { value: '000A', label: '000A' },
+        { value: '000B', label: '000B' },
       ],
       required: true,
     },
@@ -58,6 +71,7 @@ function ReturnReceivingInput() {
     const data = new FormData();
     data.append('tracking_number', formData.trackingNumber);
     data.append('company', formData.company);
+    data.append('code', formData.code);
     data.append('remark', formData.remark);
     if (formData.image && formData.image.length > 0) {
       const images = Array.from(formData.image);

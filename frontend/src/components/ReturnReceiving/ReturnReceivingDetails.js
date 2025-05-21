@@ -15,6 +15,7 @@ function ReturnReceivingDetails() {
   const fields = [
     { key: 'TrackingNumber', label: 'Tracking #' },
     { key: 'Company', label: 'Company' },
+    { key: 'Code', label: 'Code' },
     { key: 'CreationDateTime', label: 'Record DateTime' },
     { key: 'Remark', label: 'Remark' },
     { key: 'Recorded', label: 'Recorded', render: (item) => item.Recorded ? '✅' : '❌' },
