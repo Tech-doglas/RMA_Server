@@ -57,6 +57,7 @@ function ReturnReceivingInput() {
       type: 'file',
       multiple: false,
       accept: 'image/jpg,image/jpeg,image/png',
+      capture: 'environment',
       required: true,
       validate: (value) => {
         if (!value || value.length === 0) {

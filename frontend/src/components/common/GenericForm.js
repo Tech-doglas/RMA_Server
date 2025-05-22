@@ -189,6 +189,7 @@ function GenericForm({ initialData, fields, onSubmit, onDelete , basePath, itemI
                     name={field.name}
                     multiple={field.multiple}
                     accept={field.accept}
+                    capture={field.capture}
                     onChange={handleChange}
                     className="w-full p-2 border rounded"
                   />
