@@ -43,19 +43,19 @@ def submit_item():
         if sealed:
             query = """
                 INSERT INTO RMA_laptop_sheet 
-                (Brand, Model, Spec, SerialNumber, OdooRef, Condition, Sealed, Stock, Remark, OdooRecord, LastModifiedUser,TechDoneDate, LastModifiedDateTime, InputDate) 
+                (Brand, Model, Spec, SerialNumber, OdooRef, Condition, Sealed, Stock, Remark, OdooRecord, LastModifiedUser,TechDoneDate, LastModifiedDateTime, InputDate, InputUser) 
                 OUTPUT INSERTED.ID
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, GETDATE(), GETDATE(), GETDATE())
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, GETDATE(), GETDATE(), GETDATE(), ?)
             """
-            values = (brand, model, spec, serial_number, odooRef, condition, sealed, stock, remark, odoo_record, user)
+            values = (brand, model, spec, serial_number, odooRef, condition, sealed, stock, remark, odoo_record, user, user)
         else:
             query = """
                 INSERT INTO RMA_laptop_sheet 
-                (Brand, Model, Spec, SerialNumber, OdooRef, Condition, Sealed, Stock, Remark, OdooRecord, LastModifiedUser, LastModifiedDateTime, InputDate) 
+                (Brand, Model, Spec, SerialNumber, OdooRef, Condition, Sealed, Stock, Remark, OdooRecord, LastModifiedUser, LastModifiedDateTime, InputDate, InputUser) 
                 OUTPUT INSERTED.ID
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, GETDATE(), GETDATE())
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, GETDATE(), GETDATE(), ?)
             """
-            values = (brand, model, spec, serial_number, odooRef, condition, sealed, stock, remark, odoo_record, user)
+            values = (brand, model, spec, serial_number, odooRef, condition, sealed, stock, remark, odoo_record, user, user)
         
         cursor.execute(query, values)
         primary_key = cursor.fetchone()[0]
