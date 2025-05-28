@@ -48,7 +48,7 @@ function ReturnReceivingDetails() {
               }
             })
           } else {
-            // navigate(`/pc/input`)
+            navigate(`/pc/input`)
           }
         } catch (err) {
           setToast({ message: 'Server error. Try again later.', type: 'error' })
