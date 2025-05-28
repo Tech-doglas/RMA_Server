@@ -4,7 +4,7 @@ import MultiSelect from './MultiSelect';
 import { getOptionClass } from './styles';
 import copy from 'copy-to-clipboard';
 
-function GenericList({ items, columns, searchFields, filterFields, basePath, itemKey, onSearch  }) {
+function GenericList({ items, columns, searchFields, filterFields, basePath, itemKey, onSearch, Xie = false }) {
   const [search, setSearch] = useState(
     Object.fromEntries([...searchFields.map((f) => [f.name, '']), ...filterFields.map((f) => [f.name, []])])
   );
@@ -88,6 +88,16 @@ function GenericList({ items, columns, searchFields, filterFields, basePath, ite
         return { key, direction: 'asc' };
       }
     });
+  };
+
+  const handleSearchClick = () => {
+    onSearch(search);
+    setSearch(
+      Object.fromEntries([
+        ...searchFields.map((f) => [f.name, ""]),
+        ...filterFields.map((f) => [f.name, []]),
+      ])
+    );
   };
 
   // Define which columns should be copyable
@@ -187,7 +197,7 @@ function GenericList({ items, columns, searchFields, filterFields, basePath, ite
             <div className="flex items-center h-full">
               <button
                 type="button"
-                onClick={() => onSearch(search)}
+                onClick={handleSearchClick}
                 className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded shadow"
               >
                 🔍 Search
@@ -197,7 +207,9 @@ function GenericList({ items, columns, searchFields, filterFields, basePath, ite
         </div>
 
         <div className="flex justify-between items-center mb-4">
-          <span>Total Count: {filteredItems.length}</span>
+          <div className='flex space-x-4'>
+            <span>Total Count: {filteredItems.length}</span>
+          </div>
           <div className="relative">
             <button
               onClick={() => setShowColumnFilter(!showColumnFilter)}
@@ -265,6 +277,14 @@ function GenericList({ items, columns, searchFields, filterFields, basePath, ite
                         ) : col.key === 'InspectionRequest' ? getOptionClass(
                           col.render ? col.render(item) : item[col.key],
                           'inspectionRequest'
+                        ) : col.key === 'CreationDateTime' ? getOptionClass(
+                          (() => {
+                            const date = new Date(item[col.key]);
+                            const today = new Date();
+                            const diffDays = Math.floor((today - date) / (1000 * 60 * 60 * 24));
+                            return diffDays;
+                          })(),
+                          'dateAge'
                         ) : ''
                       }`}
                       onClick={(e) => {

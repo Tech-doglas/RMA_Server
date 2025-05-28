@@ -1,51 +1,70 @@
 from flask import Blueprint, request, redirect, url_for, jsonify
 from app.models import get_db_connection, save_shipping_label_image
+from datetime import datetime, timedelta
 
 return_receiving_bp = Blueprint('return', __name__)
 
-@return_receiving_bp.route('/', methods=['GET', 'POST'])
+@return_receiving_bp.route('/', methods=['POST'])
 def show_return_receiving_sheet():
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
+        
+        filters = request.json or {}
 
-        if request.method == 'POST':
-            tracking_number = request.form.get('tracking_number', '').strip()
-            company = request.form.get('company', '').strip()
-            record_date = request.form.get('record_date', '').strip()
-            recorded = request.form.get('recorded', '')
+        # Extract and normalize inputs
+        tracking_number = filters.get('trackingNumber', '').strip()
+        company = filters.get('company', '').strip()
+        record_date = filters.get('recordDate', '').strip()
+        code_value = filters.get('code', '').strip()
+        recorded_list = filters.get('recorded', [])
 
-            query = "SELECT * FROM RMA_return_receiving WHERE 1=1"
-            params = []
+        # Start query
+        query = "SELECT * FROM RMA_return_receiving WHERE 1=1"
+        params = []
 
-            if tracking_number:
-                query += " AND TrackingNumber LIKE ?"
-                params.append(f"%{tracking_number}%")
-            if company:
-                query += " AND Company = ?"
-                params.append(company)
-            if record_date:
-                query += " AND CONVERT(DATE, CreationDateTime) = ?"
-                params.append(record_date)
-            if recorded:
-                if recorded == "recorded":
-                    query += " AND Recorded = ?"
-                    params.append(1)
-                else:
-                    query += " AND Recorded = ?"
-                    params.append(0)
-            query += " ORDER BY CreationDateTime DESC"
-            cursor.execute(query, params) if params else cursor.execute("SELECT * FROM RMA_return_receiving ORDER BY CreationDateTime DESC")
-        else:
-            cursor.execute("SELECT * FROM RMA_return_receiving ORDER BY CreationDateTime DESC")
+        if tracking_number:
+            query += " AND TrackingNumber LIKE ?"
+            params.append(f"%{tracking_number}%")
+
+        if company:
+            query += " AND Company = ?"
+            params.append(company)
+        
+        if code_value:
+            query += " AND Code = ?"
+            params.append(code_value)
+
+        if record_date:
+            date = datetime.strptime(record_date, "%Y-%m-%d").date().isoformat()
+            query += " AND CONVERT(DATE, CreationDateTime) = ?"
+            params.append(date)
+
+        # Handle recorded filter
+        recorded_conditions = []
+        if 'recorded' in recorded_list:
+            recorded_conditions.append("Recorded = ?")
+            params.append(1)
+        if 'not_recorded' in recorded_list:
+            recorded_conditions.append("(Recorded = ? OR Recorded IS NULL)")
+            params.append(0)
+
+        if recorded_conditions:
+            query += " AND (" + " OR ".join(recorded_conditions) + ")"
+
+        query += " ORDER BY CreationDateTime DESC"
+        cursor.execute(query, params)
 
         data = cursor.fetchall()
         columns = [column[0] for column in cursor.description]
         results = [dict(zip(columns, row)) for row in data]
+
         conn.close()
         return jsonify(results)
+
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
     
 @return_receiving_bp.route('/api/return/<tracking_number>', methods=['GET'])
 def api_get_return_receiving_detail(tracking_number):
