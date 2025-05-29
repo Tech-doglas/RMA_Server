@@ -52,6 +52,7 @@ function LaptopList() {
         { value: 'B', label: 'Grade B' },
         { value: 'C', label: 'Grade C' },
         { value: 'F', label: 'Grade F' },
+        { value: 'X', label: 'No Grade' },
       ],
     },
     {

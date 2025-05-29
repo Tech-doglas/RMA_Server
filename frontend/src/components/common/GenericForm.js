@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-function GenericForm({ initialData, fields, onSubmit, onDelete , basePath, itemId, isEdit = false, hideBackButton = false, existingImages = {} }) {
+function GenericForm({ initialData, fields, onSubmit, onDelete, basePath, itemId, isEdit = false, hideBackButton = false, existingImages = {} }) {
   const [formData, setFormData] = useState(initialData);
   const [errors, setErrors] = useState({});
   const [imageList, setImageList] = useState(existingImages || {});
@@ -16,6 +16,15 @@ function GenericForm({ initialData, fields, onSubmit, onDelete , basePath, itemI
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
+  };
+
+  const handleMultiImagesChange = (e, i) => {
+    const { name, files } = e.target;
+    setFormData((prev) => {
+      let images = prev[name];
+      images[i] = files[0];
+      return { ...prev, [name]: images }
+    });
   };
 
   const validateForm = () => {
@@ -49,7 +58,7 @@ function GenericForm({ initialData, fields, onSubmit, onDelete , basePath, itemI
 
   const handleImageDelete = (filename, type) => {
     if (!window.confirm('Are you sure you want to delete this image?')) return;
-  
+
     fetch(`http://${window.location.hostname}:8088/images/delete_image/${type}/${itemId}/${filename}`, {
       method: 'POST',
     })
@@ -81,7 +90,7 @@ function GenericForm({ initialData, fields, onSubmit, onDelete , basePath, itemI
       setImageList(existingImages);
     }
   }, [existingImages]);
-  
+
   return (
     <div className="w-full bg-white rounded-lg shadow p-6 max-w-xl mx-auto mt-4">
       <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-2xl">
@@ -118,16 +127,16 @@ function GenericForm({ initialData, fields, onSubmit, onDelete , basePath, itemI
                   onChange={handleChange}
                   className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-600"
                 >
-                    {field.options.every(opt => opt.value !== '') && (
-                      <option value="" disabled>
-                        Select {field.label}
-                      </option>
-                    )}
-                    {field.options.map((option) => (
-                      <option key={option.value} value={option.value} disabled={option.disabled}>
-                        {option.label}
-                      </option>
-                    ))}
+                  {field.options.every(opt => opt.value !== '') && (
+                    <option value="" disabled>
+                      Select {field.label}
+                    </option>
+                  )}
+                  {field.options.map((option) => (
+                    <option key={option.value} value={option.value} disabled={option.disabled}>
+                      {option.label}
+                    </option>
+                  ))}
                 </select>
               ) : field.type === 'checkbox' ? (
                 <div className="flex items-center">
@@ -164,15 +173,15 @@ function GenericForm({ initialData, fields, onSubmit, onDelete , basePath, itemI
                                 alt={`Laptop photo ${index + 1}`}
                                 className="w-full h-full object-cover rounded-xl border"
                               />
-                              {imageList.type !== 'non_laptop' && 
-                              <button
-                                type="button"
-                                onClick={() => handleImageDelete(filename, imageList.type)}
-                                className="absolute top-1 right-1 bg-red-600 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-700 shadow-md"
-                                title="Delete image"
-                              >
-                                ✕
-                              </button>
+                              {imageList.type !== 'non_laptop' &&
+                                <button
+                                  type="button"
+                                  onClick={() => handleImageDelete(filename, imageList.type)}
+                                  className="absolute top-1 right-1 bg-red-600 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-700 shadow-md"
+                                  title="Delete image"
+                                >
+                                  ✕
+                                </button>
                               }
                             </div>
                           ))}
@@ -182,20 +191,38 @@ function GenericForm({ initialData, fields, onSubmit, onDelete , basePath, itemI
                       )}
                     </div>
                   )}
-                  {imageList.type !== 'non_laptop' && 
-                  <input
-                    type="file"
-                    id={field.name}
-                    name={field.name}
-                    multiple={field.multiple}
-                    accept={field.accept}
-                    onChange={handleChange}
-                    className="w-full p-2 border rounded"
-                  />
-                  }
+                  {imageList.type !== 'non_laptop' && (
+                    field.capture && field.multiple ?
+                      (
+                        <>
+                          {[...Array(initialData.image.length)].map((_, i) =>
+                            <input
+                              key={field.name + '_' + i}
+                              type="file"
+                              id={field.name + '_' + i}
+                              name={field.name}
+                              accept={field.accept}
+                              capture={field.capture}
+                              onChange={(e) => handleMultiImagesChange(e, i)}
+                              className="w-full p-2 border rounded"
+                            />
+                          )}
+                        </>
+                      ) :
+                      <input
+                        type="file"
+                        id={field.name}
+                        name={field.name}
+                        multiple={field.multiple}
+                        accept={field.accept}
+                        capture={field.capture}
+                        onChange={handleChange}
+                        className="w-full p-2 border rounded"
+                      />
+                  )}
                   <div className="mt-2 flex flex-wrap gap-2">
                     {formData[field.name] && formData[field.name].length > 0 &&
-                      Array.from(formData[field.name]).map((file, index) => (
+                      Array.from(formData[field.name]).filter(file => file).map((file, index) => (
                         <img
                           key={index}
                           src={URL.createObjectURL(file)}

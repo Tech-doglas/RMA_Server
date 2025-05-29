@@ -77,6 +77,7 @@ function LaptopEdit() {
         { value: 'B', label: 'Grade B' },
         { value: 'C', label: 'Grade C' },
         { value: 'F', label: 'Grade F' },
+        { value: 'X', label: 'No Grade' },
       ],
       required: true,
     },

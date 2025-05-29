@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import DetailView from '../common/DetailView';
 import { ClipLoader } from 'react-spinners';
@@ -15,6 +15,7 @@ function ReturnReceivingDetails() {
   const fields = [
     { key: 'TrackingNumber', label: 'Tracking #' },
     { key: 'Company', label: 'Company' },
+    { key: 'Code', label: 'Code' },
     { key: 'CreationDateTime', label: 'Record DateTime' },
     { key: 'Remark', label: 'Remark' },
     { key: 'Recorded', label: 'Recorded', render: (item) => item.Recorded ? '✅' : '❌' },
@@ -36,25 +37,46 @@ function ReturnReceivingDetails() {
       disabled: records?.Recorded,
     },
     {
-      label: records?.Recorded ? 'Inputed' : 'Input',
+      // label: records?.Recorded ? 'Inputed' : 'Input',
+      label: 'Input',
       onClick: async () => {
         try {
           if (records?.Company.includes('SNOWBELL')) {
             navigate(`/xie/input`, {
               state: {
                 trackingNumber: records?.TrackingNumber,
+                returnType: records?.Code,
                 trackingReceivedDate: new Date(records?.CreationDateTime).toISOString().split('T')[0],
               }
             })
           } else {
-            // navigate(`/pc/input`)
+            navigate(`/pc/input`)
           }
         } catch (err) {
           setToast({ message: 'Server error. Try again later.', type: 'error' })
         }
       },
-      className: records?.Recorded ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600',
-      disabled: records?.Recorded,
+      // className: records?.Recorded ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600',
+      // disabled: records?.Recorded,
+      className: 'bg-green-500 hover:bg-green-600'
+    },
+    {
+      // label: records?.Recorded ? 'Inputed' : 'Input',
+      label: records?.Code === "REGULAR" ? 'Mark As BULK_NEW' : 'Mark As REGULAR',
+      onClick: async () => {
+        try {
+          const newCode = records?.Code === "REGULAR" ? 'BULK_NEW' : 'REGULAR';
+          await fetch(`http://${window.location.hostname}:8088/return/updateCode/${records?.TrackingNumber}/${newCode}`);
+          setToast({ message: `Marked as ${newCode} ✔️`, type: 'success' });
+          window.location.reload();
+        } catch (err) {
+          setToast({ message: 'Server error. Try again later.', type: 'error' })
+        }
+      },
+      // className: records?.Recorded ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600',
+      // disabled: records?.Recorded,
+      className: 'bg-orange-500 hover:bg-orange-600',
+      hidden: records.Company !== 'SNOWBELL/XIE/PITY TECH'
     },
   ];
 
@@ -77,10 +99,10 @@ function ReturnReceivingDetails() {
   }, [id]);
 
   if (loading) return (
-          <div className="p-6 flex justify-center items-center">
-            <ClipLoader color="#4B5563" size={40} />
-          </div>
-        );
+    <div className="p-6 flex justify-center items-center">
+      <ClipLoader color="#4B5563" size={40} />
+    </div>
+  );
 
   return (
     <>

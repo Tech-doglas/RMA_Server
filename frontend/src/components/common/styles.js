@@ -45,5 +45,10 @@ export const getOptionClass = (item, filterName) => {
         return '';
     }
   }
+  else if (filterName === 'dateAge') {
+    const daysOld = item;
+    if (daysOld > 4) return 'bg-red-300';
+    return '';
+  }
   return '';
 };

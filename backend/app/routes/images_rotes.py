@@ -19,10 +19,11 @@ def delete_image(type, id, filename):
 @images_bp.route('/<type>/<id>/<filename>')
 def preview_image(type, id, filename):
     try:
-        if type in ['laptop', 'non_laptop']:
-            image_dir = os.path.join(get_modi_rma_root(), 'images', type, str(id))
-        else:
-            image_dir = os.path.join(get_modi_rma_root(), 'images', 'return_receiving')
+        # if type in ['laptop', 'non_laptop']:
+        #     image_dir = os.path.join(get_modi_rma_root(), 'images', type, str(id))
+        # else:
+        #     image_dir = os.path.join(get_modi_rma_root(), 'images', 'return_receiving')
+        image_dir = os.path.join(get_modi_rma_root(), 'images', type, str(id))
         if not os.path.exists(image_dir):
             return "Image directory not found", 404
         return send_from_directory(image_dir, filename)
@@ -32,17 +33,22 @@ def preview_image(type, id, filename):
 @images_bp.route('/api/<type>/<id>')
 def list_images(type, id):
     try:
-        if type == 'return_receiving':
-            filename = get_shipping_label_image(id)
-            if filename:
-                return jsonify([filename])
-            else:
-                return jsonify([])
-        else:
-            image_dir = os.path.join(get_modi_rma_root(), 'images', type, str(id))
-            if not os.path.isdir(image_dir):
-                return jsonify([])
-            filenames = os.listdir(image_dir)
-            return jsonify(filenames)
+        # if type == 'return_receiving':
+        #     filename = get_shipping_label_image(id)
+        #     if filename:
+        #         return jsonify([filename])
+        #     else:
+        #         return jsonify([])
+        # else:
+        #     image_dir = os.path.join(get_modi_rma_root(), 'images', type, str(id))
+        #     if not os.path.isdir(image_dir):
+        #         return jsonify([])
+        #     filenames = os.listdir(image_dir)
+        #     return jsonify(filenames)
+        image_dir = os.path.join(get_modi_rma_root(), 'images', type, str(id))
+        if not os.path.isdir(image_dir):
+            return jsonify([])
+        filenames = os.listdir(image_dir)
+        return jsonify(filenames)
     except Exception as e:
         return jsonify({'error': str(e)}), 500

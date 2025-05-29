@@ -32,6 +32,7 @@ function DetailView({ item, fields, basePath, itemId, actions = [], images = [] 
               onClick={action.onClick}
               className={`px-4 py-2 rounded text-white ${action.className}`}
               disabled={action.disabled}
+              hidden={action.hidden}
             >
               {action.label}
             </button>
