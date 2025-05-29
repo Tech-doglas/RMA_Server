@@ -1,16 +1,16 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import GenericForm from '../common/GenericForm';
 import Toast from '../common/Toast';
 
 function ReturnReceivingInput() {
-    const [toast, setToast] = useState(null);
+  const [toast, setToast] = useState(null);
 
   const initialData = {
     trackingNumber: '',
     code: '',
     company: '',
     remark: '',
-    image: [],
+    image: Array.from({ length: 5 }, () => undefined),
   };
 
   const fields = [
@@ -42,6 +42,8 @@ function ReturnReceivingInput() {
         { value: '0000', label: '0000' },
         { value: '000A', label: '000A' },
         { value: '000B', label: '000B' },
+        { value: 'REGULAR', label: 'REGULAR' },
+        { value: 'BULK_NEW', label: 'BULK_NEW' },
       ],
       required: true,
     },
@@ -55,12 +57,12 @@ function ReturnReceivingInput() {
       name: 'image',
       label: 'Upload Shipping Label Image (max 4MB each)',
       type: 'file',
-      multiple: false,
       accept: 'image/jpg,image/jpeg,image/png',
       capture: 'environment',
+      multiple: true,
       required: true,
       validate: (value) => {
-        if (!value || value.length === 0) {
+        if (!value || value.filter(v => v).length === 0) {
           return 'Please upload at least one shipping label image';
         }
         return null;
@@ -77,16 +79,16 @@ function ReturnReceivingInput() {
     if (formData.image && formData.image.length > 0) {
       const images = Array.from(formData.image);
       images.forEach((file) => {
-        data.append('image', file);
+        data.append('images', file);
       });
     }
-  
+
     try {
       const res = await fetch(`http://${window.location.hostname}:8088/return/submit`, {
         method: 'POST',
         body: data,
       });
-  
+
       if (res.ok) {
         setToast({ message: '✔️ Submitted successfully', type: 'success' });
       } else {
@@ -97,18 +99,18 @@ function ReturnReceivingInput() {
       setToast({ message: 'Submit error. Try again later.', type: 'error' })
     }
   };
-  
-  
+
+
 
   return (
     <>
-    {toast && <Toast {...toast} onClose={() => setToast(null)} />}
-    <GenericForm
-      initialData={initialData}
-      fields={fields}
-      onSubmit={handleSubmit}
-      basePath="/return"
-    />
+      {toast && <Toast {...toast} onClose={() => setToast(null)} />}
+      <GenericForm
+        initialData={initialData}
+        fields={fields}
+        onSubmit={handleSubmit}
+        basePath="/return"
+      />
     </>
   );
 }

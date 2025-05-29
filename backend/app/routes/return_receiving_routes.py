@@ -106,7 +106,7 @@ def submit_record():
                 VALUES (?, ?, ?, ?)
             END  
         """, (tracking_number, company, code, remark, tracking_number, tracking_number, company, code, remark))
-        save_shipping_label_image(request.files.get('image'), tracking_number)
+        save_shipping_label_image(request.files.getlist('images'), tracking_number)
         conn.commit()
         conn.close()
         return "OK", 200
@@ -119,6 +119,18 @@ def mark_recorded(tracking_number):
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute("UPDATE RMA_return_receiving SET Recorded = 1 WHERE TrackingNumber = ?", (tracking_number,))
+        conn.commit()
+        conn.close()
+        return redirect(url_for('return_receiving.return_receiving_record_detail', tracking_number=tracking_number))
+    except Exception as e:
+        return f"Error updating Recorded: {str(e)}", 500
+
+@return_receiving_bp.route('/updateCode/<tracking_number>/<code>')
+def update_code(tracking_number, code):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("UPDATE RMA_return_receiving SET Code = ? WHERE TrackingNumber = ?", (code, tracking_number,))
         conn.commit()
         conn.close()
         return redirect(url_for('return_receiving.return_receiving_record_detail', tracking_number=tracking_number))

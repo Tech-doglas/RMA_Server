@@ -6,7 +6,7 @@ function XieInput() {
   const [trackingNumber, setTrackingNumber] = useState(location.state?.trackingNumber || '');
   const [qty, setQty] = useState(1);
   const [trackingReceivedDate, setTrackingReceivedDate] = useState(location.state?.trackingReceivedDate || '');
-  const [returnType, setReturnType] = useState('');
+  const [returnType, setReturnType] = useState(location.state?.returnType || '');
   const [items, setItems] = useState([
     {
       orderNumber: '',
@@ -270,9 +270,8 @@ function XieInput() {
             className="p-2 border rounded"
           >
             <option value="">Select Return Type</option>
-            <option>New Bulk</option>
-            <option>Old Bulk</option>
-            <option>Buyer</option>
+            <option value="BULK_NEW">BULK_NEW</option>
+            <option value="REGULAR">REGULAR</option>
           </select>
           {errors.returnType && <p className="text-red-500 text-sm mt-1">{errors.returnType}</p>}
         </div>

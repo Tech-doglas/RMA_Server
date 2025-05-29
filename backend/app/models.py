@@ -40,32 +40,45 @@ def get_laptop_image_files(type, item_id):
         return files
     return []
 
-def save_shipping_label_image(image, tracking_number):
-    image_dir = os.path.join(get_modi_rma_root(), 'images', 'return_receiving')
+def save_shipping_label_image(images, tracking_number):
+    image_dir = os.path.join(get_modi_rma_root(), 'images', 'return_receiving', tracking_number)
     os.makedirs(image_dir, exist_ok=True)
     
     from werkzeug.utils import secure_filename
 
-    if image and image.filename:
-        filename = secure_filename(image.filename)
-        ext = os.path.splitext(filename)[1]
-        saved_filename = f"{tracking_number}{ext}"
-        image_dir = os.path.join(get_modi_rma_root(), 'images', 'return_receiving')
-        try:
-            os.makedirs(image_dir, exist_ok=True)
-            image_path = os.path.join(image_dir, saved_filename)
+    for i, image in enumerate(images, start=1):
+        if image and image.filename:
+            ext = os.path.splitext(secure_filename(image.filename))[1]
+            filename = f"{i}{ext}"
+            image_path = os.path.join(image_dir, filename)
             image.save(image_path)
-            print(f"✅ Image saved to: {image_path}")
-        except Exception as e:
-            print(f"❌ Failed to save image: {e}")
-    else:
-        print("⚠️ Image missing or empty filename")
     return image_dir
 
+    # if image and image.filename:
+    #     filename = secure_filename(image.filename)
+    #     ext = os.path.splitext(filename)[1]
+    #     saved_filename = f"{tracking_number}{ext}"
+    #     image_dir = os.path.join(get_modi_rma_root(), 'images', 'return_receiving')
+    #     try:
+    #         os.makedirs(image_dir, exist_ok=True)
+    #         image_path = os.path.join(image_dir, saved_filename)
+    #         image.save(image_path)
+    #         print(f"✅ Image saved to: {image_path}")
+    #     except Exception as e:
+    #         print(f"❌ Failed to save image: {e}")
+    # else:
+    #     print("⚠️ Image missing or empty filename")
+    # return image_dir
+
 def get_shipping_label_image(tracking_number):
-    image_dir = os.path.join(get_modi_rma_root(), 'images', 'return_receiving')
+    image_dir = os.path.join(get_modi_rma_root(), 'images', 'return_receiving', tracking_number)
     if os.path.exists(image_dir):
-        for filename in os.listdir(image_dir):
-            if filename.startswith(tracking_number):
-                return filename
-    return None
+        files = sorted([f for f in os.listdir(image_dir) if os.path.isfile(os.path.join(image_dir, f))])
+        return files
+    return []
+    # image_dir = os.path.join(get_modi_rma_root(), 'images', 'return_receiving')
+    # if os.path.exists(image_dir):
+    #     for filename in os.listdir(image_dir):
+    #         if filename.startswith(tracking_number):
+    #             return filename
+    # return None

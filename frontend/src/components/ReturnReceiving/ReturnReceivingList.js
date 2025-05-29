@@ -60,6 +60,8 @@ function ReturnReceivingList({ department }) {
         { value: "0000", label: "0000" },
         { value: "000A", label: "000A" },
         { value: "000B", label: "000B" },
+        { value: 'REGULAR', label: 'REGULAR' },
+        { value: 'BULK_NEW', label: 'BULK_NEW' },
       ],
     },
     {
