@@ -1,21 +1,21 @@
-FROM python:3.10-slim
+FROM python:3.11-slim
 
-# Install system dependencies
+WORKDIR /app
+
 RUN apt-get update && apt-get install -y \
     gcc \
     g++ \
-    unixodbc \
     unixodbc-dev \
-    libpq-dev \
-    curl \
+    libodbc1 \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python dependencies
 COPY requirements.txt .
-RUN pip install -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy app files
-COPY . /app
-WORKDIR /app
+COPY . .
 
+# Expose the correct port
+EXPOSE 8088
+
+# Start the app (Flask must run on host=0.0.0.0 and port=8088)
 CMD ["python", "run.py"]
