@@ -41,24 +41,51 @@ function ReturnReceivingDetails() {
       label: 'Input',
       onClick: async () => {
         try {
-          if (records?.Company.includes('SNOWBELL')) {
-            navigate(`/xie/input`, {
-              state: {
-                trackingNumber: records?.TrackingNumber,
-                returnType: records?.Code,
-                trackingReceivedDate: new Date(records?.CreationDateTime).toISOString().split('T')[0],
-              }
-            })
-          } else {
-            navigate(`/pc/input`)
-          }
+          navigate(`/xie/input`, {
+            state: {
+              trackingNumber: records?.TrackingNumber,
+              returnType: records?.Code,
+              trackingReceivedDate: new Date(records?.CreationDateTime).toISOString().split('T')[0],
+            }
+          })
         } catch (err) {
           setToast({ message: 'Server error. Try again later.', type: 'error' })
         }
       },
       // className: records?.Recorded ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600',
       // disabled: records?.Recorded,
-      className: 'bg-green-500 hover:bg-green-600'
+      className: 'bg-green-500 hover:bg-green-600',
+      hidden: !records?.Company?.includes('SNOWBELL')
+    },
+    {
+      // label: records?.Recorded ? 'Inputed' : 'Input',
+      label: 'Input PC',
+      onClick: async () => {
+        try {
+          navigate(`/pc/input`)
+        } catch (err) {
+          setToast({ message: 'Server error. Try again later.', type: 'error' })
+        }
+      },
+      // className: records?.Recorded ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600',
+      // disabled: records?.Recorded,
+      className: 'bg-green-500 hover:bg-green-600',
+      hidden: records?.Company?.includes('SNOWBELL')
+    },
+    {
+      // label: records?.Recorded ? 'Inputed' : 'Input',
+      label: 'Input Non-PC',
+      onClick: async () => {
+        try {
+          navigate(`/non-pc/input`)
+        } catch (err) {
+          setToast({ message: 'Server error. Try again later.', type: 'error' })
+        }
+      },
+      // className: records?.Recorded ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600',
+      // disabled: records?.Recorded,
+      className: 'bg-green-500 hover:bg-green-600',
+      hidden: records?.Company?.includes('SNOWBELL')
     },
     {
       // label: records?.Recorded ? 'Inputed' : 'Input',
