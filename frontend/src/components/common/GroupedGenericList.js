@@ -242,7 +242,7 @@ function GroupedGenericList({ items, columns, searchFields, filterFields, basePa
           <tbody>
             {Object.entries(groupedItems).map(([trackingNumber, groupItems]) => {
               let chilList = groupItems.slice(1);
-              const isExpandable = groupItems.length > 1;
+              const hiddenRowCount = groupItems.length - 1;
               return (
                 <React.Fragment key={trackingNumber}>
                   <tr className="bg-gray-100 cursor-pointer" onClick={() =>
@@ -256,7 +256,7 @@ function GroupedGenericList({ items, columns, searchFields, filterFields, basePa
                         }}
                         className="text-lg font-bold"
                       >
-                        {isExpandable && (expandedGroups[trackingNumber] ? '➖' : '➕')}
+                        {hiddenRowCount > 0  && (expandedGroups[trackingNumber] ? '➖' : `➕ ${hiddenRowCount}`)}
                       </button>
                     </td>
                     {columns.map((col) => visibleColumns[col.key] && (
