@@ -33,6 +33,8 @@ function GroupedGenericList({ items, columns, searchFields, filterFields, basePa
         return 'Grade C';
       case 'F':
         return 'Grade F';
+      case 'X':
+        return 'No Grade';
       default:
         return code || '';
     }
