@@ -47,7 +47,7 @@ def submit_item():
                     category,
                     name,
                     odoo_ref,
-                    condition if condition else None,
+                    condition,
                     received_date,
                     remark,
                     user,
@@ -90,12 +90,12 @@ def get_non_laptop_item(id):
 @non_laptop_item_bp.route('/api/update/<id>', methods=['POST'])
 def api_update_item(id):
     try:
-        tracking_number = request.form.get('tracking_number')
+        tracking_number = request.form.get('trackingNumber')
         category = request.form.get('category')
         name = request.form.get('name')
-        odoo_ref = request.form.get('OdooRef')
+        odoo_ref = request.form.get('odooRef')
         condition = request.form.get('condition', '')
-        received_date = request.form.get('received_date')
+        received_date = request.form.get('receivedDate')
         remark = request.form.get('remark')
         user = request.form.get('user')
         location = request.form.get('location')
