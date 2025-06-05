@@ -246,7 +246,7 @@ function GroupedGenericList({ items, columns, searchFields, filterFields, basePa
               return (
                 <React.Fragment key={trackingNumber}>
                   <tr className="bg-gray-100" onClick={() => {
-                      isExpandable ? window.open(`http://${window.location.hostname}:${window.location.port}${basePath}/${trackingNumber}`, '_blank') : null
+                      isExpandable ? null : window.open(`http://${window.location.hostname}:${window.location.port}${basePath}/${trackingNumber}`, '_blank')
                   }}>
                     <td className="p-2 border text-center">
                       <button
