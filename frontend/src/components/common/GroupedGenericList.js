@@ -245,15 +245,18 @@ function GroupedGenericList({ items, columns, searchFields, filterFields, basePa
               const isExpandable = groupItems.length > 1;
               return (
                 <React.Fragment key={trackingNumber}>
-                  <tr className="bg-gray-100" onClick={() => {
-                      isExpandable ? null : window.open(`http://${window.location.hostname}:${window.location.port}${basePath}/${trackingNumber}`, '_blank')
-                  }}>
+                  <tr className="bg-gray-100 cursor-pointer" onClick={() =>
+                      window.open(`http://${window.location.hostname}:${window.location.port}${basePath}/${trackingNumber}`, '_blank')
+                  }>
                     <td className="p-2 border text-center">
                       <button
-                        onClick={() => toggleGroup(trackingNumber)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleGroup(trackingNumber);
+                        }}
                         className="text-lg font-bold"
                       >
-                        {isExpandable && expandedGroups[trackingNumber] ? '➖' : '➕'}
+                        {isExpandable && (expandedGroups[trackingNumber] ? '➖' : '➕')}
                       </button>
                     </td>
                     {columns.map((col) => visibleColumns[col.key] && (
