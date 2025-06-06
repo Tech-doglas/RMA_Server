@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import GroupedGenericList from "../common/GroupedGenericList";
 
-function XieList() {
+function XieList({department}) {
   const [xieItems, setXieItems] = useState([]);
+  const [snowbellDept, setSnowbellDept] = useState(false);
 
   const columns = [
     { key: "tracking_number", label: "Tracking Number" },
@@ -95,6 +96,12 @@ function XieList() {
     handleSearch({});
   }, []);
 
+  useEffect(() => {
+    if (department === "SnowBell") {
+      setSnowbellDept(true);
+    }
+  }, [department]);
+
   return (
     <GroupedGenericList
       items={xieItems}
@@ -104,6 +111,7 @@ function XieList() {
       basePath="/xie-list"
       itemKey="id"
       onSearch={handleSearch}
+      xie={snowbellDept}
     />
   );
 }

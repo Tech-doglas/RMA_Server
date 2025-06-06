@@ -117,11 +117,13 @@ function GenericList({ items, columns, searchFields, filterFields, basePath, ite
       <div className="sticky top-0 z-50 bg-gray-100">
         <h1 className="text-2xl font-bold mb-4">{basePath.charAt(1).toUpperCase() + basePath.slice(2).replace('-', ' ')} List</h1>
         <div className="flex space-x-2 mb-4">
-          <Link to={`${basePath}/input`}>
-            <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-              Input
-            </button>
-          </Link>
+            {!Xie && (
+              <Link to={`${basePath}/input`}>
+                <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                  Input
+                </button>
+              </Link>
+            )}
           <button
             onClick={() => navigate('/dashboard')}
             className="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600"

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import GenericList from "../common/GenericList";
+import { formatToEDT } from "../common/formatToEDT";
 
 function ReturnReceivingList({ department }) {
   const [records, setRecords] = useState([]);
@@ -8,7 +9,8 @@ function ReturnReceivingList({ department }) {
     { key: "TrackingNumber", label: "Tracking #" },
     { key: "Company", label: "Company" },
     { key: "Code", label: "Code" },
-    { key: "CreationDateTime", label: "Record DateTime" },
+    { key: "CreationDateTime", label: "Record DateTime", 
+      render: (item) => formatToEDT(item.CreationDateTime)},
     {
       key: "Recorded",
       label: "Recorded",
@@ -78,6 +80,9 @@ function ReturnReceivingList({ department }) {
   ];
 
   const handleSearch = (searchParams) => {
+    if (department === "SnowBell") {
+      searchParams.recorded = ["recorded", "not_recorded"];
+    }
     // Check if the user entered any filters
     const hasAnyFilters = Object.entries(searchParams).some(([key, value]) => {
       if (Array.isArray(value)) return value.length > 0;
@@ -117,8 +122,13 @@ function ReturnReceivingList({ department }) {
   };
 
   useEffect(() => {
-    handleSearch({ recorded: ["not_recorded"] });
-  }, []);
+    if (department === "SnowBell") {
+      // Fetch initial data for SnowBell department
+      handleSearch({ recorded: ["recorded", "not_recorded"] });
+    } else {
+      handleSearch({ recorded: ["not_recorded"] });
+    }
+  }, [department]);
 
   return (
     <GenericList

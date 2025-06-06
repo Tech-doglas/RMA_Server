@@ -149,7 +149,7 @@ function App() {
             />
             <Route
               path="/xie"
-              element={isAuthenticated ? <XieList /> : <Navigate to="/" />}
+              element={isAuthenticated ? <XieList department={department}/> : <Navigate to="/" />}
             />
             <Route
               path="/xie/input"

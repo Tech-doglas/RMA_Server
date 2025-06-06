@@ -4,7 +4,7 @@ import MultiSelect from './MultiSelect';
 import { getOptionClass } from '../common/styles';
 import copy from 'copy-to-clipboard';
 
-function GroupedGenericList({ items, columns, searchFields, filterFields, basePath, itemKey, onSearch }) {
+function GroupedGenericList({ items, columns, searchFields, filterFields, basePath, itemKey, onSearch, xie = false }) {
   const [search, setSearch] = useState(
     Object.fromEntries([...searchFields.map((f) => [f.name, '']), ...filterFields.map((f) => [f.name, []])])
   );
@@ -123,11 +123,13 @@ function GroupedGenericList({ items, columns, searchFields, filterFields, basePa
       <div className="sticky top-0 z-50 bg-gray-100">
         <h1 className="text-2xl font-bold mb-4">SnowBell Return List</h1>
         <div className="flex space-x-2 mb-4">
-          <Link to={`/xie/input`}>
-            <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-              Input
-            </button>
-          </Link>
+          {!xie && (
+            <Link to={`/xie/input`}>
+              <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                Input
+              </button>
+            </Link>
+          )}
           <button
             onClick={() => navigate('/dashboard')}
             className="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600"
