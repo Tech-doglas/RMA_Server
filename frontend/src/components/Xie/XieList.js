@@ -57,9 +57,8 @@ function XieList() {
       label: "Return Type",
       type: "multiselect",
       options: [
-        { value: "New Bulk", label: "New Bulk" },
-        { value: "Old Bulk", label: "Old Bulk" },
-        { value: "Buyer", label: "Buyer" },
+        { value: "BULK_NEW", label: "BULK_NEW" },
+        { value: "REGULAR", label: "REGULAR" },
       ],
     },
   ];

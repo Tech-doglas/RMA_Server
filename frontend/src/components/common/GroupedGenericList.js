@@ -33,6 +33,8 @@ function GroupedGenericList({ items, columns, searchFields, filterFields, basePa
         return 'Grade C';
       case 'F':
         return 'Grade F';
+      case 'X':
+        return 'No Grade';
       default:
         return code || '';
     }
@@ -240,15 +242,21 @@ function GroupedGenericList({ items, columns, searchFields, filterFields, basePa
           <tbody>
             {Object.entries(groupedItems).map(([trackingNumber, groupItems]) => {
               let chilList = groupItems.slice(1);
+              const hiddenRowCount = groupItems.length - 1;
               return (
                 <React.Fragment key={trackingNumber}>
-                  <tr className="bg-gray-100">
+                  <tr className="bg-gray-100 cursor-pointer" onClick={() =>
+                      window.open(`http://${window.location.hostname}:${window.location.port}${basePath}/${trackingNumber}`, '_blank')
+                  }>
                     <td className="p-2 border text-center">
                       <button
-                        onClick={() => toggleGroup(trackingNumber)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleGroup(trackingNumber);
+                        }}
                         className="text-lg font-bold"
                       >
-                        {expandedGroups[trackingNumber] ? '➖' : '➕'}
+                        {hiddenRowCount > 0  && (expandedGroups[trackingNumber] ? '➖' : `➕ ${hiddenRowCount}`)}
                       </button>
                     </td>
                     {columns.map((col) => visibleColumns[col.key] && (

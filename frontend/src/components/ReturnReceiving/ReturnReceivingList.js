@@ -58,8 +58,8 @@ function ReturnReceivingList({ department }) {
       options: [
         { value: "", label: "All Codes" },
         { value: "0000", label: "0000" },
-        { value: "000A", label: "000A" },
-        { value: "000B", label: "000B" },
+        { value: "QUICK_CHECK", label: "QUICK_CHECK" },
+        { value: "DETAIL_CHECK", label: "DETAIL_CHECK" },
         { value: 'REGULAR', label: 'REGULAR' },
         { value: 'BULK_NEW', label: 'BULK_NEW' },
       ],
