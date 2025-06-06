@@ -4,6 +4,7 @@ import { formatToEDT } from "../common/formatToEDT";
 
 function ReturnReceivingList({ department }) {
   const [records, setRecords] = useState([]);
+  const [is_snowbell, setIsSnowBell] = useState(false);
 
   const columns = [
     { key: "TrackingNumber", label: "Tracking #" },
@@ -125,6 +126,7 @@ function ReturnReceivingList({ department }) {
     if (department === "SnowBell") {
       // Fetch initial data for SnowBell department
       handleSearch({ recorded: ["recorded", "not_recorded"] });
+      setIsSnowBell(true);
     } else {
       handleSearch({ recorded: ["not_recorded"] });
     }
@@ -139,7 +141,7 @@ function ReturnReceivingList({ department }) {
       basePath="/return"
       itemKey="TrackingNumber"
       onSearch={handleSearch}
-      Xie={true}
+      Xie={is_snowbell}
     />
   );
 }
