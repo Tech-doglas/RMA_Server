@@ -92,6 +92,15 @@ function GenericList({ items, columns, searchFields, filterFields, basePath, ite
 
   const handleSearchClick = () => {
     onSearch(search);
+    // setSearch(
+    //   Object.fromEntries([
+    //     ...searchFields.map((f) => [f.name, ""]),
+    //     ...filterFields.map((f) => [f.name, []]),
+    //   ])
+    // );
+  };
+
+  const handleSearchResetClick = () => {
     setSearch(
       Object.fromEntries([
         ...searchFields.map((f) => [f.name, ""]),
@@ -195,6 +204,13 @@ function GenericList({ items, columns, searchFields, filterFields, basePath, ite
               ))}
             </div>
             <div className="flex items-center h-full">
+              <button
+                type="button"
+                onClick={handleSearchResetClick}
+                className="bg-red-600 hover:bg-red-700 m-2 text-white font-semibold px-6 py-2 rounded shadow"
+              >
+                Reset
+              </button>
               <button
                 type="button"
                 onClick={handleSearchClick}
