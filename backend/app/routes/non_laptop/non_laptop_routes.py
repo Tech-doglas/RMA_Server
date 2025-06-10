@@ -17,9 +17,7 @@ condition_mapping = {
 
 # Mapping for inspection requests to database values
 inspection_mapping = {
-    'Full inspection': 'A',
-    'Quick Check': 'B',
-    'As it': 'C'
+    'Full inspection': 'A'
 }
 
 @non_laptop_bp.route('/api/search', methods=['POST'])
@@ -74,4 +72,24 @@ def api_nonlaptop_search():
 
     except Exception as e:
         print("Error in search:", str(e))
+        return jsonify({'error': str(e)}), 500
+
+@non_laptop_bp.route('/api/updaterequest', methods=['POST'])
+def api_update_request():
+    try:
+        data = request.get_json()
+        ids = data.get('ids', [])        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        if ids:
+            # Prepare a SQL parameter string of ?, ?, ... for each id
+            sql_placeholders = ','.join(['?'] * len(ids))
+            sql = f"UPDATE RMA_non_laptop_sheet SET InspectionRequest='A' WHERE ID IN ({sql_placeholders})"
+            cursor.execute(sql, ids)
+            conn.commit()
+        
+        conn.close()
+        return jsonify({'message': 'Updated successfully'})
+    except Exception as e:
         return jsonify({'error': str(e)}), 500
