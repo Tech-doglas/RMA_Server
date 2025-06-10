@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import GenericForm from '../common/GenericForm';
+import { toSQLServerDateString } from '../common/formatToEDT';
 
 function NonPCInput() {
   const [userOptions, setUserOptions] = useState([]);
@@ -117,10 +118,12 @@ function NonPCInput() {
   const handleSubmit = async (formData) => {
     try {
       const data = new FormData();
+
+      const ssmsDate = toSQLServerDateString(formData.receivedDate);
   
       // Append basic fields
       data.append('tracking_number', formData.trackingNumber);
-      data.append('received_date', formData.receivedDate);
+      data.append('received_date', ssmsDate);
       data.append('category', formData.category);
       data.append('name', formData.name);
       data.append('OdooRef', formData.odooRef);
@@ -129,6 +132,7 @@ function NonPCInput() {
       data.append('location', formData.location);
       data.append('remark', formData.remark);
       data.append('user', formData.user);
+
   
       // Append images
       if (formData.images && formData.images.length > 0) {

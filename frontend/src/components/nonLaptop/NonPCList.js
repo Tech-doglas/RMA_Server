@@ -51,9 +51,7 @@ function NonPCList() {
       key: 'InspectionRequest',
       type: 'multiselect',
       options: [
-        { value: 'A', label: 'Full inspection' },
-        { value: 'B', label: 'Quick Check' },
-        { value: 'C', label: 'As it' },
+        { value: 'A', label: 'Full inspection' }
       ],
     },
     {
@@ -98,6 +96,22 @@ function NonPCList() {
         set_nonLaptops([]);
       });
   };
+
+  const handleAction = (database_IDs) => {
+    console.log(database_IDs)
+        fetch(`http://${window.location.hostname}:8088/non_laptop/api/updaterequest`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids: database_IDs }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        handleSearch({})
+      })
+      .catch((err) => {
+        console.error('Fetch error:', err);
+      });
+  }
   
   
   useEffect(() => {
@@ -114,6 +128,8 @@ function NonPCList() {
       basePath="/non-pc"
       itemKey="ID"
       onSearch={handleSearch}
+      action={true}
+      onAction={handleAction}
     />
   );
 }

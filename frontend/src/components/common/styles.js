@@ -24,12 +24,6 @@ export const getOptionClass = (item, filterName) => {
       case 'A':
       case 'Full inspection':
         return 'bg-red-400';
-      case 'B':
-      case 'Quick Check':
-        return 'bg-yellow-200';
-      case 'C':
-      case 'As it':
-        return 'bg-green-200';
       default:
         return '';
     }

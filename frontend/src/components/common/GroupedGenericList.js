@@ -4,7 +4,7 @@ import MultiSelect from './MultiSelect';
 import { getOptionClass } from '../common/styles';
 import copy from 'copy-to-clipboard';
 
-function GroupedGenericList({ items, columns, searchFields, filterFields, basePath, itemKey, onSearch }) {
+function GroupedGenericList({ items, columns, searchFields, filterFields, basePath, itemKey, onSearch, xie = false }) {
   const [search, setSearch] = useState(
     Object.fromEntries([...searchFields.map((f) => [f.name, '']), ...filterFields.map((f) => [f.name, []])])
   );
@@ -33,6 +33,8 @@ function GroupedGenericList({ items, columns, searchFields, filterFields, basePa
         return 'Grade C';
       case 'F':
         return 'Grade F';
+      case 'X':
+        return 'No Grade';
       default:
         return code || '';
     }
@@ -121,11 +123,13 @@ function GroupedGenericList({ items, columns, searchFields, filterFields, basePa
       <div className="sticky top-0 z-50 bg-gray-100">
         <h1 className="text-2xl font-bold mb-4">SnowBell Return List</h1>
         <div className="flex space-x-2 mb-4">
-          <Link to={`/xie/input`}>
-            <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-              Input
-            </button>
-          </Link>
+          {!xie && (
+            <Link to={`/xie/input`}>
+              <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                Input
+              </button>
+            </Link>
+          )}
           <button
             onClick={() => navigate('/dashboard')}
             className="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600"
@@ -240,15 +244,21 @@ function GroupedGenericList({ items, columns, searchFields, filterFields, basePa
           <tbody>
             {Object.entries(groupedItems).map(([trackingNumber, groupItems]) => {
               let chilList = groupItems.slice(1);
+              const hiddenRowCount = groupItems.length - 1;
               return (
                 <React.Fragment key={trackingNumber}>
-                  <tr className="bg-gray-100">
+                  <tr className="bg-gray-100 cursor-pointer" onClick={() =>
+                      window.open(`http://${window.location.hostname}:${window.location.port}${basePath}/${trackingNumber}`, '_blank')
+                  }>
                     <td className="p-2 border text-center">
                       <button
-                        onClick={() => toggleGroup(trackingNumber)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleGroup(trackingNumber);
+                        }}
                         className="text-lg font-bold"
                       >
-                        {expandedGroups[trackingNumber] ? '➖' : '➕'}
+                        {hiddenRowCount > 0  && (expandedGroups[trackingNumber] ? '➖' : `➕ ${hiddenRowCount}`)}
                       </button>
                     </td>
                     {columns.map((col) => visibleColumns[col.key] && (

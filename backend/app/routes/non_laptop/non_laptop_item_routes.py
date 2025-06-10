@@ -47,7 +47,7 @@ def submit_item():
                     category,
                     name,
                     odoo_ref,
-                    condition if condition else None,
+                    condition,
                     received_date,
                     remark,
                     user,
@@ -90,12 +90,12 @@ def get_non_laptop_item(id):
 @non_laptop_item_bp.route('/api/update/<id>', methods=['POST'])
 def api_update_item(id):
     try:
-        tracking_number = request.form.get('tracking_number')
+        tracking_number = request.form.get('trackingNumber')
         category = request.form.get('category')
         name = request.form.get('name')
-        odoo_ref = request.form.get('OdooRef')
+        odoo_ref = request.form.get('odooRef')
         condition = request.form.get('condition', '')
-        received_date = request.form.get('received_date')
+        received_date = request.form.get('receivedDate')
         remark = request.form.get('remark')
         user = request.form.get('user')
         location = request.form.get('location')
@@ -161,16 +161,3 @@ def delete_item(id):
         return '', 204  # No Content (frontend can handle redirect or success)
     except Exception as e:
         return f"Error deleting item: {str(e)}", 500
-
-
-# @non_laptop_item_bp.route('/delete_image/<id>/<filename>', methods=['POST'])
-# def delete_image(id, filename):
-#     try:
-#         image_dir = os.path.join(get_modi_rma_root(), 'images', "non_laptop", str(id))
-#         image_path = os.path.join(image_dir, filename)
-#         if os.path.exists(image_path):
-#             os.remove(image_path)
-#             return "Image deleted successfully", 200
-#         return "Image not found", 404
-#     except Exception as e:
-#         return f"Error deleting image: {str(e)}", 500

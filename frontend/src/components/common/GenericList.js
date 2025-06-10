@@ -1,37 +1,86 @@
-import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import MultiSelect from './MultiSelect';
-import { getOptionClass } from './styles';
-import copy from 'copy-to-clipboard';
+import React, { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import MultiSelect from "./MultiSelect";
+import { getOptionClass } from "./styles";
+import copy from "copy-to-clipboard";
 
-function GenericList({ items, columns, searchFields, filterFields, basePath, itemKey, onSearch, Xie = false }) {
+function GenericList({
+  items,
+  columns,
+  searchFields,
+  filterFields,
+  basePath,
+  itemKey,
+  onSearch,
+  Xie = false,
+  action = false, // Whether to show action buttons
+  onAction = () => {}, // Function to handle actions
+}) {
   const [search, setSearch] = useState(
-    Object.fromEntries([...searchFields.map((f) => [f.name, '']), ...filterFields.map((f) => [f.name, []])])
+    Object.fromEntries([
+      ...searchFields.map((f) => [f.name, ""]),
+      ...filterFields.map((f) => [f.name, []]),
+    ])
   );
   const [visibleColumns, setVisibleColumns] = useState(() => {
     // Initialize visibleColumns from localStorage or use default values
     const savedColumns = {};
     columns.forEach((col) => {
       const savedState = localStorage.getItem(`${basePath}-${col.key}`);
-      savedColumns[col.key] = savedState !== null ? JSON.parse(savedState) : col.defaultVisible !== false;
+      savedColumns[col.key] =
+        savedState !== null
+          ? JSON.parse(savedState)
+          : col.defaultVisible !== false;
     });
     return savedColumns;
   });
   const [showColumnFilter, setShowColumnFilter] = useState(false);
-  const [toast, setToast] = useState({ message: '', visible: false }); // State for toast notification
+  const [toast, setToast] = useState({ message: "", visible: false }); // State for toast notification
   const navigate = useNavigate();
 
-  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
+
+  const [selectedRows, setSelectedRows] = useState([]);
+
+  const [showActionMenu, setShowActionMenu] = useState(false);
+
+  const handleSelectRow = (itemKeyVal) => {
+    setSelectedRows((prev) =>
+      prev.includes(itemKeyVal)
+        ? prev.filter((key) => key !== itemKeyVal)
+        : [...prev, itemKeyVal]
+    );
+  };
+
+  const handleSelectAll = () => {
+    if (selectedRows.length === filteredItems.length) {
+      setSelectedRows([]);
+    } else {
+      setSelectedRows(filteredItems.map((item) => item[itemKey]));
+    }
+  };
+
+  const handleAction = (action) => {
+    if (action === "DC") {
+      onAction(selectedRows);
+    }
+    setShowActionMenu(false);
+    setSelectedRows([]);
+  };
 
   const handleSearchChange = (e) => {
     const { name, value, type, checked } = e.target;
-    if (type === 'checkbox') {
+    if (type === "checkbox") {
       setSearch((prev) => ({
         ...prev,
-        [name]: checked ? [...prev[name], value] : prev[name].filter((v) => v !== value),
+        [name]: checked
+          ? [...prev[name], value]
+          : prev[name].filter((v) => v !== value),
       }));
-    } else if (type === 'select-multiple') {
-      const selectedOptions = Array.from(e.target.selectedOptions).map((option) => option.value);
+    } else if (type === "select-multiple") {
+      const selectedOptions = Array.from(e.target.selectedOptions).map(
+        (option) => option.value
+      );
       setSearch((prev) => ({ ...prev, [name]: selectedOptions }));
     } else {
       setSearch((prev) => ({ ...prev, [name]: value }));
@@ -39,26 +88,36 @@ function GenericList({ items, columns, searchFields, filterFields, basePath, ite
   };
 
   let filteredItems = items.filter((item) => {
-    return searchFields.every((field) => {
-      const value = search[field.name];
-      if (!value) return true;
-      return String(item[field.key]).toLowerCase().includes(value.toLowerCase());
-    }) && filterFields.every((field) => {
-      const values = search[field.name];
-      if (values.length === 0) return true;
-      const itemValue = field.getValue ? field.getValue(item) : item[field.key];
-      return values.includes(itemValue);
-    });
+    return (
+      searchFields.every((field) => {
+        const value = search[field.name];
+        if (!value) return true;
+        return String(item[field.key])
+          .toLowerCase()
+          .includes(value.toLowerCase());
+      }) &&
+      filterFields.every((field) => {
+        const values = search[field.name];
+        if (values.length === 0) return true;
+        const itemValue = field.getValue
+          ? field.getValue(item)
+          : item[field.key];
+        return values.includes(itemValue);
+      })
+    );
   });
-  
+
   if (sortConfig.key) {
-    const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
-  
+    const collator = new Intl.Collator(undefined, {
+      numeric: true,
+      sensitivity: "base",
+    });
+
     filteredItems = [...filteredItems].sort((a, b) => {
-      const aVal = a[sortConfig.key]?.toString().trim() ?? '';
-      const bVal = b[sortConfig.key]?.toString().trim() ?? '';
-  
-      return sortConfig.direction === 'asc'
+      const aVal = a[sortConfig.key]?.toString().trim() ?? "";
+      const bVal = b[sortConfig.key]?.toString().trim() ?? "";
+
+      return sortConfig.direction === "asc"
         ? collator.compare(aVal, bVal)
         : collator.compare(bVal, aVal);
     });
@@ -68,24 +127,27 @@ function GenericList({ items, columns, searchFields, filterFields, basePath, ite
     setVisibleColumns((prev) => {
       const newVisibleColumns = { ...prev, [column]: !prev[column] };
       // Save to localStorage with a unique key per page and column
-      localStorage.setItem(`${basePath}-${column}`, JSON.stringify(newVisibleColumns[column]));
+      localStorage.setItem(
+        `${basePath}-${column}`,
+        JSON.stringify(newVisibleColumns[column])
+      );
       return newVisibleColumns;
     });
   };
 
   const handleCopy = (text, e) => {
     e.stopPropagation(); // Prevent the row click event from firing
-    copy(text)
+    copy(text);
     setToast({ message: `Copied: ${text}`, visible: true });
-    setTimeout(() => setToast({ message: '', visible: false }), 2000);
+    setTimeout(() => setToast({ message: "", visible: false }), 2000);
   };
 
   const handleSort = (key) => {
     setSortConfig((prev) => {
       if (prev.key === key) {
-        return { key, direction: prev.direction === 'asc' ? 'desc' : 'asc' };
+        return { key, direction: prev.direction === "asc" ? "desc" : "asc" };
       } else {
-        return { key, direction: 'asc' };
+        return { key, direction: "asc" };
       }
     });
   };
@@ -110,32 +172,67 @@ function GenericList({ items, columns, searchFields, filterFields, basePath, ite
   };
 
   // Define which columns should be copyable
-  const copyableColumns = ['SerialNumber', 'OdooRef', 'SKU', 'OrderNumber', 'TrackingNumber', 'Model'];
+  const copyableColumns = [
+    "SerialNumber",
+    "OdooRef",
+    "SKU",
+    "OrderNumber",
+    "TrackingNumber",
+    "Model",
+  ];
 
   return (
     <div className="p-6">
       <div className="sticky top-0 z-50 bg-gray-100">
-        <h1 className="text-2xl font-bold mb-4">{basePath.charAt(1).toUpperCase() + basePath.slice(2).replace('-', ' ')} List</h1>
-        <div className="flex space-x-2 mb-4">
-          <Link to={`${basePath}/input`}>
-            <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-              Input
+        <h1 className="text-2xl font-bold mb-4">
+          {basePath.charAt(1).toUpperCase() +
+            basePath.slice(2).replace("-", " ")}{" "}
+          List
+        </h1>
+          <div className="flex space-x-2 mb-4">
+            {!Xie && (
+              <Link to={`${basePath}/input`}>
+                <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                  Input
+                </button>
+              </Link>
+            )}
+            <button
+              onClick={() => navigate('/dashboard')}
+              className="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600"
+            >
+              Home
             </button>
-          </Link>
-          <button
-            onClick={() => navigate('/dashboard')}
-            className="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600"
-          >
-            Home
-          </button>
-        </div>
+            {action && selectedRows.length > 0 && (
+              <div className="relative">
+                <button
+                  className="bg-green-600 text-white font-bold px-4 py-2 rounded hover:bg-green-700 flex items-center"
+                  onClick={() => setShowActionMenu(v => !v)}
+                >
+                  Action <span className="ml-1">▼</span>
+                </button>
+                {showActionMenu && (
+                  <div className="absolute left-0 mt-2 w-40 bg-white border rounded shadow z-50">
+                    <button
+                      className="w-full text-left px-4 py-2 hover:bg-gray-100"
+                      onClick={() => handleAction('DC')}
+                    >
+                      Details Check
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
 
         <div className="bg-white p-4 rounded-lg shadow mb-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
             {searchFields.map((field) => (
               <div key={field.name}>
-                <label className="block text-gray-700 font-bold mb-2">{field.label}</label>
-                {field.type === 'text' ? (
+                <label className="block text-gray-700 font-bold mb-2">
+                  {field.label}
+                </label>
+                {field.type === "text" ? (
                   <input
                     type="text"
                     name={field.name}
@@ -144,7 +241,7 @@ function GenericList({ items, columns, searchFields, filterFields, basePath, ite
                     className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-600"
                     placeholder={field.placeholder}
                   />
-                ) : field.type === 'date' ? (
+                ) : field.type === "date" ? (
                   <input
                     type="date"
                     name={field.name}
@@ -160,9 +257,11 @@ function GenericList({ items, columns, searchFields, filterFields, basePath, ite
             <div className="flex flex-wrap gap-4">
               {filterFields.map((field) => (
                 <div key={field.name}>
-                  <label className="block text-gray-700 font-bold mb-2">{field.label}</label>
+                  <label className="block text-gray-700 font-bold mb-2">
+                    {field.label}
+                  </label>
 
-                  {field.type === 'select' ? (
+                  {field.type === "select" ? (
                     <select
                       name={field.name}
                       value={search[field.name]}
@@ -175,7 +274,7 @@ function GenericList({ items, columns, searchFields, filterFields, basePath, ite
                         </option>
                       ))}
                     </select>
-                  ) : field.type === 'checkbox' ? (
+                  ) : field.type === "checkbox" ? (
                     <div className="flex flex-wrap gap-2">
                       {field.options.map((option) => (
                         <label key={option.value} className="flex items-center">
@@ -191,7 +290,7 @@ function GenericList({ items, columns, searchFields, filterFields, basePath, ite
                         </label>
                       ))}
                     </div>
-                  ) : field.type === 'multiselect' ? (
+                  ) : field.type === "multiselect" ? (
                     <MultiSelect
                       name={field.name}
                       options={field.options}
@@ -223,7 +322,7 @@ function GenericList({ items, columns, searchFields, filterFields, basePath, ite
         </div>
 
         <div className="flex justify-between items-center mb-4">
-          <div className='flex space-x-4'>
+          <div className="flex space-x-4">
             <span>Total Count: {filteredItems.length}</span>
           </div>
           <div className="relative">
@@ -257,62 +356,116 @@ function GenericList({ items, columns, searchFields, filterFields, basePath, ite
           <table className="w-full border-collapse bg-white shadow rounded">
             <thead>
               <tr className="bg-gray-200 sticky z-40">
-                {columns.map((col) => visibleColumns[col.key] && (
-                  <th
-                  key={col.key}
-                  className="p-2 border cursor-pointer hover:bg-blue-100"
-                  onClick={() => handleSort(col.key)}
-                >
-                  {col.label}
-                  {sortConfig.key === col.key && (
-                    <span>{sortConfig.direction === 'asc' ? ' ▲' : ' ▼'}</span>
-                  )}
-                </th>
-                ))}
+                {action && (
+                  <th className="p-2 border">
+                    <input
+                      type="checkbox"
+                      checked={
+                        filteredItems.length > 0 &&
+                        selectedRows.length === filteredItems.length
+                      }
+                      onChange={handleSelectAll}
+                    />
+                  </th>
+                )}
+                {columns.map(
+                  (col) =>
+                    visibleColumns[col.key] && (
+                      <th
+                        key={col.key}
+                        className="p-2 border cursor-pointer hover:bg-blue-100"
+                        onClick={() => handleSort(col.key)}
+                      >
+                        {col.label}
+                        {sortConfig.key === col.key && (
+                          <span>
+                            {sortConfig.direction === "asc" ? " ▲" : " ▼"}
+                          </span>
+                        )}
+                      </th>
+                    )
+                )}
               </tr>
             </thead>
             <tbody>
               {filteredItems.map((item) => (
                 <tr
                   key={item[itemKey]}
-                  onClick={() => window.open(`http://${window.location.hostname}:${window.location.port}${basePath}/${item[itemKey]}`, '_blank')}
+                  onClick={() =>
+                    window.open(
+                      `http://${window.location.hostname}:${window.location.port}${basePath}/${item[itemKey]}`,
+                      "_blank"
+                    )
+                  }
                   className={`cursor-pointer hover:bg-gray-100 ${
-                    item.Stock === 'SOLD' && !item.TechDone ? 'bg-red-100' :
-                    item.Stock === 'SOLD' && item.TechDone ? 'bg-gray-300' : ''
+                    item.Stock === "SOLD" && !item.TechDone
+                      ? "bg-red-100"
+                      : item.Stock === "SOLD" && item.TechDone
+                      ? "bg-gray-300"
+                      : ""
                   }`}
                 >
-                  {columns.map((col) => visibleColumns[col.key] && (
+                  {action && (
                     <td
-                      key={col.key}
-                      className={`p-2 border ${
-                        copyableColumns.includes(col.key) ? 'cursor-pointer hover:bg-gray-200' : ''
-                      } ${
-                        col.key === 'Condition' ? getOptionClass(
-                          col.render ? col.render(item) : (item[col.key] ?? 'Unknown'),
-                          'conditions'
-                        ) : col.key === 'InspectionRequest' ? getOptionClass(
-                          col.render ? col.render(item) : item[col.key],
-                          'inspectionRequest'
-                        ) : col.key === 'CreationDateTime' ? getOptionClass(
-                          (() => {
-                            const date = new Date(item[col.key]);
-                            const today = new Date();
-                            const diffDays = Math.floor((today - date) / (1000 * 60 * 60 * 24));
-                            return diffDays;
-                          })(),
-                          'dateAge'
-                        ) : ''
-                      }`}
-                      onClick={(e) => {
-                        if (copyableColumns.includes(col.key)) {
-                          const text = col.render ? col.render(item) : item[col.key] || '';
-                          handleCopy(text, e);
-                        }
-                      }}
+                      className="p-2 border"
+                      onClick={(e) => e.stopPropagation()}
                     >
-                      {col.render ? col.render(item) : item[col.key]}
+                      <input
+                        type="checkbox"
+                        checked={selectedRows.includes(item[itemKey])}
+                        onChange={() => handleSelectRow(item[itemKey])}
+                      />
                     </td>
-                  ))}
+                  )}
+                  {columns.map(
+                    (col) =>
+                      visibleColumns[col.key] && (
+                        <td
+                          key={col.key}
+                          className={`p-2 border ${
+                            copyableColumns.includes(col.key)
+                              ? "cursor-pointer hover:bg-gray-200"
+                              : ""
+                          } ${
+                            col.key === "Condition"
+                              ? getOptionClass(
+                                  col.render
+                                    ? col.render(item)
+                                    : item[col.key] ?? "Unknown",
+                                  "conditions"
+                                )
+                              : col.key === "InspectionRequest"
+                              ? getOptionClass(
+                                  col.render ? col.render(item) : item[col.key],
+                                  "inspectionRequest"
+                                )
+                              : col.key === "CreationDateTime"
+                              ? getOptionClass(
+                                  (() => {
+                                    const date = new Date(item[col.key]);
+                                    const today = new Date();
+                                    const diffDays = Math.floor(
+                                      (today - date) / (1000 * 60 * 60 * 24)
+                                    );
+                                    return diffDays;
+                                  })(),
+                                  "dateAge"
+                                )
+                              : ""
+                          }`}
+                          onClick={(e) => {
+                            if (copyableColumns.includes(col.key)) {
+                              const text = col.render
+                                ? col.render(item)
+                                : item[col.key] || "";
+                              handleCopy(text, e);
+                            }
+                          }}
+                        >
+                          {col.render ? col.render(item) : item[col.key]}
+                        </td>
+                      )
+                  )}
                 </tr>
               ))}
             </tbody>

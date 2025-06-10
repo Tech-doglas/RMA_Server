@@ -4,19 +4,20 @@ import { useParams, useNavigate } from "react-router-dom";
 function XieDetails() {
   const { trackingNumber } = useParams();
   const [items, setItems] = useState([]);
+  const [images, setImages] = useState([]);
   const navigate = useNavigate();
 
   const formatDate = (dateString) => {
     if (!dateString) return "-";
     const date = new Date(dateString);
     if (isNaN(date.getTime())) return "-";
-  
+
     const day = String(date.getDate()).padStart(2, "0");
     const month = date.toLocaleString("en-US", { month: "short" }); // like 'Apr'
     const year = date.getFullYear();
     const hours = String(date.getHours()).padStart(2, "0");
     const minutes = String(date.getMinutes()).padStart(2, "0");
-  
+
     return `${day}/${month}/${year} ${hours}:${minutes}`;
   };
 
@@ -31,6 +32,10 @@ function XieDetails() {
         }
       })
       .catch((err) => console.error("Fetch error:", err));
+    fetch(`http://${window.location.hostname}:8088/images/api/return_receiving/${trackingNumber}`)
+      .then((res) => res.json())
+      .then((data) => setImages({ list: data, type: 'return_receiving' }))
+      .catch((err) => console.error('Error fetching images:', err));
   }, [trackingNumber]);
 
   const shared = items[0] || {}; // grab shared fields from first item
@@ -48,29 +53,29 @@ function XieDetails() {
         </button>
       </div>
 
-        {/* Shared Info */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-gray-100 p-4 rounded mb-6">
+      {/* Shared Info */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-gray-100 p-4 rounded mb-6">
         <div>
-            <p className="text-sm text-gray-600 font-semibold">Tracking Number</p>
-            <p className="text-lg font-bold">{shared.tracking_number || trackingNumber}</p>
-        </div>
-        <div>
-            <p className="text-sm text-gray-600 font-semibold">Tracking Received Date</p>
-            <p className="text-lg font-bold">{formatDate(shared.tracking_received_date)}</p>
+          <p className="text-sm text-gray-600 font-semibold">Tracking Number</p>
+          <p className="text-lg font-bold">{shared.tracking_number || trackingNumber}</p>
         </div>
         <div>
-            <p className="text-sm text-gray-600 font-semibold">Return Type</p>
-            <p className="text-lg font-bold">{shared.return_type}</p>
+          <p className="text-sm text-gray-600 font-semibold">Tracking Received Date</p>
+          <p className="text-lg font-bold">{formatDate(shared.tracking_received_date)}</p>
         </div>
         <div>
-            <p className="text-sm text-gray-600 font-semibold">Last Modified By</p>
-            <p className="text-lg font-bold">{shared.last_modified_user || '-'}</p>
+          <p className="text-sm text-gray-600 font-semibold">Return Type</p>
+          <p className="text-lg font-bold">{shared.return_type}</p>
         </div>
         <div>
-            <p className="text-sm text-gray-600 font-semibold">Last Modified At</p>
-            <p className="text-lg font-bold">{formatDate(shared.last_modified_datetime)}</p>
+          <p className="text-sm text-gray-600 font-semibold">Last Modified By</p>
+          <p className="text-lg font-bold">{shared.last_modified_user || '-'}</p>
         </div>
+        <div>
+          <p className="text-sm text-gray-600 font-semibold">Last Modified At</p>
+          <p className="text-lg font-bold">{formatDate(shared.last_modified_datetime)}</p>
         </div>
+      </div>
 
       {/* Item Table */}
       {items.length === 0 ? (
@@ -111,6 +116,24 @@ function XieDetails() {
               ))}
             </tbody>
           </table>
+          <div className="mt-6">
+            <h2 className="text-xl font-bold mb-2">Images</h2>
+            {images?.list && images?.list?.length > 0 ? (
+              <div className="flex flex-wrap gap-4">
+                {images.list.map((filename) => (
+                  <div key={filename} className="relative">
+                    <img
+                      src={`http://${window.location.hostname}:8088/images/return_receiving/${trackingNumber}/${filename}`}
+                      alt={filename}
+                      className="w-[600px] h-auto rounded shadow"
+                    />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-500">No images available for this item.</p>
+            )}
+          </div>
         </div>
       )}
     </div>

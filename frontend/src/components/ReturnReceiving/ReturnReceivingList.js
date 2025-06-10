@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from "react";
 import GenericList from "../common/GenericList";
+import { formatToEDT } from "../common/formatToEDT";
 
 function ReturnReceivingList({ department }) {
   const [records, setRecords] = useState([]);
+  const [is_snowbell, setIsSnowBell] = useState(false);
 
   const columns = [
     { key: "TrackingNumber", label: "Tracking #" },
     { key: "Company", label: "Company" },
     { key: "Code", label: "Code" },
-    { key: "CreationDateTime", label: "Record DateTime" },
+    { key: "CreationDateTime", label: "Record DateTime", 
+      render: (item) => formatToEDT(item.CreationDateTime)},
     {
       key: "Recorded",
       label: "Recorded",
@@ -58,8 +61,8 @@ function ReturnReceivingList({ department }) {
       options: [
         { value: "", label: "All Codes" },
         { value: "0000", label: "0000" },
-        { value: "000A", label: "000A" },
-        { value: "000B", label: "000B" },
+        { value: "QUICK_CHECK", label: "QUICK_CHECK" },
+        { value: "DETAIL_CHECK", label: "DETAIL_CHECK" },
         { value: 'REGULAR', label: 'REGULAR' },
         { value: 'BULK_NEW', label: 'BULK_NEW' },
       ],
@@ -78,6 +81,9 @@ function ReturnReceivingList({ department }) {
   ];
 
   const handleSearch = (searchParams) => {
+    if (department === "SnowBell") {
+      searchParams.recorded = ["recorded", "not_recorded"];
+    }
     // Check if the user entered any filters
     const hasAnyFilters = Object.entries(searchParams).some(([key, value]) => {
       if (Array.isArray(value)) return value.length > 0;
@@ -117,8 +123,14 @@ function ReturnReceivingList({ department }) {
   };
 
   useEffect(() => {
-    handleSearch({ recorded: ["not_recorded"] });
-  }, []);
+    if (department === "SnowBell") {
+      // Fetch initial data for SnowBell department
+      handleSearch({ recorded: ["recorded", "not_recorded"] });
+      setIsSnowBell(true);
+    } else {
+      handleSearch({ recorded: ["not_recorded"] });
+    }
+  }, [department]);
 
   return (
     <GenericList
@@ -129,7 +141,7 @@ function ReturnReceivingList({ department }) {
       basePath="/return"
       itemKey="TrackingNumber"
       onSearch={handleSearch}
-      Xie={true}
+      Xie={is_snowbell}
     />
   );
 }
