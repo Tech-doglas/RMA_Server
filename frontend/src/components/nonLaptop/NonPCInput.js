@@ -42,6 +42,7 @@ function NonPCInput() {
         { value: 'Electronic', label: 'Electronic Devices' },
         { value: 'Printer', label: 'Printer' },
         { value: 'Monitor', label: 'Monitor' },
+        { value: 'GamingConsole', label: 'Gaming console' },
         { value: 'Other', label: 'Other' },
       ],
       required: true,
@@ -67,6 +68,7 @@ function NonPCInput() {
       options: [
         { value: '', label: 'Select condition', disabled: true },
         { value: 'N', label: 'Back to New' },
+        { value: "W", label: "Brand New" },
         { value: 'A', label: 'Grade A' },
         { value: 'B', label: 'Grade B' },
         { value: 'C', label: 'Grade C' },

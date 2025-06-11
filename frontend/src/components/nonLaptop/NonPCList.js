@@ -12,8 +12,6 @@ function NonPCList() {
     { key: 'Category', label: 'Category', render: (item) => item.Category === 'Electronic' ? 'Electronic Devices' : item.Category },
     { key: 'InspectionRequest', label: 'Inspection Request', render: (item) => {
       if (item.InspectionRequest === 'A') return 'Full inspection';
-      if (item.InspectionRequest === 'B') return 'Quick Check';
-      if (item.InspectionRequest === 'C') return 'As it';
       return item.InspectionRequest;
     }},
     {
@@ -21,7 +19,9 @@ function NonPCList() {
       label: 'Condition',
       render: (item) => {
         if (!item.Condition) return '';
-        return item.Condition === 'N' ? 'Back to New' : `Grade ${item.Condition}`;
+        if (item.Condition === 'N') return 'Back to New';
+        if (item.Condition === 'W') return 'Brand New';
+        return `Grade ${item.Condition}`;
       }
     },
   ];
@@ -42,6 +42,7 @@ function NonPCList() {
         { value: 'Electronic', label: 'Electronic Devices' },
         { value: 'Printer', label: 'Printer' },
         { value: 'Monitor', label: 'Monitor' },
+        { value: 'GamingConsole', label: 'Gaming console' },
         { value: 'Other', label: 'Other' },
       ],
     },
@@ -61,6 +62,7 @@ function NonPCList() {
       type: 'multiselect',
       options: [
         { value: 'N', label: 'Back to New' },
+        { value: "W", label: "Brand New" },
         { value: 'A', label: 'Grade A' },
         { value: 'B', label: 'Grade B' },
         { value: 'C', label: 'Grade C' },
