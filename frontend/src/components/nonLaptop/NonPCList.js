@@ -42,7 +42,7 @@ function NonPCList() {
         { value: 'Electronic', label: 'Electronic Devices' },
         { value: 'Printer', label: 'Printer' },
         { value: 'Monitor', label: 'Monitor' },
-        { value: 'GamingConsole', label: 'Gaming console' },
+        { value: 'Gaming Console', label: 'Gaming console' },
         { value: 'Other', label: 'Other' },
       ],
     },
