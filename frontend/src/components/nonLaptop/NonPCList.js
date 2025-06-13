@@ -1,5 +1,6 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import GenericList from '../common/GenericList';
+import { gradeMapping } from '../common/GradeMapping'
 
 function NonPCList() {
   const [nonLaptops, set_nonLaptops] = useState([]);
@@ -13,18 +14,18 @@ function NonPCList() {
     { key: 'SKU', label: 'SKU' },
     { key: 'OrderNumber', label: 'Order Number' },
     { key: 'Category', label: 'Category', render: (item) => item.Category === 'Electronic' ? 'Electronic Devices' : item.Category },
-    { key: 'InspectionRequest', label: 'Inspection Request', render: (item) => {
-      if (item.InspectionRequest === 'A') return 'Full inspection';
-      return item.InspectionRequest;
-    }},
+    {
+      key: 'InspectionRequest', label: 'Inspection Request', render: (item) => {
+        if (item.InspectionRequest === 'A') return 'Full inspection';
+        return item.InspectionRequest;
+      }
+    },
     {
       key: 'Condition',
       label: 'Condition',
       render: (item) => {
         if (!item.Condition) return '';
-        if (item.Condition === 'N') return 'Back to New';
-        if (item.Condition === 'W') return 'Brand New';
-        return `Grade ${item.Condition}`;
+        return gradeMapping(item.Condition)
       }
     },
   ];
@@ -79,9 +80,9 @@ function NonPCList() {
       if (Array.isArray(value)) return value.length > 0;
       return value?.trim?.();
     });
-  
+
     const finalParams = hasAnyFilters ? searchParams : {};
-  
+
     fetch(`http://${window.location.hostname}:8088/non_laptop/api/search`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -104,7 +105,7 @@ function NonPCList() {
 
   const handleAction = (database_IDs) => {
     console.log(database_IDs)
-        fetch(`http://${window.location.hostname}:8088/non_laptop/api/updaterequest`, {
+    fetch(`http://${window.location.hostname}:8088/non_laptop/api/updaterequest`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ids: database_IDs }),
@@ -117,12 +118,12 @@ function NonPCList() {
         console.error('Fetch error:', err);
       });
   }
-  
-  
+
+
   useEffect(() => {
     handleSearch({});
   }, []);
-  
+
 
   return (
     <GenericList
