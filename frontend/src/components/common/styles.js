@@ -2,7 +2,7 @@ export const getOptionClass = (item, filterName) => {
   if (filterName === 'conditions') {
     switch (item) {
       case 'N':
-      case 'Back to New':
+      case 'Back To New':
         return 'bg-green-200';
       case 'A':
       case 'Grade A':
