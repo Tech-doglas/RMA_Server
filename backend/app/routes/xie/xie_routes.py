@@ -168,3 +168,14 @@ def get_return_number():
     max_id = cursor.fetchone()[0] or 0
     conn.close()
     return jsonify({'max_id': max_id})
+
+@xie_bp.route('/api/request', methods=['POST', 'OPTIONS'])
+def api_request():
+    value = request.json
+    print(value)
+    # conn = get_db_connection()
+    # cursor = conn.cursor()
+    # cursor.execute("SELECT MAX(CAST(SUBSTRING(return_id, 4, 5) AS INT)) FROM xie_laptop_return")
+    # max_id = cursor.fetchone()[0] or 0
+    # conn.close()
+    return jsonify({'message': 'Request received successfully'})
