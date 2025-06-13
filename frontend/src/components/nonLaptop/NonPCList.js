@@ -10,6 +10,8 @@ function NonPCList() {
     { key: 'Name', label: 'Name' },
     { key: 'Location', label: 'Location' },
     { key: 'OdooRef', label: 'Odoo Code' },
+    { key: 'SKU', label: 'SKU' },
+    { key: 'OrderNumber', label: 'Order Number' },
     { key: 'Category', label: 'Category', render: (item) => item.Category === 'Electronic' ? 'Electronic Devices' : item.Category },
     { key: 'InspectionRequest', label: 'Inspection Request', render: (item) => {
       if (item.InspectionRequest === 'A') return 'Full inspection';
