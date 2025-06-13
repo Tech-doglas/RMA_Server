@@ -2,9 +2,11 @@ from flask import Blueprint, render_template, request, redirect, jsonify
 from app.models import get_db_connection
 
 from app.routes.non_laptop.non_laptop_item_routes import non_laptop_item_bp
+from app.routes.non_laptop.non_laptop_sales_routes import non_laptop_sales_bp
 
 non_laptop_bp = Blueprint('non_laptop', __name__)
 non_laptop_bp.register_blueprint(non_laptop_item_bp, url_prefix='/item')
+non_laptop_bp.register_blueprint(non_laptop_sales_bp, url_prefix='/sales')
 
 # Mapping for conditions to database values
 condition_mapping = {

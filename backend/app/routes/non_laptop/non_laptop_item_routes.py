@@ -99,6 +99,9 @@ def api_update_item(id):
         remark = request.form.get('remark')
         user = request.form.get('user')
         location = request.form.get('location')
+        order_number = request.form.get('orderNumber')
+        sku = request.form.get('sku', '')
+
 
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -115,9 +118,11 @@ def api_update_item(id):
                 Remark = ?, 
                 LastModifiedUser = ?, 
                 LastModifiedDateTime = GETDATE(), 
-                Location = ?
+                Location = ?,
+                OrderNumber = ?,
+                SKU = ?
             WHERE ID = ?
-        """, (tracking_number, category, name, odoo_ref, condition, received_date, remark, user, location, id))
+        """, (tracking_number, category, name, odoo_ref, condition, received_date, remark, user, location, order_number, sku, id))
         
         images = request.files.getlist('new_images')
         if images:
