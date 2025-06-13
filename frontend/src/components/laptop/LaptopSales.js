@@ -102,7 +102,7 @@ function LaptopSales() {
 
   return (
     <div className="p-6 max-w-xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Laptop Sales</h1>
+      <h1 className="text-2xl font-bold mb-4">Pc Sales</h1>
       <button
         onClick={() => navigate(`/pc/${id}`)}
         className="mb-4 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
