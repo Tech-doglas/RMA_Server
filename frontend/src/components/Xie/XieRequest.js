@@ -63,7 +63,6 @@ function XieRequest() {
       </div>
 
       {/* Submit Section */}
-      {/* Submit Section */}
       <div className="bg-white p-4 rounded-lg shadow mb-4">
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">

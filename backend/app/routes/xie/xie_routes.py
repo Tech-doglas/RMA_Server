@@ -169,7 +169,7 @@ def get_return_number():
     conn.close()
     return jsonify({'max_id': max_id})
 
-@xie_bp.route('/api/request', methods=['POST', 'OPTIONS'])
+@xie_bp.route('/api/request', methods=['POST'])
 def api_request():
     value = request.json
     print(value)

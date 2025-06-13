@@ -4,6 +4,7 @@ import { toSQLServerDateString } from '../common/formatToEDT';
 
 function NonPCInput() {
   const [userOptions, setUserOptions] = useState([]);
+  const [emptyTracking, setEmptyTracking] = useState("");
 
   const initialData = {
     trackingNumber: '',
@@ -158,6 +159,16 @@ function NonPCInput() {
     }
   };
 
+  const handleTracking = () => {
+      fetch(`http://${window.location.hostname}:8088/non_laptop/api/get_tracking_number`)
+      .then((res) => res.json())
+      .then((maxNumber) => {
+        const nextNumber = maxNumber + 1;
+        const trackingStr = `No Tracking - ${String(nextNumber).padStart(5, '0')}`;
+        setEmptyTracking(trackingStr);
+      })
+  }
+
   useEffect(() => {
     fetch(`http://${window.location.hostname}:8088/auth/api/users`)
       .then((res) => res.json())
@@ -178,6 +189,9 @@ function NonPCInput() {
       fields={fields}
       onSubmit={handleSubmit}
       basePath="/non-pc"
+      no_tracking={true}
+      onTracking={handleTracking}
+      emptyTracking={emptyTracking}
     />
   );
 }
