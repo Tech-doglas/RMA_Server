@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import DetailView from '../common/DetailView';
 import { ClipLoader } from 'react-spinners';
+import { gradeMapping } from '../common/GradeMapping';
+
 
 function NonPCDetails() {
   const { id } = useParams();
@@ -15,26 +17,26 @@ function NonPCDetails() {
     { key: 'Name', label: 'Name' },
     { key: 'OdooRef', label: 'Odoo Code' },
     { key: 'InspectionRequest', label: 'Inspection Request', render: (item) => {
-      if (item.InspectionRequest === 'A') return 'Full inspection';
-      if (item.InspectionRequest === 'B') return 'Quick Check';
-      if (item.InspectionRequest === 'C') return 'As it';
-      return item.InspectionRequest;
-    }, className: (item) => {
-      if (item.InspectionRequest === 'A') return 'text-red-500';
-      if (item.InspectionRequest === 'B') return 'text-yellow-500';
-      if (item.InspectionRequest === 'C') return 'text-green-500';
-      return '';
-    }},
+        if (item.InspectionRequest === 'A') return 'Full inspection';
+        if (item.InspectionRequest === 'B') return 'Quick Check';
+        if (item.InspectionRequest === 'C') return 'As it';
+        return item.InspectionRequest;
+      }, className: (item) => {
+        if (item.InspectionRequest === 'A') return 'text-red-500';
+        if (item.InspectionRequest === 'B') return 'text-yellow-500';
+        if (item.InspectionRequest === 'C') return 'text-green-500';
+        return '';
+      }},
     {
       key: 'Condition',
       label: 'Condition',
       render: (item) => {
         if (!item.Condition) return '';
-        if (item.Condition === 'N') return 'Back to New';
-        if (item.Condition === 'W') return 'Brand New';
-        return `Grade ${item.Condition}`;
+        return gradeMapping(item.Condition);
       }
     },
+    { key: 'SKU', label: 'SKU' },
+    { key: 'OrderNumber', label: 'Order Number' },
     { key: 'Location', label: 'Location' },
     { key: 'Remark', label: 'Remark' },
     { key: 'LastModifiedDateTime', label: 'Last Edited DateTime' },
@@ -42,6 +44,25 @@ function NonPCDetails() {
   ];
 
   const actions = [
+    {
+      label: 'Sales',
+      className: nonLaptop?.SaleDate ? 'bg-gray-400 cursor-not-allowed' : 'bg-sky-500 hover:bg-sky-600',
+      disabled: !nonLaptop?.SaleDate,
+      render: () => (
+        <Link
+          to={nonLaptop?.SaleDate ? '#' : `/non-pc/${id}/sales`}
+          className={`inline-block px-4 py-2 rounded text-white ${nonLaptop?.SaleDate ? 'bg-gray-400 cursor-not-allowed' : 'bg-sky-500 hover:bg-sky-600'
+            }`}
+          onClick={(e) => {
+            if (nonLaptop?.SaleDate) {
+              e.preventDefault();
+            }
+          }}
+        >
+          Sales
+        </Link>
+      ),
+    },
     {
       label: 'Edit',
       className: 'bg-orange-500 hover:bg-orange-600',
@@ -58,19 +79,19 @@ function NonPCDetails() {
   useEffect(() => {
     if (!nonLaptop) return;
     fetch(`http://${window.location.hostname}:8088/images/api/non_laptop/${nonLaptop.TrackingNumber}`)
-    .then((res) => res.json())
-    .then((data) => setImages({ list: data, type: 'non_laptop' }))
-    .catch((err) => console.error('Error fetching images:', err));
+      .then((res) => res.json())
+      .then((data) => setImages({ list: data, type: 'non_laptop' }))
+      .catch((err) => console.error('Error fetching images:', err));
   }, [nonLaptop]);
 
-    if (!nonLaptop) {
-      return (
-        <div className="p-6 flex justify-center items-center">
-          <ClipLoader color="#4B5563" size={40} />
-        </div>
-      );
-    }
-  
+  if (!nonLaptop) {
+    return (
+      <div className="p-6 flex justify-center items-center">
+        <ClipLoader color="#4B5563" size={40} />
+      </div>
+    );
+  }
+
 
   return (
     <DetailView

@@ -18,6 +18,8 @@ function NonPCEdit() {
     odooRef: nonLaptop?.OdooRef || "",
     condition: nonLaptop?.Condition || "",
     location: nonLaptop?.Location || "",
+    sku: nonLaptop?.SKU || '',
+    orderNumber: nonLaptop?.OrderNumber || '',
     remark: nonLaptop?.Remark || "",
     newImages: [],
   };
@@ -76,6 +78,16 @@ function NonPCEdit() {
         { value: "C", label: "Grade C" },
         { value: "F", label: "Grade F" },
       ],
+    },
+    {
+      name: 'sku',
+      label: 'SKU',
+      type: 'text',
+    },
+    {
+      name: 'orderNumber',
+      label: 'Order Number',
+      type: 'text',
     },
     {
       name: "location",
