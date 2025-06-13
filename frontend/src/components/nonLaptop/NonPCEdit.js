@@ -45,6 +45,7 @@ function NonPCEdit() {
         { value: "Electronic", label: "Electronic Devices" },
         { value: "Printer", label: "Printer" },
         { value: "Monitor", label: "Monitor" },
+        { value: 'Gaming Console', label: 'Gaming console' },
         { value: "Other", label: "Other" },
       ],
       required: true,
@@ -69,6 +70,7 @@ function NonPCEdit() {
       type: "select",
       options: [
         { value: "N", label: "Back to New" },
+        { value: "W", label: "Brand New" },
         { value: "A", label: "Grade A" },
         { value: "B", label: "Grade B" },
         { value: "C", label: "Grade C" },

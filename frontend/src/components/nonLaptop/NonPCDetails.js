@@ -30,7 +30,9 @@ function NonPCDetails() {
       label: 'Condition',
       render: (item) => {
         if (!item.Condition) return '';
-        return item.Condition === 'N' ? 'Back to New' : `Grade ${item.Condition}`;
+        if (item.Condition === 'N') return 'Back to New';
+        if (item.Condition === 'W') return 'Brand New';
+        return `Grade ${item.Condition}`;
       }
     },
     { key: 'Location', label: 'Location' },
