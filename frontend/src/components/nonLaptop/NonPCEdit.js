@@ -20,6 +20,7 @@ function NonPCEdit() {
     location: nonLaptop?.Location || "",
     sku: nonLaptop?.SKU || '',
     orderNumber: nonLaptop?.OrderNumber || '',
+    odooRecord: nonLaptop?.OdooRecord || false,
     remark: nonLaptop?.Remark || "",
     newImages: [],
   };
@@ -96,6 +97,11 @@ function NonPCEdit() {
       placeholder: "e.g., On Pallet/A1",
     },
     {
+      name: 'odooRecord',
+      label: 'Odoo Record',
+      type: 'checkbox',
+    },
+    {
       name: "remark",
       label: "Remark",
       type: "textarea",
@@ -108,8 +114,8 @@ function NonPCEdit() {
       accept: "image/*",
       validate: (value, formData) =>
         ["B", "C", "F"].includes(formData.condition) &&
-        (!value || value.length === 0) &&
-        (!images?.list || images.list.length === 0)
+          (!value || value.length === 0) &&
+          (!images?.list || images.list.length === 0)
           ? "Grades B, C, and F require at least one photo"
           : null,
     },
@@ -128,7 +134,14 @@ function NonPCEdit() {
       if (Array.isArray(value)) {
         value.forEach((file) => body.append(key, file));
       } else {
-        body.append(key, value);
+        switch (key) {
+          case "odooRecord":
+            body.append(key, value ? '1' : '0');
+            break;
+          default:
+            body.append(key, value);
+            break;
+        }
       }
     }
 
@@ -168,7 +181,7 @@ function NonPCEdit() {
       .then((data) => setNonLaptop(data))
       .catch((err) => console.error("Error fetching laptop:", err));
 
-      fetch(`http://${window.location.hostname}:8088/auth/api/users`)
+    fetch(`http://${window.location.hostname}:8088/auth/api/users`)
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) {
@@ -181,13 +194,13 @@ function NonPCEdit() {
       .catch((err) => console.error('Error fetching users:', err));
   }, [id]);
 
-    useEffect(() => {
-      if (!nonLaptop) return;
-      fetch(`http://${window.location.hostname}:8088/images/api/non_laptop/${nonLaptop.TrackingNumber}`)
+  useEffect(() => {
+    if (!nonLaptop) return;
+    fetch(`http://${window.location.hostname}:8088/images/api/non_laptop/${nonLaptop.TrackingNumber}`)
       .then((res) => res.json())
       .then((data) => setImages({ list: data, type: 'non_laptop' }))
       .catch((err) => console.error('Error fetching images:', err));
-    }, [nonLaptop]);
+  }, [nonLaptop]);
 
   if (!nonLaptop) {
     return (
