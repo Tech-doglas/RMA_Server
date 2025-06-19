@@ -39,6 +39,7 @@ function NonPCDetails() {
     { key: 'OrderNumber', label: 'Order Number' },
     { key: 'Location', label: 'Location' },
     { key: 'OdooRecord', label: 'Odoo Record', render: (item) => item.OdooRecord ? '✅' : '❌' },
+    { key: 'ReadyToSale', label: 'Ready To Sale', render: (item) => item.ReadyToSale ? '✅' : '❌' },
     { key: 'Remark', label: 'Remark' },
     { key: 'LastModifiedDateTime', label: 'Last Edited DateTime' },
     { key: 'LastModifiedUser', label: 'Last Edited User' },

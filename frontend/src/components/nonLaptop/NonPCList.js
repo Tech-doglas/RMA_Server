@@ -73,7 +73,23 @@ function NonPCList() {
         { value: 'F', label: 'Grade F' },
       ],
     },
+    {
+      name: 'readyToSale',
+      label: 'Ready To Sale',
+      key: 'ReadyToSale',
+      type: 'checkbox',
+      options: [
+        { value: 'Ready', label: 'Ready' },
+        { value: 'Not yet', label: 'Not yet' },
+      ],
+      getValue: (item) => item.ReadyToSale ? 'Ready' : 'Not yet',
+    },
   ];
+
+  const actions = [
+    { name: 'Details Check', action: (ids) => handleDetailsCheck(ids)},
+    { name: 'Ready To Sale', action: (ids) => handleReadyToSale(ids)},
+  ]
 
   const handleSearch = (searchParams = {}) => {
     const hasAnyFilters = Object.entries(searchParams).some(([key, value]) => {
@@ -103,7 +119,7 @@ function NonPCList() {
       });
   };
 
-  const handleAction = (database_IDs) => {
+  const handleDetailsCheck = (database_IDs) => {
     console.log(database_IDs)
     fetch(`http://${window.location.hostname}:8088/non_laptop/api/updaterequest`, {
       method: 'POST',
@@ -119,6 +135,21 @@ function NonPCList() {
       });
   }
 
+  const handleReadyToSale = (database_IDs) => {
+    console.log(database_IDs)
+    fetch(`http://${window.location.hostname}:8088/non_laptop/api/saleready`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids: database_IDs }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        handleSearch({})
+      })
+      .catch((err) => {
+        console.error('Fetch error:', err);
+      });
+  }
 
   useEffect(() => {
     handleSearch({});
@@ -134,8 +165,7 @@ function NonPCList() {
       basePath="/non-pc"
       itemKey="ID"
       onSearch={handleSearch}
-      action={true}
-      onAction={handleAction}
+      actions={actions}
     />
   );
 }
