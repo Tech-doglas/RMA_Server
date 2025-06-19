@@ -9,11 +9,12 @@ function NonPCList() {
     { key: 'ReceivedDate', label: 'Rec Date', defaultVisible: false },
     { key: 'TrackingNumber', label: 'Tracking#' },
     { key: 'Name', label: 'Name' },
-    { key: 'Location', label: 'Location' },
+    { key: 'Location', label: 'Location', defaultVisible: false },
     { key: 'OdooRef', label: 'Odoo Code' },
+    { key: 'OdooRecord', label: 'Odoo Record', render: (item) => item.OdooRecord ? '✅' : '❌' },
     { key: 'SKU', label: 'SKU' },
     { key: 'OrderNumber', label: 'Order Number' },
-    { key: 'Category', label: 'Category', render: (item) => item.Category === 'Electronic' ? 'Electronic Devices' : item.Category },
+    { key: 'Category', label: 'Category', render: (item) => item.Category === 'Electronic' ? 'Electronic Devices' : item.Category , defaultVisible: false },
     {
       key: 'InspectionRequest', label: 'Inspection Request', render: (item) => {
         if (item.InspectionRequest === 'A') return 'Full inspection';
@@ -28,6 +29,7 @@ function NonPCList() {
         return gradeMapping(item.Condition)
       }
     },
+    { key: 'ReadyToSale', label: 'Ready To Sale', render: (item) => item.ReadyToSale ? '✅' : '❌' },
   ];
 
   const searchFields = [
