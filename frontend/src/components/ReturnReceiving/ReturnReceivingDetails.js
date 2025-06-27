@@ -58,7 +58,7 @@ function ReturnReceivingDetails() {
       label: 'Input PC',
       onClick: async () => {
         try {
-          window.open('/pc/input', '_blank')
+          window.open(`${window.location.origin}/pc/input`, '_blank');
         } catch (err) {
           setToast({ message: 'Server error. Try again later.', type: 'error' })
         }
@@ -70,7 +70,7 @@ function ReturnReceivingDetails() {
       label: 'Input Non-PC',
       onClick: async () => {
         try {
-          window.open('/non-pc/input', '_blank')
+          window.open(`${window.location.origin}/non-pc/input`, '_blank');
         } catch (err) {
           setToast({ message: 'Server error. Try again later.', type: 'error' })
         }
