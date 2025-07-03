@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import GenericList from '../common/GenericList';
+import { gradeMapping } from '../common/GradeMapping';
 
 function LaptopList() {
   const [laptops, setLaptops] = useState([]);
 
   const columns = [
     { key: 'Brand', label: 'Brand' },
-    { key: 'Condition', label: 'Condition', render: (item) => item.Condition === 'N' ? 'Back to New' : `Grade ${item.Condition}` },
+    { key: 'Condition', label: 'Condition', render: (item) => item.Condition ? gradeMapping(item.Condition): '' },
     { key: 'Model', label: 'Model' },
     { key: 'Spec', label: 'Spec', render: (item) => item.UpDatedSpec ? (<><s>{item.Spec}</s> → {item.UpDatedSpec}</>) : item.Spec },
     { key: 'SerialNumber', label: 'Serial Number' },

@@ -2,9 +2,11 @@ from flask import Blueprint, render_template, request, redirect, jsonify
 from app.models import get_db_connection
 
 from app.routes.non_laptop.non_laptop_item_routes import non_laptop_item_bp
+from app.routes.non_laptop.non_laptop_sales_routes import non_laptop_sales_bp
 
 non_laptop_bp = Blueprint('non_laptop', __name__)
 non_laptop_bp.register_blueprint(non_laptop_item_bp, url_prefix='/item')
+non_laptop_bp.register_blueprint(non_laptop_sales_bp, url_prefix='/sales')
 
 # Mapping for conditions to database values
 condition_mapping = {
@@ -33,9 +35,10 @@ def api_nonlaptop_search():
 
         tracking_number = filters.get('trackingNumber', '').strip()
         name = filters.get('name', '').strip()
-        category = filters.get('category', '').strip()
+        category = filters.get('category', [])
         inspection_request = filters.get('inspectionRequest', [])
         conditions = filters.get('conditions', [])
+        readyToSale = filters.get('readyToSale', [])
 
         if tracking_number:
             query += " AND TrackingNumber LIKE ?"
@@ -45,9 +48,10 @@ def api_nonlaptop_search():
             query += " AND Name LIKE ?"
             params.append(f"%{name}%")
 
-        if category:
-            query += " AND Category = ?"
-            params.append(category)
+        if isinstance(category, list) and category:
+            placeholders = ','.join(['?'] * len(category))
+            query += f" AND Category IN ({placeholders})"
+            params.extend(category)
 
         if isinstance(inspection_request, list) and inspection_request:
             placeholders = ','.join(['?'] * len(inspection_request))
@@ -58,6 +62,14 @@ def api_nonlaptop_search():
             placeholders = ','.join(['?'] * len(conditions))
             query += f" AND Condition IN ({placeholders})"
             params.extend(conditions)
+
+        if 'Ready' in readyToSale and not 'Not yet' in readyToSale:
+            query += f" AND ReadyToSale = ?"
+            params.append(1)
+
+        if 'Not yet' in readyToSale and not 'Ready' in readyToSale:
+            query += f" AND (ReadyToSale = ? OR ReadyToSale IS NULL)"
+            params.append(0)
 
         cursor.execute(query, params)
         rows = cursor.fetchall()
@@ -93,6 +105,7 @@ def api_update_request():
         return jsonify({'message': 'Updated successfully'})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+<<<<<<< HEAD
     
 @non_laptop_bp.route('/api/get_tracking_number', methods=['get'])
 def api_tracking_number():
@@ -104,5 +117,25 @@ def api_tracking_number():
         conn.close()
         max_number = row[0] if row and row[0] is not None else 0
         return jsonify(max_number)
+=======
+
+@non_laptop_bp.route('/api/saleready', methods=['POST'])
+def api_sale_ready():
+    try:
+        data = request.get_json()
+        ids = data.get('ids', [])        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        if ids:
+            # Prepare a SQL parameter string of ?, ?, ... for each id
+            sql_placeholders = ','.join(['?'] * len(ids))
+            sql = f"UPDATE RMA_non_laptop_sheet SET ReadyToSale =1 WHERE ID IN ({sql_placeholders})"
+            cursor.execute(sql, ids)
+            conn.commit()
+        
+        conn.close()
+        return jsonify({'message': 'Updated successfully'})
+>>>>>>> main
     except Exception as e:
         return jsonify({'error': str(e)}), 500

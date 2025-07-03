@@ -17,6 +17,7 @@ import LaptopEdit from "./components/laptop/LaptopEdit";
 import NonPCList from "./components/nonLaptop/NonPCList";
 import NonPCInput from "./components/nonLaptop/NonPCInput";
 import NonPCDetails from "./components/nonLaptop/NonPCDetails";
+import NonPCSales from "./components/nonLaptop/NonPCSales";
 import NonPCEdit from "./components/nonLaptop/NonPCEdit";
 import ReturnReceivingList from "./components/ReturnReceiving/ReturnReceivingList";
 import ReturnReceivingInput from "./components/ReturnReceiving/ReturnReceivingInput";
@@ -121,6 +122,10 @@ function App() {
             <Route
               path="/non-pc/:id"
               element={isAuthenticated ? <NonPCDetails /> : <Navigate to="/" />}
+            />
+            <Route
+              path="/non-pc/:id/sales"
+              element={isAuthenticated ? <NonPCSales/> : <Navigate to="/" />}
             />
             <Route
               path="/non-pc/:id/edit"

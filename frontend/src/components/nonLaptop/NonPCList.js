@@ -1,5 +1,6 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import GenericList from '../common/GenericList';
+import { gradeMapping } from '../common/GradeMapping'
 
 function NonPCList() {
   const [nonLaptops, set_nonLaptops] = useState([]);
@@ -8,23 +9,27 @@ function NonPCList() {
     { key: 'ReceivedDate', label: 'Rec Date', defaultVisible: false },
     { key: 'TrackingNumber', label: 'Tracking#' },
     { key: 'Name', label: 'Name' },
-    { key: 'Location', label: 'Location' },
+    { key: 'Location', label: 'Location', defaultVisible: false },
     { key: 'OdooRef', label: 'Odoo Code' },
-    { key: 'Category', label: 'Category', render: (item) => item.Category === 'Electronic' ? 'Electronic Devices' : item.Category },
-    { key: 'InspectionRequest', label: 'Inspection Request', render: (item) => {
-      if (item.InspectionRequest === 'A') return 'Full inspection';
-      return item.InspectionRequest;
-    }},
+    { key: 'OdooRecord', label: 'Odoo Record', render: (item) => item.OdooRecord ? '✅' : '❌' },
+    { key: 'SKU', label: 'SKU' },
+    { key: 'OrderNumber', label: 'Order Number' },
+    { key: 'Category', label: 'Category', render: (item) => item.Category === 'Electronic' ? 'Electronic Devices' : item.Category , defaultVisible: false },
+    {
+      key: 'InspectionRequest', label: 'Inspection Request', render: (item) => {
+        if (item.InspectionRequest === 'A') return 'Full inspection';
+        return item.InspectionRequest;
+      }
+    },
     {
       key: 'Condition',
       label: 'Condition',
       render: (item) => {
         if (!item.Condition) return '';
-        if (item.Condition === 'N') return 'Back to New';
-        if (item.Condition === 'W') return 'Brand New';
-        return `Grade ${item.Condition}`;
+        return gradeMapping(item.Condition)
       }
     },
+    { key: 'ReadyToSale', label: 'Ready To Sale', render: (item) => item.ReadyToSale ? '✅' : '❌' },
   ];
 
   const searchFields = [
@@ -70,16 +75,32 @@ function NonPCList() {
         { value: 'F', label: 'Grade F' },
       ],
     },
+    {
+      name: 'readyToSale',
+      label: 'Ready To Sale',
+      key: 'ReadyToSale',
+      type: 'checkbox',
+      options: [
+        { value: 'Ready', label: 'Ready' },
+        { value: 'Not yet', label: 'Not yet' },
+      ],
+      getValue: (item) => item.ReadyToSale ? 'Ready' : 'Not yet',
+    },
   ];
+
+  const actions = [
+    { name: 'Details Check', action: (ids) => handleDetailsCheck(ids)},
+    { name: 'Ready To Sale', action: (ids) => handleReadyToSale(ids)},
+  ]
 
   const handleSearch = (searchParams = {}) => {
     const hasAnyFilters = Object.entries(searchParams).some(([key, value]) => {
       if (Array.isArray(value)) return value.length > 0;
       return value?.trim?.();
     });
-  
+
     const finalParams = hasAnyFilters ? searchParams : {};
-  
+
     fetch(`http://${window.location.hostname}:8088/non_laptop/api/search`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -100,9 +121,9 @@ function NonPCList() {
       });
   };
 
-  const handleAction = (database_IDs) => {
+  const handleDetailsCheck = (database_IDs) => {
     console.log(database_IDs)
-        fetch(`http://${window.location.hostname}:8088/non_laptop/api/updaterequest`, {
+    fetch(`http://${window.location.hostname}:8088/non_laptop/api/updaterequest`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ids: database_IDs }),
@@ -115,12 +136,27 @@ function NonPCList() {
         console.error('Fetch error:', err);
       });
   }
-  
-  
+
+  const handleReadyToSale = (database_IDs) => {
+    console.log(database_IDs)
+    fetch(`http://${window.location.hostname}:8088/non_laptop/api/saleready`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids: database_IDs }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        handleSearch({})
+      })
+      .catch((err) => {
+        console.error('Fetch error:', err);
+      });
+  }
+
   useEffect(() => {
     handleSearch({});
   }, []);
-  
+
 
   return (
     <GenericList
@@ -131,8 +167,7 @@ function NonPCList() {
       basePath="/non-pc"
       itemKey="ID"
       onSearch={handleSearch}
-      action={true}
-      onAction={handleAction}
+      actions={actions}
     />
   );
 }

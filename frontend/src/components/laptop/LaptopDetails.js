@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate  } from 'react-router-dom';
 import DetailView from '../common/DetailView';
 import Toast from '../common/Toast';
+import { gradeMapping } from '../common/GradeMapping';
 
 function LaptopDetails() {
   const { id } = useParams();
@@ -16,7 +17,7 @@ function LaptopDetails() {
     { key: 'Spec', label: 'Specification', render: (item) => item.UpDatedSpec ? (<><s>{item.Spec}</s> → {item.UpDatedSpec}</>) : item.Spec },
     { key: 'SerialNumber', label: 'Serial Number' },
     { key: 'OdooRef', label: 'Odoo Code' },
-    { key: 'Condition', label: 'Condition', render: (item) => item.Condition === 'N' ? 'Back to New' : `Grade ${item.Condition}` },
+    { key: 'Condition', label: 'Condition', render: (item) => item.Condition ? gradeMapping(item.Condition) : ''},
     { key: 'Stock', label: 'Stock', className: (item) => item.Stock === 'SOLD' ? 'text-red-500' : '' },
     { key: 'SKU', label: 'SKU' },
     { key: 'OrderNumber', label: 'Order Number' },

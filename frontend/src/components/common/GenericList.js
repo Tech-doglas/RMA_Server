@@ -13,8 +13,7 @@ function GenericList({
   itemKey,
   onSearch,
   Xie = false,
-  action = false, // Whether to show action buttons
-  onAction = () => {}, // Function to handle actions
+  actions
 }) {
   const [search, setSearch] = useState(
     Object.fromEntries([
@@ -61,9 +60,7 @@ function GenericList({
   };
 
   const handleAction = (action) => {
-    if (action === "DC") {
-      onAction(selectedRows);
-    }
+    action(selectedRows);
     setShowActionMenu(false);
     setSelectedRows([]);
   };
@@ -189,41 +186,45 @@ function GenericList({
             basePath.slice(2).replace("-", " ")}{" "}
           List
         </h1>
-          <div className="flex space-x-2 mb-4">
-            {!Xie && (
-              <Link to={`${basePath}/input`}>
-                <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-                  Input
-                </button>
-              </Link>
-            )}
-            <button
-              onClick={() => navigate('/dashboard')}
-              className="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600"
-            >
-              Home
-            </button>
-            {action && selectedRows.length > 0 && (
-              <div className="relative">
-                <button
-                  className="bg-green-600 text-white font-bold px-4 py-2 rounded hover:bg-green-700 flex items-center"
-                  onClick={() => setShowActionMenu(v => !v)}
-                >
-                  Action <span className="ml-1">▼</span>
-                </button>
-                {showActionMenu && (
-                  <div className="absolute left-0 mt-2 w-40 bg-white border rounded shadow z-50">
-                    <button
-                      className="w-full text-left px-4 py-2 hover:bg-gray-100"
-                      onClick={() => handleAction('DC')}
-                    >
-                      Details Check
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
+        <div className="flex space-x-2 mb-4">
+          {!Xie && (
+            <Link to={`${basePath}/input`}>
+              <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                Input
+              </button>
+            </Link>
+          )}
+          <button
+            onClick={() => navigate('/dashboard')}
+            className="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600"
+          >
+            Home
+          </button>
+          {actions && selectedRows.length > 0 && (
+            <div className="relative">
+              <button
+                className="bg-green-600 text-white font-bold px-4 py-2 rounded hover:bg-green-700 flex items-center"
+                onClick={() => setShowActionMenu(v => !v)}
+              >
+                Action <span className="ml-1">▼</span>
+              </button>
+              {showActionMenu && (
+                <div className="absolute left-0 mt-2 w-40 bg-white border rounded shadow z-50">
+                  {
+                    actions.map(action => (
+                      <button
+                        key={action?.name}
+                        className="w-full text-left px-4 py-2 hover:bg-gray-100"
+                        onClick={() => handleAction(action.action)}
+                      >
+                        {action.name}
+                      </button>
+                    ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
 
         <div className="bg-white p-4 rounded-lg shadow mb-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
@@ -356,7 +357,7 @@ function GenericList({
           <table className="w-full border-collapse bg-white shadow rounded">
             <thead>
               <tr className="bg-gray-200 sticky z-40">
-                {action && (
+                {actions && (
                   <th className="p-2 border">
                     <input
                       type="checkbox"
@@ -397,15 +398,14 @@ function GenericList({
                       "_blank"
                     )
                   }
-                  className={`cursor-pointer hover:bg-gray-100 ${
-                    item.Stock === "SOLD" && !item.TechDone
-                      ? "bg-red-100"
-                      : item.Stock === "SOLD" && item.TechDone
+                  className={`cursor-pointer hover:bg-gray-100 ${item.Stock === "SOLD" && !item.TechDone
+                    ? "bg-red-100"
+                    : item.Stock === "SOLD" && item.TechDone
                       ? "bg-gray-300"
                       : ""
-                  }`}
+                    }`}
                 >
-                  {action && (
+                  {actions && (
                     <td
                       className="p-2 border"
                       onClick={(e) => e.stopPropagation()}
@@ -422,37 +422,35 @@ function GenericList({
                       visibleColumns[col.key] && (
                         <td
                           key={col.key}
-                          className={`p-2 border ${
-                            copyableColumns.includes(col.key)
-                              ? "cursor-pointer hover:bg-gray-200"
-                              : ""
-                          } ${
-                            col.key === "Condition"
+                          className={`p-2 border ${copyableColumns.includes(col.key)
+                            ? "cursor-pointer hover:bg-gray-200"
+                            : ""
+                            } ${col.key === "Condition"
                               ? getOptionClass(
-                                  col.render
-                                    ? col.render(item)
-                                    : item[col.key] ?? "Unknown",
-                                  "conditions"
-                                )
+                                col.render
+                                  ? col.render(item)
+                                  : item[col.key] ?? "Unknown",
+                                "conditions"
+                              )
                               : col.key === "InspectionRequest"
-                              ? getOptionClass(
+                                ? getOptionClass(
                                   col.render ? col.render(item) : item[col.key],
                                   "inspectionRequest"
                                 )
-                              : col.key === "CreationDateTime"
-                              ? getOptionClass(
-                                  (() => {
-                                    const date = new Date(item[col.key]);
-                                    const today = new Date();
-                                    const diffDays = Math.floor(
-                                      (today - date) / (1000 * 60 * 60 * 24)
-                                    );
-                                    return diffDays;
-                                  })(),
-                                  "dateAge"
-                                )
-                              : ""
-                          }`}
+                                : col.key === "CreationDateTime"
+                                  ? getOptionClass(
+                                    (() => {
+                                      const date = new Date(item[col.key]);
+                                      const today = new Date();
+                                      const diffDays = Math.floor(
+                                        (today - date) / (1000 * 60 * 60 * 24)
+                                      );
+                                      return diffDays;
+                                    })(),
+                                    "dateAge"
+                                  )
+                                  : ""
+                            }`}
                           onClick={(e) => {
                             if (copyableColumns.includes(col.key)) {
                               const text = col.render

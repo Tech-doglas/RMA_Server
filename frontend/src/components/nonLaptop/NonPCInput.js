@@ -16,6 +16,7 @@ function NonPCInput() {
     qty: '',
     location: '',
     remark: '',
+    odooRecord: false,
     images: [],
     user: '',
   };
@@ -90,6 +91,11 @@ function NonPCInput() {
       placeholder: 'e.g., On Pallet/A1',
     },
     {
+      name: 'odooRecord',
+      label: 'Odoo Record',
+      type: 'checkbox',
+    },
+    {
       name: 'remark',
       label: 'Remark',
       type: 'textarea',
@@ -133,6 +139,7 @@ function NonPCInput() {
       data.append('condition', formData.condition);
       data.append('qty', formData.qty);
       data.append('location', formData.location);
+      data.append('odooRecord', formData.odooRecord ? '1' : '0')
       data.append('remark', formData.remark);
       data.append('user', formData.user);
 
