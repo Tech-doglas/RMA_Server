@@ -105,6 +105,19 @@ def api_update_request():
         return jsonify({'message': 'Updated successfully'})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+    
+@non_laptop_bp.route('/api/get_tracking_number', methods=['get'])
+def api_tracking_number():
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT MAX(CAST(RIGHT(TrackingNumber, 5) AS INT)) AS MaxNumber FROM RMA_non_laptop_sheet WHERE TrackingNumber LIKE 'No Tracking - %'")
+        row = cursor.fetchone()
+        conn.close()
+        max_number = row[0] if row and row[0] is not None else 0
+        return jsonify(max_number)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @non_laptop_bp.route('/api/saleready', methods=['POST'])
 def api_sale_ready():

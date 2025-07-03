@@ -22,9 +22,11 @@ import NonPCEdit from "./components/nonLaptop/NonPCEdit";
 import ReturnReceivingList from "./components/ReturnReceiving/ReturnReceivingList";
 import ReturnReceivingInput from "./components/ReturnReceiving/ReturnReceivingInput";
 import ReturnReceivingDetails from "./components/ReturnReceiving/ReturnReceivingDetails";
+import ReturnReceivingEdit from "./components/ReturnReceiving/ReturnReceivingEdit";
 import XieList from "./components/Xie/XieList";
 import XieInput from "./components/Xie/XieInput";
 import XieDetails from './components/Xie/XieDetails';
+import XieRequest from './components/Xie/XieRequest';
 import Managment from "./components/Managment";
 
 import { ClipLoader } from "react-spinners";
@@ -137,6 +139,12 @@ function App() {
               }
             />
             <Route
+              path="/return/edit/:id"
+              element={
+                isAuthenticated ? <ReturnReceivingEdit /> : <Navigate to="/" />
+              }
+            />
+            <Route
               path="/return/input"
               element={
                 isAuthenticated ? <ReturnReceivingInput /> : <Navigate to="/" />
@@ -161,6 +169,7 @@ function App() {
               element={isAuthenticated ? <XieInput /> : <Navigate to="/" />}
             />
             <Route path="/xie-list/:trackingNumber" element={isAuthenticated ? <XieDetails /> : <Navigate to="/" />} />
+            <Route path="/xie/request" element={isAuthenticated ? <XieRequest /> : <Navigate to="/" />} />
             <Route
               path="/manager-tools"
               element={

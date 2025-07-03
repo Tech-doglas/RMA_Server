@@ -18,6 +18,7 @@ def show_return_receiving_sheet():
         record_date = filters.get('recordDate', '').strip()
         code_value = filters.get('code', '').strip()
         recorded_list = filters.get('recorded', [])
+        order_number = filters.get('orderNumber', '').strip()
 
         # Start query
         query = "SELECT * FROM RMA_return_receiving WHERE 1=1"
@@ -26,6 +27,11 @@ def show_return_receiving_sheet():
         if tracking_number:
             query += " AND TrackingNumber LIKE ?"
             params.append(f"%{tracking_number}%")
+            
+        if order_number:
+            query += " AND OrderNumber LIKE ?"
+            params.append(f"%{order_number}%")
+
 
         if company:
             query += " AND Company = ?"
@@ -136,3 +142,26 @@ def update_code(tracking_number, code):
         return redirect(url_for('return_receiving.return_receiving_record_detail', tracking_number=tracking_number))
     except Exception as e:
         return f"Error updating Recorded: {str(e)}", 500
+    
+    
+@return_receiving_bp.route('/edit/<tracking_number>', methods=['POST'])
+def edit_tracking(tracking_number):
+    try:
+        print(tracking_number)
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        order_number = request.form.get('OrderNumber')
+        remark = request.form.get('remark')
+
+        cursor.execute("""
+            UPDATE RMA_return_receiving 
+            SET OrderNumber = ?, Remark = ?
+            WHERE TrackingNumber = ?
+        """, (order_number, remark, tracking_number))
+
+        conn.commit()
+        conn.close()
+        return jsonify({'message': 'Record updated successfully!'}), 200
+    except Exception as e:
+        return f"Error updating record: {str(e)}", 500
