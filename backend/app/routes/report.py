@@ -16,8 +16,13 @@ def laptop_TRP():
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
+
         cursor.execute("SELECT InputDate, TechDoneDate FROM RMA_laptop_sheet")
         rows = cursor.fetchall()
+        
+        cursor.execute("SELECT InputDate, Condition, InspectionRequest, Category FROM RMA_non_laptop_sheet")
+        rows_nonpc = cursor.fetchall()
+
         conn.close()
 
         input_date_group = defaultdict(int)
@@ -37,8 +42,29 @@ def laptop_TRP():
         }
 
         data = {
-            'Full_qty': dict(final_result),
-            'Quick_check_qty': dict(quickcheck_date_group)
+            'Detail_Check_Qty': dict(final_result),
+            'Brand_new_Qty': dict(quickcheck_date_group)
+        }
+        
+        
+        brand_new_group = defaultdict(int)
+        quick_check_group = defaultdict(int)
+        detail_check_group = defaultdict(int)
+
+        for input_date, condition, inspection_request, category in rows_nonpc:
+            if input_date:
+                input_month = input_date.strftime('%Y-%m')
+                if condition == 'W':
+                    brand_new_group[input_month] += 1
+                elif inspection_request == 'A' or category == 'Gaming Console':
+                    detail_check_group[input_month] += 1
+                else:
+                    quick_check_group[input_month] += 1
+
+        data_nonPC = {
+            'Brand_new_Qty': dict(brand_new_group),
+            'Quick_Check_Qty': dict(quick_check_group),
+            'Detail_Check_Qty': dict(detail_check_group)
         }
 
         export_format = request.args.get('format', 'pdf')
@@ -50,13 +76,29 @@ def laptop_TRP():
             ws = wb.active
             ws.title = "TRP Report"
 
-            ws.append(["Month", "Full_qty", "Quick_check_qty"])
-            all_months = sorted(set(data["Full_qty"].keys()) | set(data["Quick_check_qty"].keys()))
+            ws.append([
+                "Month",
+                "PC: Detail_Check_Qty",
+                "PC: Brand_new_Qty",
+                "NonPC: Brand_new_Qty",
+                "NonPC: Quick_Check_Qty",
+                "NonPC: Detail_Check_Qty"
+            ])
+            all_months = sorted(
+                set(data["Detail_Check_Qty"].keys())
+                | set(data["Brand_new_Qty"].keys())
+                | set(data_nonPC["Brand_new_Qty"].keys())
+                | set(data_nonPC["Quick_Check_Qty"].keys())
+                | set(data_nonPC["Detail_Check_Qty"].keys())
+            )
             for month in all_months:
                 ws.append([
                     month,
-                    data["Full_qty"].get(month, 0),
-                    data["Quick_check_qty"].get(month, 0)
+                    data["Detail_Check_Qty"].get(month, 0),
+                    data["Brand_new_Qty"].get(month, 0),
+                    data_nonPC["Brand_new_Qty"].get(month, 0),
+                    data_nonPC["Quick_Check_Qty"].get(month, 0),
+                    data_nonPC["Detail_Check_Qty"].get(month, 0),
                 ])
             wb.save(output)
             output.seek(0)
@@ -74,16 +116,39 @@ def laptop_TRP():
             y = height - 100
             p.setFont("Helvetica", 12)
 
-            p.drawString(50, y, "Full_qty:")
+            # PC section
+            p.drawString(50, y, "PC: Detail Check Qty:")
             y -= 20
-            for month, qty in data["Full_qty"].items():
+            for month, qty in data["Detail_Check_Qty"].items():
                 p.drawString(70, y, f"{month}: {qty}")
                 y -= 20
 
             y -= 10
-            p.drawString(50, y, "Quick_check_qty:")
+            p.drawString(50, y, "PC: Brand New Qty:")
             y -= 20
-            for month, qty in data["Quick_check_qty"].items():
+            for month, qty in data["Brand_new_Qty"].items():
+                p.drawString(70, y, f"{month}: {qty}")
+                y -= 20
+
+            # Non-PC section
+            y -= 20
+            p.drawString(50, y, "Non-PC: Brand New Qty:")
+            y -= 20
+            for month, qty in data_nonPC["Brand_new_Qty"].items():
+                p.drawString(70, y, f"{month}: {qty}")
+                y -= 20
+
+            y -= 10
+            p.drawString(50, y, "Non-PC: Quick Check Qty:")
+            y -= 20
+            for month, qty in data_nonPC["Quick_Check_Qty"].items():
+                p.drawString(70, y, f"{month}: {qty}")
+                y -= 20
+
+            y -= 10
+            p.drawString(50, y, "Non-PC: Detail Check Qty:")
+            y -= 20
+            for month, qty in data_nonPC["Detail_Check_Qty"].items():
                 p.drawString(70, y, f"{month}: {qty}")
                 y -= 20
 
@@ -97,6 +162,8 @@ def laptop_TRP():
             return response
 
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         return f"Error: {str(e)}", 500
 
 @report_bp.route('/laptop_ARP', methods=['GET'])

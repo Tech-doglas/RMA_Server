@@ -105,7 +105,6 @@ def api_update_request():
         return jsonify({'message': 'Updated successfully'})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-<<<<<<< HEAD
     
 @non_laptop_bp.route('/api/get_tracking_number', methods=['get'])
 def api_tracking_number():
@@ -117,7 +116,8 @@ def api_tracking_number():
         conn.close()
         max_number = row[0] if row and row[0] is not None else 0
         return jsonify(max_number)
-=======
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @non_laptop_bp.route('/api/saleready', methods=['POST'])
 def api_sale_ready():
@@ -136,6 +136,5 @@ def api_sale_ready():
         
         conn.close()
         return jsonify({'message': 'Updated successfully'})
->>>>>>> main
     except Exception as e:
         return jsonify({'error': str(e)}), 500

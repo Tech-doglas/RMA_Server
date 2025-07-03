@@ -17,11 +17,24 @@ function ReturnReceivingDetails() {
     { key: 'Company', label: 'Company' },
     { key: 'Code', label: 'Code' },
     { key: 'CreationDateTime', label: 'Record DateTime' },
+    { key: 'OrderNumber', label: 'Order #' },
     { key: 'Remark', label: 'Remark' },
     { key: 'Recorded', label: 'Recorded', render: (item) => item.Recorded ? '✅' : '❌' },
   ];
 
   const actions = [
+    {
+      label: 'Edit',
+      className: 'bg-orange-500 hover:bg-orange-600',
+      onClick: async () => {
+        try {
+          navigate(`/return/edit/${records?.TrackingNumber}`)
+        } catch (err) {
+          setToast({ message: 'Server error. Try again later.', type: 'error' })
+        }
+      },
+      hidden: records?.Company?.includes('SNOWBELL')
+    },
     {
       label: records?.Recorded ? 'Recorded' : 'Record',
       onClick: async () => {

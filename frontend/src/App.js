@@ -22,6 +22,7 @@ import NonPCEdit from "./components/nonLaptop/NonPCEdit";
 import ReturnReceivingList from "./components/ReturnReceiving/ReturnReceivingList";
 import ReturnReceivingInput from "./components/ReturnReceiving/ReturnReceivingInput";
 import ReturnReceivingDetails from "./components/ReturnReceiving/ReturnReceivingDetails";
+import ReturnReceivingEdit from "./components/ReturnReceiving/ReturnReceivingEdit";
 import XieList from "./components/Xie/XieList";
 import XieInput from "./components/Xie/XieInput";
 import XieDetails from './components/Xie/XieDetails';
@@ -135,6 +136,12 @@ function App() {
               path="/return"
               element={
                 isAuthenticated ? <ReturnReceivingList department={department} /> : <Navigate to="/" />
+              }
+            />
+            <Route
+              path="/return/edit/:id"
+              element={
+                isAuthenticated ? <ReturnReceivingEdit /> : <Navigate to="/" />
               }
             />
             <Route
