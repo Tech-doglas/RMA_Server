@@ -39,6 +39,7 @@ def api_nonlaptop_search():
         inspection_request = filters.get('inspectionRequest', [])
         conditions = filters.get('conditions', [])
         readyToSale = filters.get('readyToSale', [])
+        has_order_number = filters.get('hasOrderNumber', [])
 
         if tracking_number:
             query += " AND TrackingNumber LIKE ?"
@@ -70,6 +71,9 @@ def api_nonlaptop_search():
         if 'Not yet' in readyToSale and not 'Ready' in readyToSale:
             query += f" AND (ReadyToSale = ? OR ReadyToSale IS NULL)"
             params.append(0)
+            
+        if 'Yes' in has_order_number:
+            query += " AND (OrderNumber IS NOT NULL AND OrderNumber <> '')"
 
         cursor.execute(query, params)
         rows = cursor.fetchall()

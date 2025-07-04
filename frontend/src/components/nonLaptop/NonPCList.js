@@ -97,6 +97,16 @@ function NonPCList() {
       ],
       getValue: (item) => item.OrderDistributed ? 'Distributed' : 'Not yet',
     },
+    {
+      name: 'hasOrderNumber',
+      label: 'Order Number',
+      key: 'HasOrderNumber',
+      type: 'checkbox',
+      options: [
+        { value: 'Yes', label: 'Order Number' },
+      ],
+      getValue: (item) => (item.OrderNumber ? 'Yes' : 'No'),
+}
   ];
 
   const actions = [
