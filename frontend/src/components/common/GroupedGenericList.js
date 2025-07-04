@@ -136,11 +136,13 @@ function GroupedGenericList({ items, columns, searchFields, filterFields, basePa
           >
             Home
           </button>
-          <button
-            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-          >
-            Request
-          </button>
+          <Link to={`/xie/request`}>
+            <button
+              className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+              >
+              Request
+            </button>
+          </Link>
         </div>
 
         {/* Search and Filter Section */}

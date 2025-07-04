@@ -10,6 +10,7 @@ function ReturnReceivingList({ department }) {
     { key: "TrackingNumber", label: "Tracking #" },
     { key: "Company", label: "Company" },
     { key: "Code", label: "Code" },
+    { key: "OrderNumber", label: "Order Number" },
     { key: "CreationDateTime", label: "Record DateTime", 
       render: (item) => formatToEDT(item.CreationDateTime)},
     {
@@ -29,6 +30,21 @@ function ReturnReceivingList({ department }) {
           { value: "Others", label: "Others" },
         ];
 
+  const codeOptions = 
+    department === "SnowBell"
+    ? [
+        { value: "", label: "All Codes" },
+        { value: 'REGULAR', label: 'REGULAR' },
+        { value: 'BULK_NEW', label: 'BULK_NEW' },
+      ] : [
+        { value: "", label: "All Codes" },
+        { value: "0000", label: "0000" },
+        { value: "QUICK_CHECK", label: "QUICK_CHECK" },
+        { value: "DETAIL_CHECK", label: "DETAIL_CHECK" },
+        { value: 'REGULAR', label: 'REGULAR' },
+        { value: 'BULK_NEW', label: 'BULK_NEW' },
+      ]
+
   const searchFields = [
     {
       name: "trackingNumber",
@@ -42,6 +58,13 @@ function ReturnReceivingList({ department }) {
       label: "Record Date",
       key: "CreationDateTime",
       type: "date",
+    },
+    {
+      name: "orderNumber",
+      label: "Order #",
+      key: "OrderNumber",
+      type: "text",
+      placeholder: "e.g., ABC12345-A",
     },
   ];
 
@@ -58,14 +81,7 @@ function ReturnReceivingList({ department }) {
       label: "Code",
       key: "Code",
       type: "select",
-      options: [
-        { value: "", label: "All Codes" },
-        { value: "0000", label: "0000" },
-        { value: "QUICK_CHECK", label: "QUICK_CHECK" },
-        { value: "DETAIL_CHECK", label: "DETAIL_CHECK" },
-        { value: 'REGULAR', label: 'REGULAR' },
-        { value: 'BULK_NEW', label: 'BULK_NEW' },
-      ],
+      options: codeOptions,
     },
     {
       name: "recorded",

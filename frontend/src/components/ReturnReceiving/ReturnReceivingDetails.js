@@ -17,11 +17,24 @@ function ReturnReceivingDetails() {
     { key: 'Company', label: 'Company' },
     { key: 'Code', label: 'Code' },
     { key: 'CreationDateTime', label: 'Record DateTime' },
+    { key: 'OrderNumber', label: 'Order #' },
     { key: 'Remark', label: 'Remark' },
     { key: 'Recorded', label: 'Recorded', render: (item) => item.Recorded ? '✅' : '❌' },
   ];
 
   const actions = [
+    {
+      label: 'Edit',
+      className: 'bg-orange-500 hover:bg-orange-600',
+      onClick: async () => {
+        try {
+          navigate(`/return/edit/${records?.TrackingNumber}`)
+        } catch (err) {
+          setToast({ message: 'Server error. Try again later.', type: 'error' })
+        }
+      },
+      hidden: records?.Company?.includes('SNOWBELL')
+    },
     {
       label: records?.Recorded ? 'Recorded' : 'Record',
       onClick: async () => {
@@ -37,7 +50,6 @@ function ReturnReceivingDetails() {
       disabled: records?.Recorded,
     },
     {
-      // label: records?.Recorded ? 'Inputed' : 'Input',
       label: 'Input',
       onClick: async () => {
         try {
@@ -52,43 +64,34 @@ function ReturnReceivingDetails() {
           setToast({ message: 'Server error. Try again later.', type: 'error' })
         }
       },
-      // className: records?.Recorded ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600',
-      // disabled: records?.Recorded,
       className: 'bg-green-500 hover:bg-green-600',
       hidden: !records?.Company?.includes('SNOWBELL')
     },
     {
-      // label: records?.Recorded ? 'Inputed' : 'Input',
       label: 'Input PC',
       onClick: async () => {
         try {
-          navigate(`/pc/input`)
+          window.open(`${window.location.origin}/pc/input`, '_blank');
         } catch (err) {
           setToast({ message: 'Server error. Try again later.', type: 'error' })
         }
       },
-      // className: records?.Recorded ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600',
-      // disabled: records?.Recorded,
       className: 'bg-green-500 hover:bg-green-600',
       hidden: records?.Company?.includes('SNOWBELL')
     },
     {
-      // label: records?.Recorded ? 'Inputed' : 'Input',
       label: 'Input Non-PC',
       onClick: async () => {
         try {
-          navigate(`/non-pc/input`)
+          window.open(`${window.location.origin}/non-pc/input`, '_blank');
         } catch (err) {
           setToast({ message: 'Server error. Try again later.', type: 'error' })
         }
       },
-      // className: records?.Recorded ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600',
-      // disabled: records?.Recorded,
       className: 'bg-green-500 hover:bg-green-600',
       hidden: records?.Company?.includes('SNOWBELL')
     },
     {
-      // label: records?.Recorded ? 'Inputed' : 'Input',
       label: records?.Code === "REGULAR" ? 'Mark As BULK_NEW' : 'Mark As REGULAR',
       onClick: async () => {
         try {
@@ -100,8 +103,6 @@ function ReturnReceivingDetails() {
           setToast({ message: 'Server error. Try again later.', type: 'error' })
         }
       },
-      // className: records?.Recorded ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600',
-      // disabled: records?.Recorded,
       className: 'bg-orange-500 hover:bg-orange-600',
       hidden: records.Company !== 'SNOWBELL/XIE/PITY TECH'
     },

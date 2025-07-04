@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, use } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-function GenericForm({ initialData, fields, onSubmit, onDelete, basePath, itemId, isEdit = false, hideBackButton = false, existingImages = {} }) {
+function GenericForm({ initialData, fields, onSubmit, onDelete, basePath, itemId, isEdit = false, hideBackButton = false, existingImages = {}, no_tracking = false, onTracking, emptyTracking = "" }) {
   const [formData, setFormData] = useState(initialData);
   const [errors, setErrors] = useState({});
   const [imageList, setImageList] = useState(existingImages || {});
@@ -80,6 +80,10 @@ function GenericForm({ initialData, fields, onSubmit, onDelete, basePath, itemId
       });
   };
 
+  const handleTracking = () => {
+    onTracking()
+  }
+
   useEffect(() => {
     if (
       existingImages &&
@@ -90,6 +94,10 @@ function GenericForm({ initialData, fields, onSubmit, onDelete, basePath, itemId
       setImageList(existingImages);
     }
   }, [existingImages]);
+
+  useEffect(() => {
+    setFormData((prev) => ({ ...prev, 'trackingNumber': emptyTracking }));
+  },[emptyTracking])
 
   return (
     <div className="w-full bg-white rounded-lg shadow p-6 max-w-xl mx-auto mt-4">
@@ -103,6 +111,14 @@ function GenericForm({ initialData, fields, onSubmit, onDelete, basePath, itemId
             className="mb-4 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
           >
             Back
+          </button>
+        )}
+        {no_tracking && (
+          <button
+            onClick={() => handleTracking()}
+            className="mb-4 bg-yellow-500 text-white px-4 py-2 mx-2 rounded hover:bg-yellow-600"
+          >
+            No Tracking Number
           </button>
         )}
         <form onSubmit={handleSubmit}>
