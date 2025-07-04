@@ -84,6 +84,17 @@ function NonPCList() {
       ],
       getValue: (item) => item.ReadyToSale ? 'Ready' : 'Not yet',
     },
+    {
+      name: 'orderDistributed',
+      label: 'Order Distributed',
+      key: 'OrderDistributed',
+      type: 'checkbox',
+      options: [
+        { value: 'Distributed', label: 'Distributed' },
+        { value: 'Not yet', label: 'Not yet' },
+      ],
+      getValue: (item) => item.OrderDistributed ? 'Distributed' : 'Not yet',
+    },
   ];
 
   const actions = [

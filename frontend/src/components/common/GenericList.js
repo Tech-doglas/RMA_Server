@@ -398,9 +398,9 @@ function GenericList({
                       "_blank"
                     )
                   }
-                  className={`cursor-pointer hover:bg-gray-100 ${item.Stock === "SOLD" && !item.TechDone
+                  className={`cursor-pointer hover:bg-gray-100 ${(item.Stock === "SOLD" && !item.TechDone)  || (!item.Stock && item.OrderNumber && !item.OrderDistributed)
                     ? "bg-red-100"
-                    : item.Stock === "SOLD" && item.TechDone
+                    : (item.Stock === "SOLD" && item.TechDone) || (!item.Stock && item.OrderNumber && item.OrderDistributed)
                       ? "bg-gray-300"
                       : ""
                     }`}

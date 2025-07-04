@@ -149,6 +149,22 @@ def api_update_item(id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@non_laptop_item_bp.route('/api/distributed/<id>', methods=['POST'])
+def mark_order_distributed(id):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            UPDATE RMA_non_laptop_sheet 
+            SET OrderDistributed = 1, LastModifiedDateTime = GETDATE()
+            WHERE ID = ?
+        """, (id,))
+        conn.commit()
+        conn.close()
+        return jsonify({'status': 'success'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @non_laptop_item_bp.route('/delete/<id>', methods=['DELETE'])
 def delete_item(id):
     try:
