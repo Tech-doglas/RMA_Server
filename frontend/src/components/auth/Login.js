@@ -21,7 +21,7 @@ function Login({ onLogin, onLogout }) {
       const data = await response.json();
   
       if (response.ok) {
-        onLogin(data.role, data.department);
+        onLogin(data.role, data.department, data.username);
         navigate('/dashboard');
       } else {
         setError(data.error || 'Login failed.');

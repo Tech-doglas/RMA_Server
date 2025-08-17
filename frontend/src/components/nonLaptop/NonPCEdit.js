@@ -8,22 +8,8 @@ function NonPCEdit() {
   const [nonLaptop, setNonLaptop] = useState(null);
   const [images, setImages] = useState({});
 
-  const [userOptions, setUserOptions] = useState([]);
-
-  const initialData = {
-    trackingNumber: nonLaptop?.TrackingNumber || "",
-    receivedDate: nonLaptop?.ReceivedDate || "",
-    category: nonLaptop?.Category || "",
-    name: nonLaptop?.Name || "",
-    odooRef: nonLaptop?.OdooRef || "",
-    condition: nonLaptop?.Condition || "",
-    location: nonLaptop?.Location || "",
-    sku: nonLaptop?.SKU || '',
-    orderNumber: nonLaptop?.OrderNumber || '',
-    odooRecord: nonLaptop?.OdooRecord || false,
-    remark: nonLaptop?.Remark || "",
-    newImages: [],
-  };
+  const [currentUser, setCurrentUser] = useState('');
+  const [emptyTracking, setEmptyTracking] = useState("");
 
   const fields = [
     {
@@ -119,13 +105,6 @@ function NonPCEdit() {
           ? "Grades B, C, and F require at least one photo"
           : null,
     },
-    {
-      name: "user",
-      label: "User",
-      type: "select",
-      options: userOptions,
-      required: true,
-    },
   ];
 
   const handleSubmit = (formData) => {
@@ -175,23 +154,27 @@ function NonPCEdit() {
       });
   };
 
+  const handleTracking = () => {
+      fetch(`http://${window.location.hostname}:8088/non_laptop/api/get_tracking_number`)
+      .then((res) => res.json())
+      .then((maxNumber) => {
+        const nextNumber = maxNumber + 1;
+        const trackingStr = `No Tracking - ${String(nextNumber).padStart(5, '0')}`;
+        setEmptyTracking(trackingStr);
+      })
+  }
+
   useEffect(() => {
+    const savedAuth = localStorage.getItem('auth');
+    if (savedAuth) {
+      const parsed = JSON.parse(savedAuth);
+      setCurrentUser(parsed.username || 'Unknown User');
+    }
+
     fetch(`http://${window.location.hostname}:8088/non_laptop/item/api/${id}`)
       .then((res) => res.json())
       .then((data) => setNonLaptop(data))
       .catch((err) => console.error("Error fetching laptop:", err));
-
-    fetch(`http://${window.location.hostname}:8088/auth/api/users`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (Array.isArray(data)) {
-          setUserOptions([
-            { value: '', label: 'Select User', disabled: true },
-            ...data.map((user) => ({ value: user, label: user })),
-          ]);
-        }
-      })
-      .catch((err) => console.error('Error fetching users:', err));
   }, [id]);
 
   useEffect(() => {
@@ -210,18 +193,50 @@ function NonPCEdit() {
     );
   }
 
+  const initialData = {
+    trackingNumber: nonLaptop?.TrackingNumber || "",
+    receivedDate: nonLaptop?.ReceivedDate || "",
+    category: nonLaptop?.Category || "",
+    name: nonLaptop?.Name || "",
+    odooRef: nonLaptop?.OdooRef || "",
+    condition: nonLaptop?.Condition || "",
+    location: nonLaptop?.Location || "",
+    sku: nonLaptop?.SKU || '',
+    orderNumber: nonLaptop?.OrderNumber || '',
+    odooRecord: nonLaptop?.OdooRecord || false,
+    remark: nonLaptop?.Remark || "",
+    user: currentUser,
+    newImages: [],
+  };
+
   return (
-    <GenericForm
-      initialData={initialData}
-      hideBackButton={true}
-      fields={fields}
-      onSubmit={handleSubmit}
-      onDelete={handleDelete}
-      basePath="/non-pc"
-      itemId={id}
-      isEdit={true}
-      existingImages={images || {}}
-    />
+    <div>
+      <GenericForm
+        initialData={initialData}
+        hideBackButton={true}
+        fields={fields}
+        onSubmit={handleSubmit}
+        onDelete={handleDelete}
+        basePath="/non-pc"
+        itemId={id}
+        isEdit={true}
+        existingImages={images || {}}
+        no_tracking={true}
+        onTracking={handleTracking}
+        emptyTracking={emptyTracking}
+      />
+      <div className="p-6">
+        <div className="flex flex-col mb-4">
+          <label className="text-sm font-bold mb-1">User</label>
+          <input
+            type="text"
+            value={currentUser}
+            readOnly
+            className="p-2 border rounded bg-gray-100"
+          />
+        </div>
+      </div>
+    </div>
   );
 }
 

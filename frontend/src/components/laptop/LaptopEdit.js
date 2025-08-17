@@ -8,7 +8,7 @@ function LaptopEdit() {
   const [laptop, setLaptop] = useState(null);
   const [images, setImages] = useState({});
 
-  const [userOptions, setUserOptions] = useState([]);
+  const [currentUser, setCurrentUser] = useState('');
 
   const initialData = {
     brand: laptop?.Brand || '',
@@ -25,6 +25,7 @@ function LaptopEdit() {
     orderNumber: laptop?.OrderNumber || '',
     remark: laptop?.Remark || '',
     newImages: [],
+    user: currentUser,
   };
 
   const fields = [
@@ -129,27 +130,14 @@ function LaptopEdit() {
           ? 'Grades B, C, and F require at least one photo'
           : null,
     },
-    {
-      name: 'user',
-      label: 'User',
-      type: 'select',
-      options: userOptions,
-      required: true,
-    },
   ];
 
     useEffect(() => {
-      fetch(`http://${window.location.hostname}:8088/auth/api/users`)
-        .then((res) => res.json())
-        .then((data) => {
-          if (Array.isArray(data)) {
-            setUserOptions([
-              { value: '', label: 'Select User', disabled: true },
-              ...data.map((user) => ({ value: user, label: user })),
-            ]);
-          }
-        })
-        .catch((err) => console.error('Error fetching users:', err));
+      const savedAuth = localStorage.getItem('auth');
+      if (savedAuth) {
+        const parsed = JSON.parse(savedAuth);
+        setCurrentUser(parsed.username || 'Unknown User');
+      }
     }, []);
 
     useEffect(() => {
@@ -238,17 +226,30 @@ function LaptopEdit() {
     
     
   return (
-    <GenericForm
-      initialData={initialData}
-      fields={fields}
-      onSubmit={handleSubmit}
-      onDelete={handleDelete}
-      basePath="/pc"
-      itemId={id}
-      isEdit={true}
-      hideBackButton={true}
-      existingImages={images || {}}
-    />
+    <div>
+      <GenericForm
+        initialData={initialData}
+        fields={fields}
+        onSubmit={handleSubmit}
+        onDelete={handleDelete}
+        basePath="/pc"
+        itemId={id}
+        isEdit={true}
+        hideBackButton={true}
+        existingImages={images || {}}
+      />
+      <div className="p-6">
+        <div className="flex flex-col mb-4">
+          <label className="text-sm font-bold mb-1">User</label>
+          <input
+            type="text"
+            value={currentUser}
+            readOnly
+            className="p-2 border rounded bg-gray-100"
+          />
+        </div>
+      </div>
+    </div>
   );
 }
 

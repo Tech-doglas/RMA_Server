@@ -28,7 +28,8 @@ def login():
         return jsonify({
             'message': 'Login successful',
             'role': user[1],
-            'department': user[2]
+            'department': user[2],
+            'username': username
         })
     else:
         return jsonify({'error': 'Invalid credentials'}), 401
@@ -72,4 +73,26 @@ def get_users():
         return jsonify(results)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+@auth_bp.route('/api/current-user', methods=['POST'])
+def get_current_user():
+    data = request.json
+    role = data.get('role')
+    department = data.get('department')
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT username
+        FROM RMA_users
+        WHERE role = ? AND department = ?
+        LIMIT 1
+    """, (role, department))
+    user = cursor.fetchone()
+    conn.close()
+    
+    if user:
+        return jsonify({'username': user[0]})
+    else:
+        return jsonify({'username': 'Unknown User'})
 

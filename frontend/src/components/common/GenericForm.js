@@ -96,8 +96,10 @@ function GenericForm({ initialData, fields, onSubmit, onDelete, basePath, itemId
   }, [existingImages]);
 
   useEffect(() => {
-    setFormData((prev) => ({ ...prev, 'trackingNumber': emptyTracking }));
-  },[emptyTracking])
+    if (emptyTracking && (!initialData.trackingNumber || initialData.trackingNumber === '')) {
+      setFormData((prev) => ({ ...prev, 'trackingNumber': emptyTracking }));
+    }
+  },[emptyTracking]);
 
   return (
     <div className="w-full bg-white rounded-lg shadow p-6 max-w-xl mx-auto mt-4">
