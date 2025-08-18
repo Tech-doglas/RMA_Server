@@ -37,7 +37,7 @@ function App() {
   const [department, setDepartment] = useState("");
   const [authChecked, setAuthChecked] = useState(false);
 
-  const handleLogin = (role, dept) => {
+  const handleLogin = (role, dept, username) => {
     setIsAuthenticated(true);
     setUserRole(role);
     setDepartment(dept);
@@ -47,6 +47,7 @@ function App() {
         isAuthenticated: true,
         role,
         department: dept,
+        username,
       })
     );
   };

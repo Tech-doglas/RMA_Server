@@ -22,21 +22,14 @@ function XieInput() {
   ]);
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
-  const [user, setUser] = useState('');
-  const [userOptions, setUserOptions] = useState([]);
+  const [currentUser, setCurrentUser] = useState('');
 
   useEffect(() => {
-    fetch(`http://${window.location.hostname}:8088/auth/api/users`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (Array.isArray(data)) {
-          setUserOptions([
-            { value: '', label: 'Select User', disabled: true },
-            ...data.map((user) => ({ value: user, label: user })),
-          ]);
-        }
-      })
-      .catch((err) => console.error('Error fetching users:', err));
+    const savedAuth = localStorage.getItem('auth');
+    if (savedAuth) {
+      const parsed = JSON.parse(savedAuth);
+      setCurrentUser(parsed.username || 'Unknown User');
+    }
   }, []);
 
   const handleQtyChange = async (value) => {
@@ -122,7 +115,7 @@ function XieInput() {
     if (!trackingNumber) tempErrors.trackingNumber = 'Tracking Number is required';
     if (!trackingReceivedDate) tempErrors.trackingReceivedDate = 'Tracking Received Date is required';
     if (!returnType) tempErrors.returnType = 'Return Type is required';
-    if (!user) tempErrors.user = 'User is required';
+    if (!currentUser) tempErrors.user = 'User is required';
 
     items.forEach((item, index) => {
       if (!item.laptopName) tempErrors[`laptopName-${index}`] = 'Laptop Name is required';
@@ -142,7 +135,7 @@ function XieInput() {
       trackingNumber,
       trackingReceivedDate,
       returnType,
-      user,
+      user: currentUser,
       ...item,
     }));
 
@@ -277,15 +270,12 @@ function XieInput() {
         </div>
         <div className="flex flex-col">
           <label className="text-sm font-bold mb-1">User</label>
-          <select
-            value={user}
-            onChange={(e) => setUser(e.target.value)}
-            className="p-2 border rounded"
-          >
-            {userOptions.map(option => (
-              <option key={option.value} value={option.value} disabled={option.disabled}>{option.label}</option>
-            ))}
-          </select>
+          <input
+            type="text"
+            value={currentUser}
+            readOnly
+            className="p-2 border rounded bg-gray-100"
+          />
           {errors.user && <p className="text-red-500 text-sm mt-1">{errors.user}</p>}
         </div>
       </div>
