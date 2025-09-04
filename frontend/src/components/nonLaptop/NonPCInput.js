@@ -3,7 +3,7 @@ import GenericForm from '../common/GenericForm';
 import { toSQLServerDateString } from '../common/formatToEDT';
 import Toast from '../common/Toast';
 
-function NonPCInput() {
+function NonPCInput({handleLogout}) {
   const [currentUser, setCurrentUser] = useState('');
   const [emptyTracking, setEmptyTracking] = useState("");
   const [toast, setToast] = useState(null);
@@ -180,9 +180,14 @@ function NonPCInput() {
     const savedAuth = localStorage.getItem('auth');
     if (savedAuth) {
       const parsed = JSON.parse(savedAuth);
-      setCurrentUser(parsed.username || 'Unknown User');
+      if (parsed.username) {
+        setCurrentUser(parsed.username);
+      } else {
+        alert('User not found in local storage. Please log in again.');
+        handleLogout()
+      }
     }
-  }, []);
+  }, [handleLogout]);
 
   return (
     <>

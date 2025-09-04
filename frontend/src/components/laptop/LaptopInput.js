@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import GenericForm from '../common/GenericForm';
 import Toast from '../common/Toast';
 
-function LaptopInput() {
+function LaptopInput({handleLogout}) {
   const [currentUser, setCurrentUser] = useState('');
   const [toast, setToast] = useState(null);
 
@@ -141,9 +141,14 @@ function LaptopInput() {
     const savedAuth = localStorage.getItem('auth');
     if (savedAuth) {
       const parsed = JSON.parse(savedAuth);
-      setCurrentUser(parsed.username || 'Unknown User');
+      if (parsed.username) {
+        setCurrentUser(parsed.username);
+      } else {
+        alert('User not found in local storage. Please log in again.');
+        handleLogout()
+      }
     }
-  }, []);
+  }, [handleLogout]);
 
   const handleSubmit = async (formData) => {
     try {

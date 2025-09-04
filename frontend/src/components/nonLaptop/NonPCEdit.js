@@ -4,7 +4,7 @@ import GenericForm from "../common/GenericForm";
 import { ClipLoader } from "react-spinners";
 import Toast from '../common/Toast';
 
-function NonPCEdit() {
+function NonPCEdit({handleLogout}) {
   const { id } = useParams();
   const [nonLaptop, setNonLaptop] = useState(null);
   const [images, setImages] = useState({});
@@ -170,14 +170,19 @@ function NonPCEdit() {
     const savedAuth = localStorage.getItem('auth');
     if (savedAuth) {
       const parsed = JSON.parse(savedAuth);
-      setCurrentUser(parsed.username || 'Unknown User');
+      if (parsed.username) {
+        setCurrentUser(parsed.username);
+      } else {
+        alert('User not found in local storage. Please log in again.');
+        handleLogout()
+      }
     }
 
     fetch(`http://${window.location.hostname}:8088/non_laptop/item/api/${id}`)
       .then((res) => res.json())
       .then((data) => setNonLaptop(data))
       .catch((err) => console.error("Error fetching laptop:", err));
-  }, [id]);
+  }, [id, handleLogout]);
 
   useEffect(() => {
     if (!nonLaptop) return;

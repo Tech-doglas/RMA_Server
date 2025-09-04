@@ -97,7 +97,7 @@ function App() {
             />
             <Route
               path="/pc/input"
-              element={isAuthenticated ? <LaptopInput /> : <Navigate to="/" />}
+              element={isAuthenticated ? <LaptopInput handleLogout={handleLogout}/> : <Navigate to="/" />}
             />
             <Route
               path="/pc/:id"
@@ -111,7 +111,7 @@ function App() {
             />
             <Route
               path="/pc/:id/edit"
-              element={isAuthenticated ? <LaptopEdit /> : <Navigate to="/" />}
+              element={isAuthenticated ? <LaptopEdit handleLogout={handleLogout}/> : <Navigate to="/" />}
             />
             <Route
               path="/non-pc"
@@ -119,7 +119,7 @@ function App() {
             />
             <Route
               path="/non-pc/input"
-              element={isAuthenticated ? <NonPCInput /> : <Navigate to="/" />}
+              element={isAuthenticated ? <NonPCInput handleLogout={handleLogout}/> : <Navigate to="/" />}
             />
             <Route
               path="/non-pc/:id"
@@ -131,7 +131,7 @@ function App() {
             />
             <Route
               path="/non-pc/:id/edit"
-              element={isAuthenticated ? <NonPCEdit /> : <Navigate to="/" />}
+              element={isAuthenticated ? <NonPCEdit handleLogout={handleLogout}/> : <Navigate to="/" />}
             />
             <Route
               path="/return"
@@ -167,7 +167,7 @@ function App() {
             />
             <Route
               path="/xie/input"
-              element={isAuthenticated ? <XieInput /> : <Navigate to="/" />}
+              element={isAuthenticated ? <XieInput handleLogout={handleLogout}/> : <Navigate to="/" />}
             />
             <Route path="/xie-list/:trackingNumber" element={isAuthenticated ? <XieDetails /> : <Navigate to="/" />} />
             <Route path="/xie/request" element={isAuthenticated ? <XieRequest /> : <Navigate to="/" />} />

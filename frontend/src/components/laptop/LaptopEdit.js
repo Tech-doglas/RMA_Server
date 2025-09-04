@@ -4,7 +4,7 @@ import GenericForm from '../common/GenericForm';
 import { ClipLoader } from 'react-spinners';
 import Toast from '../common/Toast';
 
-function LaptopEdit() {
+function LaptopEdit({handleLogout}) {
   const [toast, setToast] = useState(null);
   const { id } = useParams();
   const [laptop, setLaptop] = useState(null);
@@ -138,9 +138,14 @@ function LaptopEdit() {
       const savedAuth = localStorage.getItem('auth');
       if (savedAuth) {
         const parsed = JSON.parse(savedAuth);
-        setCurrentUser(parsed.username || 'Unknown User');
+      if (parsed.username) {
+        setCurrentUser(parsed.username);
+      } else {
+        alert('User not found in local storage. Please log in again.');
+        handleLogout()
       }
-    }, []);
+      }
+    }, [handleLogout]);
 
     useEffect(() => {
       fetch(`http://${window.location.hostname}:8088/laptop/item/${id}`)

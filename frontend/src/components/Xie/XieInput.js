@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Toast from '../common/Toast';
 
-function XieInput() {
+function XieInput({handleLogout}) {
   const [toast, setToast] = useState(null);
   const location = useLocation();
   const [trackingNumber, setTrackingNumber] = useState(location.state?.trackingNumber || '');
@@ -30,9 +30,14 @@ function XieInput() {
     const savedAuth = localStorage.getItem('auth');
     if (savedAuth) {
       const parsed = JSON.parse(savedAuth);
-      setCurrentUser(parsed.username || 'Unknown User');
+      if (parsed.username) {
+        setCurrentUser(parsed.username);
+      } else {
+        alert('User not found in local storage. Please log in again.');
+        handleLogout()
+      }
     }
-  }, []);
+  }, [handleLogout]);
 
   const handleQtyChange = async (value) => {
     const today = new Date().toISOString().split('T')[0];
