@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import GenericForm from "../common/GenericForm";
 import { ClipLoader } from "react-spinners";
+import Toast from '../common/Toast';
 
 function NonPCEdit() {
   const { id } = useParams();
@@ -10,6 +11,7 @@ function NonPCEdit() {
 
   const [currentUser, setCurrentUser] = useState('');
   const [emptyTracking, setEmptyTracking] = useState("");
+  const [toast, setToast] = useState(null);
 
   const fields = [
     {
@@ -210,6 +212,8 @@ function NonPCEdit() {
   };
 
   return (
+    <>
+    {toast && <Toast {...toast} onClose={() => setToast(null)} />}
     <div>
       <GenericForm
         initialData={initialData}
@@ -237,6 +241,7 @@ function NonPCEdit() {
         </div>
       </div>
     </div>
+    </>
   );
 }
 

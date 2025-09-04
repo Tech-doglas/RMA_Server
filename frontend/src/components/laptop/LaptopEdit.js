@@ -2,8 +2,10 @@ import React, {useState, useEffect} from 'react';
 import { useParams } from 'react-router-dom';
 import GenericForm from '../common/GenericForm';
 import { ClipLoader } from 'react-spinners';
+import Toast from '../common/Toast';
 
 function LaptopEdit() {
+  const [toast, setToast] = useState(null);
   const { id } = useParams();
   const [laptop, setLaptop] = useState(null);
   const [images, setImages] = useState({});
@@ -177,6 +179,11 @@ function LaptopEdit() {
       payload.append('order_number', formData.orderNumber);
       payload.append('remark', formData.remark);
       payload.append('user', formData.user);
+
+      if (formData.user === 'Unknown User') {
+        setToast({ message: 'Failed to Submit, User name is empty. Try Relogin again', type: 'error' });
+        return; // Stop submission if user is unknown
+      }
     
       // Append new images
       if (formData.newImages?.length > 0) {
@@ -226,6 +233,8 @@ function LaptopEdit() {
     
     
   return (
+    <>
+    {toast && <Toast {...toast} onClose={() => setToast(null)} />}
     <div>
       <GenericForm
         initialData={initialData}
@@ -250,6 +259,7 @@ function LaptopEdit() {
         </div>
       </div>
     </div>
+    </>
   );
 }
 
