@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import GenericForm from "../common/GenericForm";
 import { ClipLoader } from "react-spinners";
 
-function NonPCEdit() {
+function NonPCEdit({handleLogout}) {
   const { id } = useParams();
   const [nonLaptop, setNonLaptop] = useState(null);
   const [images, setImages] = useState({});
@@ -168,7 +168,12 @@ function NonPCEdit() {
     const savedAuth = localStorage.getItem('auth');
     if (savedAuth) {
       const parsed = JSON.parse(savedAuth);
-      setCurrentUser(parsed.username || 'Unknown User');
+      if (parsed.username) {
+        setCurrentUser(parsed.username);
+      } else {
+        alert('User not found in local storage. Please log in again.');
+        handleLogout()
+      }
     }
 
     fetch(`http://${window.location.hostname}:8088/non_laptop/item/api/${id}`)

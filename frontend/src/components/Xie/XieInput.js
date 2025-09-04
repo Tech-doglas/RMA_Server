@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation  } from 'react-router-dom';
 
-function XieInput() {
+function XieInput({handleLogout}) {
   const location = useLocation();
   const [trackingNumber, setTrackingNumber] = useState(location.state?.trackingNumber || '');
   const [qty, setQty] = useState(1);
@@ -28,7 +28,12 @@ function XieInput() {
     const savedAuth = localStorage.getItem('auth');
     if (savedAuth) {
       const parsed = JSON.parse(savedAuth);
-      setCurrentUser(parsed.username || 'Unknown User');
+      if (parsed.username) {
+        setCurrentUser(parsed.username);
+      } else {
+        alert('User not found in local storage. Please log in again.');
+        handleLogout()
+      }
     }
   }, []);
 

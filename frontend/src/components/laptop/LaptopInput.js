@@ -141,7 +141,12 @@ function LaptopInput() {
     const savedAuth = localStorage.getItem('auth');
     if (savedAuth) {
       const parsed = JSON.parse(savedAuth);
-      setCurrentUser(parsed.username || 'Unknown User');
+      if (parsed.username) {
+        setCurrentUser(parsed.username);
+      } else {
+        alert('User not found in local storage. Please log in again.');
+        handleLogout()
+      }
     }
   }, []);
 

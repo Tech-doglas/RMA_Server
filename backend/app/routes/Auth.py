@@ -94,5 +94,5 @@ def get_current_user():
     if user:
         return jsonify({'username': user[0]})
     else:
-        return jsonify({'username': 'Unknown User'})
+        return jsonify({'error': 'User not found'}), 404
 
