@@ -8,7 +8,6 @@ function NonPCInput({handleLogout}) {
   const [currentUser, setCurrentUser] = useState('');
   const [toast, setToast] = useState(null);
   const [emptyTracking, setEmptyTracking] = useState("");
-  const [toast, setToast] = useState(null);
 
   const initialData = {
     trackingNumber: '',
