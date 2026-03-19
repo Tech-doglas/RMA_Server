@@ -8,7 +8,6 @@ class Config:
     TRUST_CERT = "yes"
     MODI_RMA_DIR = "/vol1/1001/RMA"
     
-    
 # config.py for testing purposes
 # class Config:
 #     SQL_SERVER = "localhost\SQLEXPRESS"

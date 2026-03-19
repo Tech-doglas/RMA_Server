@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import GenericForm from "../common/GenericForm";
 import { ClipLoader } from "react-spinners";
+import Toast from '../common/Toast';
 
 function NonPCEdit({handleLogout}) {
   const { id } = useParams();
@@ -10,6 +11,7 @@ function NonPCEdit({handleLogout}) {
 
   const [currentUser, setCurrentUser] = useState('');
   const [emptyTracking, setEmptyTracking] = useState("");
+  const [toast, setToast] = useState(null);
 
   const fields = [
     {
@@ -180,7 +182,7 @@ function NonPCEdit({handleLogout}) {
       .then((res) => res.json())
       .then((data) => setNonLaptop(data))
       .catch((err) => console.error("Error fetching laptop:", err));
-  }, [id]);
+  }, [id, handleLogout]);
 
   useEffect(() => {
     if (!nonLaptop) return;
@@ -215,6 +217,8 @@ function NonPCEdit({handleLogout}) {
   };
 
   return (
+    <>
+    {toast && <Toast {...toast} onClose={() => setToast(null)} />}
     <div>
       <GenericForm
         initialData={initialData}
@@ -242,6 +246,7 @@ function NonPCEdit({handleLogout}) {
         </div>
       </div>
     </div>
+    </>
   );
 }
 

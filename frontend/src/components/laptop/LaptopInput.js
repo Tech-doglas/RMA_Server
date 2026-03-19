@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import GenericForm from '../common/GenericForm';
 import Toast from '../common/Toast';
 
-function LaptopInput() {
+function LaptopInput({handleLogout}) {
   const [currentUser, setCurrentUser] = useState('');
   const [toast, setToast] = useState(null);
 
@@ -148,7 +148,7 @@ function LaptopInput() {
         handleLogout()
       }
     }
-  }, []);
+  }, [handleLogout]);
 
   const handleSubmit = async (formData) => {
     try {
@@ -166,6 +166,11 @@ function LaptopInput() {
       data.append('odoorecord', formData.odooRecord ? '1' : '');
       data.append('remark', formData.remark);
       data.append('user', formData.user);
+
+      if (formData.user === 'Unknown User') {
+        setToast({ message: 'Failed to Submit, User name is empty. Try Relogin again', type: 'error' });
+        return; // Stop submission if user is unknown
+      }
   
       // Append images
       if (formData.images && formData.images.length > 0) {

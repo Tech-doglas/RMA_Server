@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import GenericForm from '../common/GenericForm';
 import Toast from '../common/Toast';
 import { toSQLServerDateString } from '../common/formatToEDT';
+import Toast from '../common/Toast';
 
 function NonPCInput({handleLogout}) {
   const [currentUser, setCurrentUser] = useState('');
   const [toast, setToast] = useState(null);
   const [emptyTracking, setEmptyTracking] = useState("");
+  const [toast, setToast] = useState(null);
 
   const initialData = {
     trackingNumber: '',
@@ -138,6 +140,11 @@ function NonPCInput({handleLogout}) {
       data.append('remark', formData.remark);
       data.append('user', formData.user);
 
+      if (formData.user === 'Unknown User') {
+        setToast({ message: 'Failed to Submit, User name is empty. Try Relogin again', type: 'error' });
+        return; // Stop submission if user is unknown
+      }
+
   
       // Append images
       if (formData.images && formData.images.length > 0) {
@@ -187,9 +194,11 @@ function NonPCInput({handleLogout}) {
         handleLogout()
       }
     }
-  }, []);
+  }, [handleLogout]);
 
   return (
+    <>
+    {toast && <Toast {...toast} onClose={() => setToast(null)} />}
     <div>
       {toast && <Toast {...toast} onClose={() => setToast(null)} />}
       <GenericForm
@@ -213,6 +222,7 @@ function NonPCInput({handleLogout}) {
         </div>
       </div>
     </div>
+    </>
   );
 }
 
