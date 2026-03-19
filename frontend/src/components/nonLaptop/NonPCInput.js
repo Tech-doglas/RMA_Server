@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import GenericForm from '../common/GenericForm';
 import Toast from '../common/Toast';
 import { toSQLServerDateString } from '../common/formatToEDT';
-import Toast from '../common/Toast';
 
 function NonPCInput({handleLogout}) {
   const [currentUser, setCurrentUser] = useState('');
