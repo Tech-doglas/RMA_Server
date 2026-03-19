@@ -91,12 +91,15 @@ function ReturnReceivingInput() {
 
       if (res.ok) {
         setToast({ message: '✔️ Submitted successfully', type: 'success' });
+        return { success: true };
       } else {
         const errorText = await res.text();
         setToast({ message: errorText || 'Failed to Submit', type: 'error' });
+        return { success: false };
       }
     } catch (err) {
-      setToast({ message: 'Submit error. Try again later.', type: 'error' })
+      setToast({ message: 'Submit error. Try again later.', type: 'error' });
+      return { success: false };
     }
   };
 

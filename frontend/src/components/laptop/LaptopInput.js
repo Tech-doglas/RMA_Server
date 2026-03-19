@@ -180,15 +180,17 @@ function LaptopInput() {
         body: data,
       });
   
-      if (response.redirected) {
+      if (response.ok) {
         setToast({ message: '✔️ Submitted successfully', type: 'success' });
-        setTimeout(() => window.location.href = response.url, 500);
+        return { success: true };
       } else {
         const text = await response.text();
         setToast({ message: text || 'Failed to Submit', type: 'error' });
+        return { success: false };
       }
     } catch (error) {
-      setToast({ message: 'Submit error. Try again later.', type: 'error' })
+      setToast({ message: 'Submit error. Try again later.', type: 'error' });
+      return { success: false };
     }
   };
   

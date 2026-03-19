@@ -1,6 +1,7 @@
 # app/models.py
 import pyodbc
 import os
+from contextlib import contextmanager
 from flask import current_app
 
 def get_project_root():
@@ -19,6 +20,18 @@ def get_modi_rma_root():
 
 def get_db_connection():
     return pyodbc.connect(current_app.config['CONN_STR'])
+
+@contextmanager
+def db_connection():
+    conn = get_db_connection()
+    try:
+        yield conn
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
 
 def save_laptop_images(images, type, item_id):
     image_dir = os.path.join(get_modi_rma_root(), 'images', type, str(item_id))

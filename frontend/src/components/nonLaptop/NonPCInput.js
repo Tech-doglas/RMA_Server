@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import GenericForm from '../common/GenericForm';
+import Toast from '../common/Toast';
 import { toSQLServerDateString } from '../common/formatToEDT';
 
 function NonPCInput({handleLogout}) {
   const [currentUser, setCurrentUser] = useState('');
+  const [toast, setToast] = useState(null);
   const [emptyTracking, setEmptyTracking] = useState("");
 
   const initialData = {
@@ -150,12 +152,17 @@ function NonPCInput({handleLogout}) {
         body: data,
       });
   
-      if (response.redirected) {
-        setTimeout(() => window.location.href = response.url, 500);
+      if (response.ok) {
+        setToast({ message: '✔️ Submitted successfully', type: 'success' });
+        return { success: true };
       } else {
         const text = await response.text();
+        setToast({ message: text || 'Failed to Submit', type: 'error' });
+        return { success: false };
       }
     } catch (error) {
+      setToast({ message: 'Submit error. Try again later.', type: 'error' });
+      return { success: false };
     }
   };
 
@@ -184,6 +191,7 @@ function NonPCInput({handleLogout}) {
 
   return (
     <div>
+      {toast && <Toast {...toast} onClose={() => setToast(null)} />}
       <GenericForm
         initialData={initialData}
         fields={fields}

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 function GenericForm({ initialData, fields, onSubmit, onDelete, basePath, itemId, isEdit = false, hideBackButton = false, existingImages = {}, no_tracking = false, onTracking, emptyTracking = "" }) {
   const [formData, setFormData] = useState(initialData);
   const [errors, setErrors] = useState({});
+  const [submitting, setSubmitting] = useState(false);
   const [imageList, setImageList] = useState(existingImages || {});
   const navigate = useNavigate();
 
@@ -42,11 +43,20 @@ function GenericForm({ initialData, fields, onSubmit, onDelete, basePath, itemId
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    if (submitting) return;
     if (validateForm()) {
-      onSubmit(formData);
-      navigate(basePath);
+      setSubmitting(true);
+      try {
+        const result = await onSubmit(formData);
+        if (result && result.success === false) {
+          return;
+        }
+        navigate(basePath);
+      } finally {
+        setSubmitting(false);
+      }
     }
   };
 
@@ -259,9 +269,10 @@ function GenericForm({ initialData, fields, onSubmit, onDelete, basePath, itemId
           <div className="flex space-x-2">
             <button
               type="submit"
-              className="w-full sm:w-auto bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+              disabled={submitting}
+              className="w-full sm:w-auto bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
             >
-              {isEdit ? 'Save Changes' : 'Submit'}
+              {submitting ? 'Submitting...' : (isEdit ? 'Save Changes' : 'Submit')}
             </button>
             {isEdit && (
               <>

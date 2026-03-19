@@ -18,3 +18,13 @@ class Config:
 #     DRIVER = "{ODBC Driver 18 for SQL Server}"
 #     TRUST_CERT = "yes"
 #     MODI_RMA_DIR = "/vol1/1001/RMA"
+
+# config.py for Macbook purposes
+# class Config:
+#     SQL_SERVER = "tcp:127.0.0.1,1433"
+#     DATABASE = "RMA"
+#     UID = "sa"
+#     PWD = "rma_admin1234"
+#     DRIVER = "{ODBC Driver 18 for SQL Server}"
+#     TRUST_CERT = "yes"
+#     MODI_RMA_DIR = "/vol1/1001/RMA"
