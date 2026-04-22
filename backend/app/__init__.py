@@ -26,7 +26,7 @@ def create_app():
     app.logger.addHandler(stream_handler)
 
     # File handler (for direct access)
-    log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'logs')
+    log_dir = '/logs'
     os.makedirs(log_dir, exist_ok=True)
     file_handler = RotatingFileHandler(
         os.path.join(log_dir, 'rma_server.log'),

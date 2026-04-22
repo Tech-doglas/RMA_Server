@@ -6,3 +6,9 @@ app/routes/__pycache__/
 .env
 venv/
 frontend/node_modules/
+
+# Deployment (contains server IPs, passwords, etc.)
+docker-compose.yml
+backup_db.sh
+dockerBuilder.sh
+backend/config.py

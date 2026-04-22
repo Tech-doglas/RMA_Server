@@ -2,6 +2,80 @@ import React, { useState } from 'react';
 import GenericForm from '../common/GenericForm';
 import Toast from '../common/Toast';
 
+const MAX_IMAGE_COUNT = 5;
+const MAX_IMAGE_BYTES = 4 * 1024 * 1024;
+const TARGET_UPLOAD_BYTES = 1024 * 1024;
+const MAX_IMAGE_DIMENSION = 1600;
+
+function loadImage(file) {
+  return new Promise((resolve, reject) => {
+    const previewUrl = URL.createObjectURL(file);
+    const image = new Image();
+
+    image.onload = () => {
+      URL.revokeObjectURL(previewUrl);
+      resolve(image);
+    };
+
+    image.onerror = () => {
+      URL.revokeObjectURL(previewUrl);
+      reject(new Error(`Unable to read image: ${file.name}`));
+    };
+
+    image.src = previewUrl;
+  });
+}
+
+function canvasToBlob(canvas, quality) {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (blob) {
+        resolve(blob);
+        return;
+      }
+
+      reject(new Error('Unable to optimize image for upload.'));
+    }, 'image/jpeg', quality);
+  });
+}
+
+async function optimizeImageForUpload(file, index) {
+  if (!file || file.size <= TARGET_UPLOAD_BYTES) {
+    return file;
+  }
+
+  const image = await loadImage(file);
+  const scale = Math.min(1, MAX_IMAGE_DIMENSION / Math.max(image.width, image.height));
+  const canvas = document.createElement('canvas');
+
+  canvas.width = Math.max(1, Math.round(image.width * scale));
+  canvas.height = Math.max(1, Math.round(image.height * scale));
+
+  const context = canvas.getContext('2d');
+  if (!context) {
+    throw new Error('Unable to prepare image upload.');
+  }
+  context.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+  let quality = 0.82;
+  let blob = await canvasToBlob(canvas, quality);
+
+  while (blob.size > TARGET_UPLOAD_BYTES && quality > 0.5) {
+    quality -= 0.08;
+    blob = await canvasToBlob(canvas, quality);
+  }
+
+  if (blob.size >= file.size && file.size <= MAX_IMAGE_BYTES) {
+    return file;
+  }
+
+  const baseName = (file.name || `shipping-label-${index + 1}`).replace(/\.[^.]+$/, '');
+  return new File([blob], `${baseName}.jpg`, {
+    type: 'image/jpeg',
+    lastModified: Date.now(),
+  });
+}
+
 function ReturnReceivingInput() {
   const [toast, setToast] = useState(null);
 
@@ -55,15 +129,19 @@ function ReturnReceivingInput() {
     },
     {
       name: 'image',
-      label: 'Upload Shipping Label Image (max 4MB each)',
+      label: 'Upload Shipping Label Image (up to 5, optimized before upload)',
       type: 'file',
       accept: 'image/jpg,image/jpeg,image/png',
       capture: 'environment',
       multiple: true,
       required: true,
       validate: (value) => {
-        if (!value || value.filter(v => v).length === 0) {
+        const images = Array.from(value || []).filter(Boolean);
+        if (images.length === 0) {
           return 'Please upload at least one shipping label image';
+        }
+        if (images.length > MAX_IMAGE_COUNT) {
+          return `Please upload no more than ${MAX_IMAGE_COUNT} images`;
         }
         return null;
       },
@@ -71,19 +149,33 @@ function ReturnReceivingInput() {
   ];
 
   const handleSubmit = async (formData) => {
-    const data = new FormData();
-    data.append('tracking_number', formData.trackingNumber);
-    data.append('company', formData.company);
-    data.append('code', formData.code);
-    data.append('remark', formData.remark);
-    if (formData.image && formData.image.length > 0) {
-      const images = Array.from(formData.image);
-      images.forEach((file) => {
-        data.append('images', file);
-      });
-    }
-
     try {
+      const data = new FormData();
+      data.append('tracking_number', formData.trackingNumber);
+      data.append('company', formData.company);
+      data.append('code', formData.code);
+      data.append('remark', formData.remark);
+
+      if (formData.image && formData.image.length > 0) {
+        const selectedImages = Array.from(formData.image).filter(Boolean);
+        const optimizedImages = await Promise.all(
+          selectedImages.map((file, index) => optimizeImageForUpload(file, index))
+        );
+
+        const oversizedImage = optimizedImages.find((file) => file.size > MAX_IMAGE_BYTES);
+        if (oversizedImage) {
+          setToast({
+            message: `"${oversizedImage.name}" is still over 4MB after optimization. Please retake it closer to the label.`,
+            type: 'error',
+          });
+          return { success: false };
+        }
+
+        optimizedImages.forEach((file) => {
+          data.append('images', file);
+        });
+      }
+
       const res = await fetch(`http://${window.location.hostname}:8088/return/submit`, {
         method: 'POST',
         body: data,
@@ -98,7 +190,7 @@ function ReturnReceivingInput() {
         return { success: false };
       }
     } catch (err) {
-      setToast({ message: 'Submit error. Try again later.', type: 'error' });
+      setToast({ message: err.message || 'Submit error. Try again later.', type: 'error' });
       return { success: false };
     }
   };

@@ -43,7 +43,7 @@ def save_laptop_images(images, type, item_id):
             ext = os.path.splitext(secure_filename(image.filename))[1]
             filename = f"{i}{ext}"
             image_path = os.path.join(image_dir, filename)
-            image.save(image_path)
+            image.save(image_path, buffer_size=1024 * 1024)
     return image_dir
 
 def get_laptop_image_files(type, item_id):
@@ -64,7 +64,7 @@ def save_shipping_label_image(images, tracking_number):
             ext = os.path.splitext(secure_filename(image.filename))[1]
             filename = f"{i}{ext}"
             image_path = os.path.join(image_dir, filename)
-            image.save(image_path)
+            image.save(image_path, buffer_size=1024 * 1024)
     return image_dir
 
     # if image and image.filename:
