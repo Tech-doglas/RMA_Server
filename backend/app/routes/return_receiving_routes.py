@@ -4,6 +4,7 @@ import time
 from flask import Blueprint, request, redirect, url_for, jsonify, current_app
 from app.models import get_db_connection, db_connection, save_shipping_label_image
 from datetime import datetime, timedelta
+from werkzeug.exceptions import ClientDisconnected
 
 return_receiving_bp = Blueprint('return', __name__)
 
@@ -157,6 +158,17 @@ def submit_record():
             total_duration_ms,
         )
         return "OK", 200
+    except ClientDisconnected:
+        total_duration_ms = (time.perf_counter() - started_at) * 1000
+        current_app.logger.warning(
+            "Return submit interrupted by client | tracking=%s | images=%d | bytes=%d | total_ms=%.0f | content_length=%s",
+            tracking_number,
+            len(images),
+            total_bytes,
+            total_duration_ms,
+            request.content_length,
+        )
+        return jsonify({'error': 'Upload interrupted before the request finished.'}), 400
     except Exception as e:
         total_duration_ms = (time.perf_counter() - started_at) * 1000
         current_app.logger.exception(

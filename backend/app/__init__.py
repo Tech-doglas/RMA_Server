@@ -45,7 +45,10 @@ def create_app():
         # Capture request body before route consumes the stream
         try:
             if request.content_type and 'multipart' in request.content_type:
-                g.request_body = str({k: v for k, v in request.form.items()})
+                # Do not touch request.form here; parsing multipart bodies can block on
+                # the full upload and hides whether time is spent on the network or in
+                # the route handler.
+                g.request_body = f'<multipart content_length={request.content_length}>'
             elif request.is_json:
                 g.request_body = str(request.get_json(silent=True) or {})
             else:
