@@ -1,4 +1,5 @@
 # app/routes/main_routes.py
+import pyodbc
 from flask import Blueprint, jsonify, request
 from werkzeug.security import generate_password_hash, check_password_hash
 from app.models import get_db_connection
@@ -42,18 +43,31 @@ def register():
     role = data.get('role', 'normal')
     department = data.get('department')
 
-    if not username or not password or not department:
-        return jsonify({"error": "Missing fields"}), 400
+    missing = [name for name, value in
+               (('username', username), ('password', password), ('department', department))
+               if not value]
+    if missing:
+        return jsonify({"error": f"Missing required fields: {', '.join(missing)}"}), 400
 
     password_hash = generate_password_hash(password)
 
-    conn = get_db_connection()
+    try:
+        conn = get_db_connection()
+    except Exception:
+        return jsonify({"error": "Unable to connect to the database. Please try again later."}), 500
+
     cursor = conn.cursor()
     try:
+        cursor.execute("SELECT 1 FROM RMA_users WHERE username = ?", (username,))
+        if cursor.fetchone():
+            return jsonify({"error": "Username already exists"}), 409
+
         cursor.execute("INSERT INTO RMA_users (username, password_hash, role, department) VALUES (?, ?, ?, ?)", (username, password_hash, role, department))
         conn.commit()
-    except:
-        return jsonify({"error": "Username already exists"}), 400
+    except pyodbc.IntegrityError:
+        return jsonify({"error": "Username already exists"}), 409
+    except Exception as e:
+        return jsonify({"error": f"Registration failed: {e}"}), 500
     finally:
         conn.close()
 

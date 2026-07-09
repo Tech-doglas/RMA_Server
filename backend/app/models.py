@@ -89,6 +89,49 @@ def get_shipping_label_image(tracking_number):
         files = sorted([f for f in os.listdir(image_dir) if os.path.isfile(os.path.join(image_dir, f))])
         return files
     return []
+
+
+# ============================================================
+# New "Returns" (RMA) workflow image storage.
+# Shared shipping-label photos live under images/returns_label/<label_ref>/
+# and per-unit photos under images/returns_unit/<item_id>/ so they can be
+# served by the existing /images/<type>/<id>/<filename> route.
+# ============================================================
+def _save_indexed_images(images, image_type, folder_id):
+    from werkzeug.utils import secure_filename
+
+    image_dir = os.path.join(get_modi_rma_root(), 'images', image_type, str(folder_id))
+    os.makedirs(image_dir, exist_ok=True)
+
+    existing = [f for f in os.listdir(image_dir) if os.path.isfile(os.path.join(image_dir, f))]
+    next_num = len(existing) + 1
+
+    saved = 0
+    for image in images:
+        if image and image.filename:
+            ext = os.path.splitext(secure_filename(image.filename))[1] or '.jpg'
+            filename = f"{next_num}{ext}"
+            image.save(os.path.join(image_dir, filename), buffer_size=1024 * 1024)
+            next_num += 1
+            saved += 1
+    return saved
+
+
+def save_returns_label_images(images, label_ref):
+    return _save_indexed_images(images, 'returns_label', label_ref)
+
+
+def save_returns_unit_images(images, item_id):
+    return _save_indexed_images(images, 'returns_unit', item_id)
+
+
+def get_returns_image_files(image_type, folder_id):
+    image_dir = os.path.join(get_modi_rma_root(), 'images', image_type, str(folder_id))
+    if os.path.isdir(image_dir):
+        return sorted(
+            [f for f in os.listdir(image_dir) if os.path.isfile(os.path.join(image_dir, f))]
+        )
+    return []
     # image_dir = os.path.join(get_modi_rma_root(), 'images', 'return_receiving')
     # if os.path.exists(image_dir):
     #     for filename in os.listdir(image_dir):

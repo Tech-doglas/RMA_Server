@@ -23,6 +23,11 @@ import ReturnReceivingList from "./components/ReturnReceiving/ReturnReceivingLis
 import ReturnReceivingInput from "./components/ReturnReceiving/ReturnReceivingInput";
 import ReturnReceivingDetails from "./components/ReturnReceiving/ReturnReceivingDetails";
 import ReturnReceivingEdit from "./components/ReturnReceiving/ReturnReceivingEdit";
+import ReturnsList from "./components/Returns/ReturnsList";
+import ReturnsInput from "./components/Returns/ReturnsInput";
+import ReturnsDetail from "./components/Returns/ReturnsDetail";
+import ReturnsShipOut from "./components/Returns/ReturnsShipOut";
+import ReturnsReport from "./components/Returns/ReturnsReport";
 import XieList from "./components/Xie/XieList";
 import XieInput from "./components/Xie/XieInput";
 import XieDetails from './components/Xie/XieDetails';
@@ -160,6 +165,26 @@ function App() {
                   <Navigate to="/" />
                 )
               }
+            />
+            <Route
+              path="/returns"
+              element={isAuthenticated ? <ReturnsList /> : <Navigate to="/" />}
+            />
+            <Route
+              path="/returns/input"
+              element={isAuthenticated ? <ReturnsInput /> : <Navigate to="/" />}
+            />
+            <Route
+              path="/returns/ship"
+              element={isAuthenticated ? <ReturnsShipOut /> : <Navigate to="/" />}
+            />
+            <Route
+              path="/returns/report"
+              element={isAuthenticated ? <ReturnsReport /> : <Navigate to="/" />}
+            />
+            <Route
+              path="/returns/:id"
+              element={isAuthenticated ? <ReturnsDetail /> : <Navigate to="/" />}
             />
             <Route
               path="/xie"

@@ -7,6 +7,18 @@ class Config:
     DRIVER = "{ODBC Driver 18 for SQL Server}"
     TRUST_CERT = "yes"
     MODI_RMA_DIR = "/vol1/1001/RMA"
+
+# config.py for local development (Windows auth against SQL Server Express;
+# run backend/migrations/local_dev_bootstrap.sql first)
+# class Config:
+#     SQL_SERVER = r"localhost\SQLEXPRESS"
+#     DATABASE = "RMA"
+#     UID = ""
+#     PWD = ""
+#     TRUSTED_CONNECTION = "yes"
+#     DRIVER = "{ODBC Driver 18 for SQL Server}"
+#     TRUST_CERT = "yes"
+#     MODI_RMA_DIR = "/vol1/1001/RMA"
     
 # config.py for testing purposes
 # class Config:

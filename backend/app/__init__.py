@@ -78,12 +78,15 @@ def create_app():
         return response
 
     # Database connection string
+    if getattr(Config, 'TRUSTED_CONNECTION', 'no') == 'yes':
+        auth = "Trusted_Connection=yes;"
+    else:
+        auth = f"UID={Config.UID};PWD={Config.PWD};"
     app.config['CONN_STR'] = (
         f"DRIVER={Config.DRIVER};"
         f"SERVER={Config.SQL_SERVER};"
         f"DATABASE={Config.DATABASE};"
-        f"UID={Config.UID};"
-        f"PWD={Config.PWD};"
+        f"{auth}"
         f"TrustServerCertificate={Config.TRUST_CERT};"
     )
 
@@ -97,6 +100,7 @@ def create_app():
     from app.routes.images_rotes import images_bp
     from app.routes.report import report_bp
     from app.routes.xie.xie_routes import xie_bp
+    from app.routes.returns.returns_routes import returns_bp
 
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(laptop_bp, url_prefix='/laptop')
@@ -105,6 +109,7 @@ def create_app():
     app.register_blueprint(images_bp, url_prefix='/images')
     app.register_blueprint(report_bp, url_prefix='/report')
     app.register_blueprint(xie_bp, url_prefix='/xie')
+    app.register_blueprint(returns_bp, url_prefix='/returns')
 
     app.logger.info('RMA Server startup')
 

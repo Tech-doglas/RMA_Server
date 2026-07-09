@@ -29,9 +29,9 @@ function Dashboard({ role, department, onLogout }) {
               Return Receiving
             </button>
           </Link>
-          <Link to="/xie">
+          <Link to="/returns">
             <button className="w-full bg-purple-500 text-white p-4 rounded-lg hover:bg-purple-600 transition-colors">
-              SnowBell Return
+              Returns (RMA)
             </button>
           </Link>
           {role === "manager" && (

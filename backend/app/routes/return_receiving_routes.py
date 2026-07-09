@@ -34,8 +34,10 @@ def show_return_receiving_sheet():
         recorded_list = filters.get('recorded', [])
         order_number = filters.get('orderNumber', '').strip()
 
-        # Start query
-        query = "SELECT * FROM RMA_return_receiving WHERE 1=1"
+        # Start query.
+        # Exclude rows owned by the new parallel "Returns (RMA)" feature
+        # (Source = 'RETURNS'); those are managed by the /returns blueprint.
+        query = "SELECT * FROM RMA_return_receiving WHERE (Source IS NULL OR Source <> 'RETURNS')"
         params = []
 
         if tracking_number:
@@ -93,7 +95,10 @@ def api_get_return_receiving_detail(tracking_number):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM RMA_return_receiving WHERE TrackingNumber = ?", tracking_number)
+        cursor.execute(
+            "SELECT * FROM RMA_return_receiving WHERE TrackingNumber = ? AND (Source IS NULL OR Source <> 'RETURNS')",
+            tracking_number,
+        )
         row = cursor.fetchone()
         if not row:
             return jsonify({"error": "Not found"}), 404
