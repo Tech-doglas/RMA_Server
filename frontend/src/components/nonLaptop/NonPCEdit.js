@@ -1,12 +1,16 @@
+import RequestFailure from '../common/RequestFailure';
+import { apiFetch, canPermission } from '../common/access';
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import GenericForm from "../common/GenericForm";
+import { requireOk, readJson, readList } from "../common/requestResult";
 import { ClipLoader } from "react-spinners";
 import Toast from '../common/Toast';
 
 function NonPCEdit({handleLogout}) {
   const { id } = useParams();
   const [nonLaptop, setNonLaptop] = useState(null);
+  const [loadError, setLoadError] = useState('');
   const [images, setImages] = useState({});
 
   const [currentUser, setCurrentUser] = useState('');
@@ -75,6 +79,7 @@ function NonPCEdit({handleLogout}) {
     },
     {
       name: 'orderNumber',
+      disabled: !canPermission('nonpc.sell'),
       label: 'Order Number',
       type: 'text',
     },
@@ -126,39 +131,28 @@ function NonPCEdit({handleLogout}) {
       }
     }
 
-    fetch(
+    return apiFetch(
       `http://${window.location.hostname}:8088/non_laptop/item/api/update/${id}`,
       {
         method: "POST",
         body,
       }
     )
-      .then((res) => res.json())
-      .then(console.log);
+      .then(requireOk)
+      .then(() => ({ success: true, redirectTo: `/non-pc/${encodeURIComponent(id)}` }));
   };
 
   const handleDelete = () => {
     const trackingNumber = nonLaptop?.TrackingNumber;
 
-    fetch(`http://${window.location.hostname}:8088/non_laptop/item/delete/${id}?TrackingNumber=${trackingNumber}`, {
+    return apiFetch(`http://${window.location.hostname}:8088/non_laptop/item/delete/${encodeURIComponent(id)}?TrackingNumber=${encodeURIComponent(trackingNumber)}`, {
       method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error('Failed to delete');
-        window.location.href = '/non-pc';
-      })
-      .catch((err) => {
-        console.error('Delete failed:', err);
-        alert('Delete failed: ' + err.message);
-      });
+    }).then(requireOk).then(() => ({ success: true }));
   };
 
   const handleTracking = () => {
-      fetch(`http://${window.location.hostname}:8088/non_laptop/api/get_tracking_number`)
-      .then((res) => res.json())
+      apiFetch(`http://${window.location.hostname}:8088/non_laptop/api/get_tracking_number`)
+      .then(readJson)
       .then((maxNumber) => {
         const nextNumber = maxNumber + 1;
         const trackingStr = `No Tracking - ${String(nextNumber).padStart(5, '0')}`;
@@ -178,23 +172,25 @@ function NonPCEdit({handleLogout}) {
       }
     }
 
-    fetch(`http://${window.location.hostname}:8088/non_laptop/item/api/${id}`)
-      .then((res) => res.json())
+    apiFetch(`http://${window.location.hostname}:8088/non_laptop/item/api/${id}`)
+      .then(readJson)
       .then((data) => setNonLaptop(data))
-      .catch((err) => console.error("Error fetching laptop:", err));
+      .catch(err => setLoadError(err.message || 'Unable to load this record. Please try again.'));
   }, [id, handleLogout]);
 
   useEffect(() => {
     if (!nonLaptop) return;
-    fetch(`http://${window.location.hostname}:8088/images/api/non_laptop/${nonLaptop.TrackingNumber}`)
-      .then((res) => res.json())
+    apiFetch(`http://${window.location.hostname}:8088/images/api/non_laptop/${nonLaptop.TrackingNumber}`)
+      .then(readList)
       .then((data) => setImages({ list: data, type: 'non_laptop' }))
-      .catch((err) => console.error('Error fetching images:', err));
+      .catch(err => setToast({ message: err.message || 'Unable to load images. Please try again.', type: 'error' }));
   }, [nonLaptop]);
+
+  if (loadError) return <RequestFailure error={loadError} basePath="/non-pc" />;
 
   if (!nonLaptop) {
     return (
-      <div className="p-6 flex justify-center items-center">
+      <div role="status" aria-label="Loading record" className="p-6 flex justify-center items-center">
         <ClipLoader color="#4B5563" size={40} />
       </div>
     );
@@ -234,7 +230,7 @@ function NonPCEdit({handleLogout}) {
         onTracking={handleTracking}
         emptyTracking={emptyTracking}
       />
-      <div className="p-6">
+      <div className="app-form app-card mt-4">
         <div className="flex flex-col mb-4">
           <label className="text-sm font-bold mb-1">User</label>
           <input

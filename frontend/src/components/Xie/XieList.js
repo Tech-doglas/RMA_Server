@@ -1,9 +1,16 @@
-import React, { useEffect, useState } from "react";
+import { readList } from '../common/requestResult';
+import { apiFetch } from '../common/access';
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import GroupedGenericList from "../common/GroupedGenericList";
 
 function XieList({department}) {
   const [xieItems, setXieItems] = useState([]);
   const [snowbellDept, setSnowbellDept] = useState(false);
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const searchVersion = useRef(0);
+  const lastSearch = useRef({});
 
   const columns = [
     { key: "tracking_number", label: "Tracking Number" },
@@ -64,37 +71,27 @@ function XieList({department}) {
     },
   ];
 
-  const handleSearch = (searchParams) => {
-    const hasAnyFilters = Object.entries(searchParams).some(([key, value]) => {
-      if (Array.isArray(value)) return value.length > 0;
-      return value?.trim?.();
-    });
-
-    const finalParams = hasAnyFilters ? searchParams : {};
-
-    fetch(`http://${window.location.hostname}:8088/xie/api/search`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(finalParams),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (Array.isArray(data)) {
-          setXieItems(data);
-        } else {
-          console.error("Unexpected data format:", data);
-          setXieItems([]);
-        }
-      })
-      .catch((err) => {
-        console.error("Fetch error:", err);
-        setXieItems([]);
+  const handleSearch = useCallback(async (searchParams = {}) => {
+    const version = ++searchVersion.current;
+    lastSearch.current = searchParams;
+    setLoading(true);
+    setError('');
+    try {
+      const response = await apiFetch(`http://${window.location.hostname}:8088/xie/api/search`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(searchParams),
       });
-  };
-
+      const data = await readList(response);
+      if (version === searchVersion.current) setXieItems(data);
+    } catch (failure) {
+      if (version === searchVersion.current) setError(failure.message || 'Unable to load items. Please try again.');
+    } finally {
+      if (version === searchVersion.current) setLoading(false);
+    }
+  }, []);
   useEffect(() => {
     handleSearch({});
-  }, []);
+    return () => { searchVersion.current += 1; };
+  }, [handleSearch]);
 
   useEffect(() => {
     if (department === "SnowBell") {
@@ -111,6 +108,8 @@ function XieList({department}) {
       basePath="/xie-list"
       itemKey="id"
       onSearch={handleSearch}
+      loading={loading}
+      error={error}
       xie={snowbellDept}
     />
   );

@@ -1,3 +1,6 @@
+import { readJson, readList } from '../common/requestResult';
+import RequestFailure from '../common/RequestFailure';
+import { apiFetch } from '../common/access';
 import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import DetailView from '../common/DetailView';
@@ -11,6 +14,7 @@ function NonPCDetails() {
   const navigate = useNavigate();
   const [images, setImages] = useState([]);
   const [nonLaptop, setNonLaptop] = useState(null);
+  const [loadError, setLoadError] = useState('');
   const [toast, setToast] = useState(null);
 
   const fields = [
@@ -79,10 +83,10 @@ function NonPCDetails() {
     {
       label: 'Distributed',
       onClick: () => {
-        fetch(`http://${window.location.hostname}:8088/non_laptop/item/api/distributed/${id}`, {
+        apiFetch(`http://${window.location.hostname}:8088/non_laptop/item/api/distributed/${id}`, {
           method: 'POST',
         })
-          .then((res) => res.json())
+          .then(readJson)
           .then((data) => {
             if (data.status === 'success') {
               setToast({ message: 'Marked as Order Distributed ✔️', type: 'success' });
@@ -104,22 +108,25 @@ function NonPCDetails() {
   ];
 
   useEffect(() => {
-    fetch(`http://${window.location.hostname}:8088/non_laptop/item/api/${id}`)
-      .then(res => res.json())
-      .then(data => setNonLaptop(data));
+    apiFetch(`http://${window.location.hostname}:8088/non_laptop/item/api/${id}`)
+      .then(readJson)
+      .then(data => setNonLaptop(data))
+      .catch(err => setLoadError(err.message || 'Unable to load this record. Please try again.'));
   }, [id]);
 
   useEffect(() => {
     if (!nonLaptop) return;
-    fetch(`http://${window.location.hostname}:8088/images/api/non_laptop/${nonLaptop.TrackingNumber}`)
-      .then((res) => res.json())
+    apiFetch(`http://${window.location.hostname}:8088/images/api/non_laptop/${nonLaptop.TrackingNumber}`)
+      .then(readList)
       .then((data) => setImages({ list: data, type: 'non_laptop' }))
-      .catch((err) => console.error('Error fetching images:', err));
+      .catch(err => setToast({ message: err.message || 'Unable to load images. Please try again.', type: 'error' }));
   }, [nonLaptop]);
+
+  if (loadError) return <RequestFailure error={loadError} basePath="/non-pc" />;
 
   if (!nonLaptop) {
     return (
-      <div className="p-6 flex justify-center items-center">
+      <div role="status" aria-label="Loading record" className="p-6 flex justify-center items-center">
         <ClipLoader color="#4B5563" size={40} />
       </div>
     );

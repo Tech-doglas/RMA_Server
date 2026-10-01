@@ -4,6 +4,8 @@ import { getOptionClass } from './styles';
 function MultiSelect({ name, options, value, onChange, label }) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const triggerRef = useRef(null);
+  const listId = `filter-options-${name}`;
 
   // Handle clicks outside the dropdown to close it
   useEffect(() => {
@@ -24,9 +26,18 @@ function MultiSelect({ name, options, value, onChange, label }) {
   };
 
   return (
-    <div className="relative w-96 z-50" ref={dropdownRef}>
-      <div
-        className="p-2 border border-gray-300 rounded cursor-pointer bg-white"
+    <div className="relative w-full sm:w-80 max-w-full" ref={dropdownRef} onKeyDown={event => {
+      if (event.key === 'Escape') { setIsOpen(false); triggerRef.current?.focus(); }
+    }} onBlur={event => {
+      if (!event.currentTarget.contains(event.relatedTarget)) setIsOpen(false);
+    }}>
+      <button
+        type="button"
+        ref={triggerRef}
+        aria-label={label}
+        aria-expanded={isOpen}
+        aria-controls={listId}
+        className="w-full text-left p-2 border border-gray-300 rounded bg-white"
         onClick={() => setIsOpen(!isOpen)}
       >
         {value.length > 0 ? (
@@ -41,19 +52,19 @@ function MultiSelect({ name, options, value, onChange, label }) {
         ) : (
           <span className="text-gray-500">{label}</span>
         )}
-      </div>
+      </button>
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 border border-gray-300 bg-white max-h-48 overflow-y-auto rounded shadow-lg z-50">
+        <div id={listId} role="group" aria-label={label} className="absolute top-full left-0 right-0 border border-gray-300 bg-white max-h-64 overflow-y-auto rounded shadow-lg z-50">
           {options.map((option) => (
-            <div
+            <label
               key={option.value}
-              className={`p-2 cursor-pointer hover:bg-gray-100 ${
+              className={`flex items-center gap-3 p-3 min-h-11 cursor-pointer hover:bg-gray-100 ${
                 value.includes(option.value) ? 'bg-gray-200' : ''
               }`}
-              onClick={() => handleOptionClick(option.value)}
             >
+              <input type="checkbox" checked={value.includes(option.value)} onChange={() => handleOptionClick(option.value)} />
               {option.label}
-            </div>
+            </label>
           ))}
         </div>
       )}

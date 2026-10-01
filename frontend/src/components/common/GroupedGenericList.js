@@ -1,19 +1,23 @@
-import React, { useEffect, useState } from 'react';
+import { canPermission } from './access';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import MultiSelect from './MultiSelect';
 import { getOptionClass } from '../common/styles';
 import copy from 'copy-to-clipboard';
+import { useListState } from './listNavigation';
 
-function GroupedGenericList({ items, columns, searchFields, filterFields, basePath, itemKey, onSearch, xie = false }) {
-  const [search, setSearch] = useState(
+function GroupedGenericList({ items, columns, searchFields, filterFields, basePath, itemKey, onSearch, xie = false, loading = false, error = '' }) {
+  const [search, setSearch] = useListState('filters',
     Object.fromEntries([...searchFields.map((f) => [f.name, '']), ...filterFields.map((f) => [f.name, []])])
   );
-  const [expandedGroups, setExpandedGroups] = useState({});
+  const [expandedGroups, setExpandedGroups] = useListState('groups', {});
+  const [page, setPage] = useListState('page', 1);
   const [visibleColumns, setVisibleColumns] = useState(() => {
     const savedColumns = {};
     columns.forEach((col) => {
-      const savedState = localStorage.getItem(`${basePath}-${col.key}`);
-      savedColumns[col.key] = savedState !== null ? JSON.parse(savedState) : col.defaultVisible !== false;
+      let savedState;
+      try { savedState = JSON.parse(localStorage.getItem(`${basePath}-${col.key}`)); } catch (_) { /* Use column defaults when storage is unavailable. */ }
+      savedColumns[col.key] = typeof savedState === 'boolean' ? savedState : col.defaultVisible !== false;
     });
     return savedColumns;
   });
@@ -45,6 +49,7 @@ function GroupedGenericList({ items, columns, searchFields, filterFields, basePa
   };
 
   const handleSearchChange = (e) => {
+    setPage(1);
     const { name, value, type, checked } = e.target;
     if (type === 'checkbox') {
       setSearch((prev) => ({
@@ -63,7 +68,7 @@ function GroupedGenericList({ items, columns, searchFields, filterFields, basePa
     return searchFields.every((field) => {
       const value = search[field.name];
       if (!value) return true;
-      return String(item[field.key]).toLowerCase().includes(value.toLowerCase());
+      return String(item[field.key] ?? '').toLowerCase().includes(value.toLowerCase());
     }) && filterFields.every((field) => {
       const values = search[field.name];
       if (values.length === 0) return true;
@@ -77,7 +82,12 @@ function GroupedGenericList({ items, columns, searchFields, filterFields, basePa
     if (!acc[groupKey]) acc[groupKey] = [];
     acc[groupKey].push(item);
     return acc;
-  }, {});
+  }, Object.create(null));
+  const groups = Object.entries(groupedItems);
+  const pageCount = Math.max(1, Math.ceil(groups.length / 50));
+  const currentPage = Math.max(1, Math.min(Number(page) || 1, pageCount));
+  const pageGroups = groups.slice((currentPage - 1) * 50, currentPage * 50);
+  const detailPath = trackingNumber => `${basePath}/${encodeURIComponent(trackingNumber)}?from=${encodeURIComponent(window.location.pathname + window.location.search)}`;
 
   const toggleGroup = (trackingNumber) => {
     setExpandedGroups((prev) => ({
@@ -89,15 +99,15 @@ function GroupedGenericList({ items, columns, searchFields, filterFields, basePa
   const toggleColumn = (column) => {
     setVisibleColumns((prev) => {
       const newVisibleColumns = { ...prev, [column]: !prev[column] };
-      localStorage.setItem(`${basePath}-${column}`, JSON.stringify(newVisibleColumns[column]));
+      try { localStorage.setItem(`${basePath}-${column}`, JSON.stringify(newVisibleColumns[column])); } catch (_) { /* Keep the list available. */ }
       return newVisibleColumns;
     });
   };
 
   const handleCopy = (text, e) => {
     e.stopPropagation();
-    copy(text);
-    setToast({ message: `Copied: ${text}`, visible: true });
+    const copied = copy(String(text));
+    setToast({ message: copied ? `Copied: ${text}` : 'Unable to copy. Select the text and copy it manually.', visible: true });
     setTimeout(() => setToast({ message: '', visible: false }), 2000);
   };
 
@@ -118,17 +128,13 @@ function GroupedGenericList({ items, columns, searchFields, filterFields, basePa
   const copyableColumns = ['SerialNumber', 'OdooRef', 'SKU', 'OrderNumber', 'TrackingNumber'];
 
   return (
-    <div className="p-6">
+    <div className="app-page app-list">
       {/* Top Header Section */}
-      <div className="sticky top-0 z-50 bg-gray-100">
+      <div className="bg-gray-100">
         <h1 className="text-2xl font-bold mb-4">SnowBell Return List</h1>
-        <div className="flex space-x-2 mb-4">
-          {!xie && (
-            <Link to={`/xie/input`}>
-              <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-                Input
-              </button>
-            </Link>
+        <div className="app-actions mb-4">
+          {!xie && canPermission('xie.create') && (
+            <Link to="/xie/input" className="app-button">Input</Link>
           )}
           <button
             onClick={() => navigate('/dashboard')}
@@ -136,24 +142,19 @@ function GroupedGenericList({ items, columns, searchFields, filterFields, basePa
           >
             Home
           </button>
-          <Link to={`/xie/request`}>
-            <button
-              className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-              >
-              Request
-            </button>
-          </Link>
+          {canPermission('xie.request') && <Link to="/xie/request" className="app-button secondary">Request</Link>}
         </div>
 
         {/* Search and Filter Section */}
-        <div className="bg-white p-4 rounded-lg shadow mb-4">
+        <form onSubmit={event => { event.preventDefault(); onSearch(search); }} className="bg-white p-4 rounded-lg shadow mb-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
             {searchFields.map((field) => (
               <div key={field.name}>
-                <label className="block text-gray-700 font-bold mb-2">{field.label}</label>
+                <label htmlFor={`search-${field.name}`} className="block text-gray-700 font-bold mb-2">{field.label}</label>
                 {field.type === 'text' ? (
                   <input
                     type="text"
+                    id={`search-${field.name}`}
                     name={field.name}
                     value={search[field.name]}
                     onChange={handleSearchChange}
@@ -163,6 +164,7 @@ function GroupedGenericList({ items, columns, searchFields, filterFields, basePa
                 ) : field.type === 'date' ? (
                   <input
                     type="date"
+                    id={`search-${field.name}`}
                     name={field.name}
                     value={search[field.name]}
                     onChange={handleSearchChange}
@@ -190,16 +192,20 @@ function GroupedGenericList({ items, columns, searchFields, filterFields, basePa
               ))}
             </div>
             <div className="flex items-center h-full">
+              <button type="button" className="app-button secondary mr-2" disabled={loading} onClick={() => {
+                const reset = Object.fromEntries([...searchFields.map(field => [field.name, '']), ...filterFields.map(field => [field.name, []])]);
+                setSearch(reset); setPage(1); onSearch(reset);
+              }}>Reset</button>
               <button
-                type="button"
-                onClick={() => onSearch(search)}
+                type="submit"
+                disabled={loading}
                 className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded shadow"
               >
-                🔍 Search
+                {loading ? 'Searching…' : 'Search'}
               </button>
             </div>
           </div>
-        </div>
+        </form>
 
         {/* Filter Columns */}
         <div className="flex justify-between items-center mb-4">
@@ -207,6 +213,7 @@ function GroupedGenericList({ items, columns, searchFields, filterFields, basePa
           <div className="relative">
             <button
               onClick={() => setShowColumnFilter(!showColumnFilter)}
+              aria-expanded={showColumnFilter}
               className="bg-gray-200 px-4 py-2 rounded"
             >
               Filter Columns ▼
@@ -229,13 +236,17 @@ function GroupedGenericList({ items, columns, searchFields, filterFields, basePa
           </div>
         </div>
       </div>
+      {error && <p role="alert" className="p-3 mb-4 rounded bg-red-100 text-red-800">{error} <button type="button" onClick={() => onSearch(search)} disabled={loading} className="underline ml-2">Try again</button></p>}
+      {loading && <p role="status" className="mb-4">Loading items…</p>}
+      {!loading && !error && !groups.length && <p>No items match these filters.</p>}
 
       {/* Table Section */}
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto" aria-busy={loading}>
         <table className="w-full border-collapse bg-white shadow rounded">
           <thead>
             <tr className="bg-gray-200 sticky top-0 z-40">
-              <th className="p-2 border"></th>
+              <th scope="col" className="p-2 border">Group</th>
+              <th scope="col" className="p-2 border">Details</th>
               {columns.map((col) => visibleColumns[col.key] && (
                 <th key={col.key} className={`p-2 border bg-gray-100 ${isCenterAlign(col.key) ? 'text-center' : ''}`}>
                   {col.label}
@@ -244,25 +255,27 @@ function GroupedGenericList({ items, columns, searchFields, filterFields, basePa
             </tr>
           </thead>
           <tbody>
-            {Object.entries(groupedItems).map(([trackingNumber, groupItems]) => {
+            {pageGroups.map(([trackingNumber, groupItems]) => {
               let chilList = groupItems.slice(1);
               const hiddenRowCount = groupItems.length - 1;
               return (
                 <React.Fragment key={trackingNumber}>
-                  <tr className="bg-gray-100 cursor-pointer" onClick={() =>
-                      window.open(`http://${window.location.hostname}:${window.location.port}${basePath}/${trackingNumber}`, '_blank')
-                  }>
+                  <tr className="bg-gray-100 cursor-pointer" onClick={() => navigate(detailPath(trackingNumber))}>
                     <td className="p-2 border text-center">
-                      <button
+                      {hiddenRowCount > 0 && <button
+                        type="button"
+                        aria-label={`${expandedGroups[trackingNumber] ? 'Collapse' : 'Expand'} tracking ${trackingNumber}`}
+                        aria-expanded={!!expandedGroups[trackingNumber]}
                         onClick={(e) => {
                           e.stopPropagation();
                           toggleGroup(trackingNumber);
                         }}
                         className="text-lg font-bold"
                       >
-                        {hiddenRowCount > 0  && (expandedGroups[trackingNumber] ? '➖' : `➕ ${hiddenRowCount}`)}
-                      </button>
+                        {expandedGroups[trackingNumber] ? '−' : `+ ${hiddenRowCount}`}
+                      </button>}
                     </td>
+                    <td className="p-2 border" onClick={event => event.stopPropagation()}><Link to={detailPath(trackingNumber)} aria-label={`View tracking ${trackingNumber}`} className="inline-flex py-3">View</Link></td>
                     {columns.map((col) => visibleColumns[col.key] && (
                       <td
                         key={col.key}
@@ -279,10 +292,11 @@ function GroupedGenericList({ items, columns, searchFields, filterFields, basePa
                   {expandedGroups[trackingNumber] && chilList.map((item) => (
                     <tr
                       key={item[itemKey]}
-                      onClick={() => window.open(`http://${window.location.hostname}:${window.location.port}${basePath}/${trackingNumber}`, '_blank')}
+                      onClick={() => navigate(detailPath(trackingNumber))}
                       className="hover:bg-gray-100 cursor-pointer"
                     >
                       <td className="p-2 border"></td>
+                      <td className="p-2 border" onClick={event => event.stopPropagation()}><Link to={detailPath(trackingNumber)} aria-label={`View item ${item[itemKey]}`} className="inline-flex py-3">View</Link></td>
                       {columns.map((col) => visibleColumns[col.key] && (
                         <td
                           key={col.key}
@@ -311,10 +325,15 @@ function GroupedGenericList({ items, columns, searchFields, filterFields, basePa
           </tbody>
         </table>
       </div>
+      {groups.length > 0 && <nav aria-label="List pages" className="app-actions mt-4">
+        <button type="button" className="app-button secondary" disabled={currentPage === 1 || loading} onClick={() => setPage(currentPage - 1)}>Previous</button>
+        <span role="status">Page {currentPage} of {pageCount} · {groups.length} tracking groups</span>
+        <button type="button" className="app-button secondary" disabled={currentPage === pageCount || loading} onClick={() => setPage(currentPage + 1)}>Next</button>
+      </nav>}
 
       {/* Toast Notification */}
       {toast.visible && (
-        <div className="fixed bottom-4 right-4 bg-gray-800 text-white px-4 py-2 rounded shadow-lg z-50">
+        <div role="status" className="fixed bottom-4 right-4 bg-gray-800 text-white px-4 py-2 rounded shadow-lg z-50">
           {toast.message}
         </div>
       )}

@@ -1,11 +1,12 @@
 # routes/laptop/core.py
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 from app.models import get_db_connection
 
 core_bp = Blueprint('laptop_core', __name__)
 
 @core_bp.route('/api/laptops/search', methods=['POST'])
 def api_search_laptops():
+    conn = None
     try:
         filters = request.json
 
@@ -83,8 +84,11 @@ def api_search_laptops():
             columns = [col[0] for col in cursor.description]
             result = [dict(zip(columns, row)) for row in data]
 
-        conn.close()
         return jsonify(result)
 
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+    except Exception:
+        current_app.logger.exception('Unable to search PC inventory')
+        return jsonify(error='Unable to load inventory. Please try again.'), 500
+    finally:
+        if conn is not None:
+            conn.close()

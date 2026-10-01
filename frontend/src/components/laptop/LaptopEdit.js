@@ -1,6 +1,9 @@
+import RequestFailure from '../common/RequestFailure';
+import { apiFetch, canPermission } from '../common/access';
 import React, {useState, useEffect} from 'react';
 import { useParams } from 'react-router-dom';
 import GenericForm from '../common/GenericForm';
+import { requireOk, readJson, readList } from '../common/requestResult';
 import { ClipLoader } from 'react-spinners';
 import Toast from '../common/Toast';
 
@@ -8,6 +11,7 @@ function LaptopEdit({handleLogout}) {
   const [toast, setToast] = useState(null);
   const { id } = useParams();
   const [laptop, setLaptop] = useState(null);
+  const [loadError, setLoadError] = useState('');
   const [images, setImages] = useState({});
 
   const [currentUser, setCurrentUser] = useState('');
@@ -61,6 +65,7 @@ function LaptopEdit({handleLogout}) {
     },
     {
       name: 'updatedSpec',
+      disabled: !canPermission('pc.sell'),
       label: 'Updated Specification',
       type: 'text',
     },
@@ -106,11 +111,13 @@ function LaptopEdit({handleLogout}) {
     },
     {
       name: 'stock',
+      disabled: !canPermission('pc.sell'),
       label: 'Stock (SOLD)',
       type: 'checkbox',
     },
     {
       name: 'orderNumber',
+      disabled: !canPermission('pc.sell'),
       label: 'Order Number',
       type: 'text',
     },
@@ -148,19 +155,21 @@ function LaptopEdit({handleLogout}) {
     }, [handleLogout]);
 
     useEffect(() => {
-      fetch(`http://${window.location.hostname}:8088/laptop/item/${id}`)
-        .then((res) => res.json())
+      apiFetch(`http://${window.location.hostname}:8088/laptop/item/${id}`)
+        .then(readJson)
         .then((data) => setLaptop(data))
-        .catch((err) => console.error('Error fetching laptop:', err));
-      fetch(`http://${window.location.hostname}:8088/images/api/laptop/${id}`)
-        .then((res) => res.json())
+        .catch(err => setLoadError(err.message || 'Unable to load this record. Please try again.'));
+      apiFetch(`http://${window.location.hostname}:8088/images/api/laptop/${id}`)
+        .then(readList)
         .then((data) => setImages({ list: data, type: 'laptop' }))
-        .catch((err) => console.error('Error fetching images:', err));
+        .catch(err => setToast({ message: err.message || 'Unable to load images. Please try again.', type: 'error' }));
     }, [id]);
 
-    if (!laptop) {
+    if (loadError) return <RequestFailure error={loadError} basePath="/pc" />;
+
+  if (!laptop) {
       return (
-        <div className="p-6 flex justify-center items-center">
+        <div role="status" aria-label="Loading record" className="p-6 flex justify-center items-center">
           <ClipLoader color="#4B5563" size={40} />
         </div>
       );
@@ -173,21 +182,21 @@ function LaptopEdit({handleLogout}) {
       payload.append('brand', formData.brand);
       payload.append('model', formData.model);
       payload.append('spec', formData.spec);
-      payload.append('updatedSpec', formData.updatedSpec);
+      payload.append('updated_spec', formData.updatedSpec);
       payload.append('serial_number', formData.serialNumber);
       payload.append('condition', formData.condition);
       payload.append('sealed', formData.sealed ? '1' : '');
       payload.append('odoorecord', formData.odooRecord ? '1' : '');
       payload.append('odooRef', formData.odooRef);
       payload.append('sku', formData.sku);
-      payload.append('stock', formData.stock ? '' : 'SOLD');
+      payload.append('stock', formData.stock ? 'SOLD' : '');
       payload.append('order_number', formData.orderNumber);
       payload.append('remark', formData.remark);
       payload.append('user', formData.user);
 
       if (formData.user === 'Unknown User') {
         setToast({ message: 'Failed to Submit, User name is empty. Try Relogin again', type: 'error' });
-        return; // Stop submission if user is unknown
+        return { success: false, error: 'Please sign in again before saving.' };
       }
     
       // Append new images
@@ -197,43 +206,15 @@ function LaptopEdit({handleLogout}) {
         });
       }
     
-      fetch(`http://${window.location.hostname}:8088/laptop/item/update/${id}`, {
-        method: 'POST',
-        body: payload,
-      })
-        .then((res) => {
-          if (res.ok) {
-            return res.text().then((text) => {
-              console.log('Update successful:', text);
-              window.location.href = `/pc/${id}`; // Redirect to details page
-            });
-          } else {
-            return res.text().then((text) => {
-              throw new Error(text);
-            });
-          }
-        })
-        .catch((err) => {
-          console.error('Edit failed:', err);
-          alert('Update failed: ' + err.message);
-        });
+      return apiFetch(`http://${window.location.hostname}:8088/laptop/item/update/${encodeURIComponent(id)}`, {
+        method: 'POST', body: payload,
+      }).then(requireOk).then(() => ({ success: true, redirectTo: `/pc/${encodeURIComponent(id)}` }));
     };
 
     const handleDelete = () => {
-      fetch(`http://${window.location.hostname}:8088/laptop/item/api/item/${id}`, {
+      return apiFetch(`http://${window.location.hostname}:8088/laptop/item/api/item/${encodeURIComponent(id)}`, {
         method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
-        .then((res) => {
-          if (!res.ok) throw new Error('Failed to delete');
-          window.location.href = '/pc';
-        })
-        .catch((err) => {
-          console.error('Delete failed:', err);
-          alert('Delete failed: ' + err.message);
-        });
+      }).then(requireOk).then(() => ({ success: true }));
     };
     
     
@@ -252,7 +233,7 @@ function LaptopEdit({handleLogout}) {
         hideBackButton={true}
         existingImages={images || {}}
       />
-      <div className="p-6">
+      <div className="app-form app-card mt-4">
         <div className="flex flex-col mb-4">
           <label className="text-sm font-bold mb-1">User</label>
           <input

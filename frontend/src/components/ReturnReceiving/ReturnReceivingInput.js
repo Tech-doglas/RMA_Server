@@ -1,213 +1,101 @@
-import React, { useState } from 'react';
-import GenericForm from '../common/GenericForm';
-import Toast from '../common/Toast';
+import { canPermission } from '../common/access';
+import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import ReceivingLayout, { ErrorMessage } from './ReceivingLayout';
+import { receivingApi, today } from './receivingApi';
+import { optimizeImageForUpload } from './imageUpload';
+import FileLabels, { printFileLabels } from './FileLabels';
+import UnitPhotoPicker from './UnitPhotoPicker';
 
-const MAX_IMAGE_COUNT = 5;
-const MAX_IMAGE_BYTES = 4 * 1024 * 1024;
-const TARGET_UPLOAD_BYTES = 1024 * 1024;
-const MAX_IMAGE_DIMENSION = 1600;
+const emptyUnit = () => ({ laptop: '', images: [] });
 
-function loadImage(file) {
-  return new Promise((resolve, reject) => {
-    const previewUrl = URL.createObjectURL(file);
-    const image = new Image();
-
-    image.onload = () => {
-      URL.revokeObjectURL(previewUrl);
-      resolve(image);
-    };
-
-    image.onerror = () => {
-      URL.revokeObjectURL(previewUrl);
-      reject(new Error(`Unable to read image: ${file.name}`));
-    };
-
-    image.src = previewUrl;
-  });
-}
-
-function canvasToBlob(canvas, quality) {
-  return new Promise((resolve, reject) => {
-    canvas.toBlob((blob) => {
-      if (blob) {
-        resolve(blob);
-        return;
-      }
-
-      reject(new Error('Unable to optimize image for upload.'));
-    }, 'image/jpeg', quality);
-  });
-}
-
-async function optimizeImageForUpload(file, index) {
-  if (!file || file.size <= TARGET_UPLOAD_BYTES) {
-    return file;
-  }
-
-  const image = await loadImage(file);
-  const scale = Math.min(1, MAX_IMAGE_DIMENSION / Math.max(image.width, image.height));
-  const canvas = document.createElement('canvas');
-
-  canvas.width = Math.max(1, Math.round(image.width * scale));
-  canvas.height = Math.max(1, Math.round(image.height * scale));
-
-  const context = canvas.getContext('2d');
-  if (!context) {
-    throw new Error('Unable to prepare image upload.');
-  }
-  context.drawImage(image, 0, 0, canvas.width, canvas.height);
-
-  let quality = 0.82;
-  let blob = await canvasToBlob(canvas, quality);
-
-  while (blob.size > TARGET_UPLOAD_BYTES && quality > 0.5) {
-    quality -= 0.08;
-    blob = await canvasToBlob(canvas, quality);
-  }
-
-  if (blob.size >= file.size && file.size <= MAX_IMAGE_BYTES) {
-    return file;
-  }
-
-  const baseName = (file.name || `shipping-label-${index + 1}`).replace(/\.[^.]+$/, '');
-  return new File([blob], `${baseName}.jpg`, {
-    type: 'image/jpeg',
-    lastModified: Date.now(),
-  });
-}
-
-function ReturnReceivingInput() {
-  const [toast, setToast] = useState(null);
-
-  const initialData = {
-    trackingNumber: '',
-    code: '',
-    company: '',
-    remark: '',
-    image: Array.from({ length: 5 }, () => undefined),
-  };
-
-  const fields = [
-    {
-      name: 'trackingNumber',
-      label: 'Tracking #',
-      type: 'text',
-      placeholder: 'e.g., 1ZV390E3000000000',
-      required: true,
-    },
-    {
-      name: 'company',
-      label: 'Company',
-      type: 'select',
-      options: [
-        { value: '', label: 'Select company', disabled: true },
-        { value: 'PX/LEO/KRIZY', label: 'PX/LEO/KRIZY' },
-        { value: 'SNOWBELL/XIE/PITY TECH', label: 'SNOWBELL/XIE/PITY TECH' },
-        { value: 'Others', label: 'Others' },
-      ],
-      required: true,
-    },
-    {
-      name: 'code',
-      label: 'Code',
-      type: 'select',
-      options: [
-        { value: '', label: 'Select code', disabled: true },
-        { value: '0000', label: '0000' },
-        { value: 'QUICK_CHECK', label: 'QUICK_CHECK' },
-        { value: 'DETAIL_CHECK', label: 'DETAIL_CHECK' },
-        { value: 'REGULAR', label: 'REGULAR' },
-        { value: 'BULK_NEW', label: 'BULK_NEW' },
-      ],
-      required: true,
-    },
-    {
-      name: 'remark',
-      label: 'Remark',
-      type: 'textarea',
-      rows: 5,
-    },
-    {
-      name: 'image',
-      label: 'Upload Shipping Label Image (up to 5, optimized before upload)',
-      type: 'file',
-      accept: 'image/jpg,image/jpeg,image/png',
-      capture: 'environment',
-      multiple: true,
-      required: true,
-      validate: (value) => {
-        const images = Array.from(value || []).filter(Boolean);
-        if (images.length === 0) {
-          return 'Please upload at least one shipping label image';
-        }
-        if (images.length > MAX_IMAGE_COUNT) {
-          return `Please upload no more than ${MAX_IMAGE_COUNT} images`;
-        }
-        return null;
-      },
-    },
-  ];
-
-  const handleSubmit = async (formData) => {
-    try {
-      const data = new FormData();
-      data.append('tracking_number', formData.trackingNumber);
-      data.append('company', formData.company);
-      data.append('code', formData.code);
-      data.append('remark', formData.remark);
-
-      if (formData.image && formData.image.length > 0) {
-        const selectedImages = Array.from(formData.image).filter(Boolean);
-        const optimizedImages = await Promise.all(
-          selectedImages.map((file, index) => optimizeImageForUpload(file, index))
-        );
-
-        const oversizedImage = optimizedImages.find((file) => file.size > MAX_IMAGE_BYTES);
-        if (oversizedImage) {
-          setToast({
-            message: `"${oversizedImage.name}" is still over 4MB after optimization. Please retake it closer to the label.`,
-            type: 'error',
-          });
-          return { success: false };
-        }
-
-        optimizedImages.forEach((file) => {
-          data.append('images', file);
-        });
-      }
-
-      const res = await fetch(`http://${window.location.hostname}:8088/return/submit`, {
-        method: 'POST',
-        body: data,
-      });
-
-      if (res.ok) {
-        setToast({ message: '✔️ Submitted successfully', type: 'success' });
-        return { success: true };
-      } else {
-        const errorText = await res.text();
-        setToast({ message: errorText || 'Failed to Submit', type: 'error' });
-        return { success: false };
-      }
-    } catch (err) {
-      setToast({ message: err.message || 'Submit error. Try again later.', type: 'error' });
-      return { success: false };
+export default function ReturnReceivingInput({ department }) {
+  const defaultCompany = department === 'SnowBell' ? 'SNOWBELL/XIE/PITY TECH' : '';
+  const [delivery, setDelivery] = useState({ tracking: '', receivedDate: today(), remark: '', company: '' });
+  const [companies, setCompanies] = useState([]);
+  const [loadingCompanies, setLoadingCompanies] = useState(true);
+  const [units, setUnits] = useState([emptyUnit()]);
+  const [quantity, setQuantity] = useState('1');
+  const [images, setImages] = useState([]);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const [result, setResult] = useState(null);
+  const change = event => setDelivery({ ...delivery, [event.target.name]: event.target.value });
+  useEffect(() => {
+    let active = true;
+    receivingApi('/companies').then(data => {
+      if (!active) return;
+      setCompanies(data.companies);
+      if (defaultCompany && data.companies.includes(defaultCompany)) setDelivery(previous => ({ ...previous, company: previous.company || defaultCompany }));
+    }).catch(err => { if (active) setError(err.message); }).finally(() => { if (active) setLoadingCompanies(false); });
+    return () => { active = false; };
+  }, [defaultCompany]);
+  function resizeQuantity(value) {
+    setQuantity(value);
+    const count = Number(value);
+    if (Number.isInteger(count) && count >= 1 && count <= 100) {
+      setUnits(previous => Array.from({ length: count }, (_, index) => previous[index] || emptyUnit()));
     }
-  };
+  }
 
-
-
-  return (
-    <>
-      {toast && <Toast {...toast} onClose={() => setToast(null)} />}
-      <GenericForm
-        initialData={initialData}
-        fields={fields}
-        onSubmit={handleSubmit}
-        basePath="/return"
-      />
-    </>
-  );
+  function selectImages(files, update) {
+    const list = Array.from(files || []);
+    if (list.length > 5) { setError('Choose at most 5 photos per label or unit.'); return; }
+    if (list.some(file => !['image/jpeg', 'image/png'].includes(file.type))) { setError('Choose JPEG or PNG photos.'); return; }
+    setError(''); update(list);
+  }
+  async function appendImages(body, key, files) {
+    for (let i = 0; i < files.length; i++) {
+      const file = await optimizeImageForUpload(files[i], i);
+      if (file.size > 4 * 1024 * 1024) throw new Error(file.name + ' is still over 4 MB. Choose a smaller photo.');
+      body.append(key, file);
+    }
+  }
+  async function submit(event) {
+    event.preventDefault(); setBusy(true); setError('');
+    try {
+      const body = new FormData();
+      if (Number(quantity) !== units.length) throw new Error('Quantity must be a whole number from 1 to 100.');
+      body.append('payload', JSON.stringify({ ...delivery, quantity: units.length, units: units.map(unit => ({ laptop: unit.laptop })) }));
+      await appendImages(body, 'images', images);
+      for (let i = 0; i < units.length; i++) await appendImages(body, 'unitImages_' + i, units[i].images);
+      setResult(await receivingApi('/units', { method: 'POST', body }));
+    } catch (err) { setError(err.message); }
+    finally { setBusy(false); }
+  }
+  return <ReceivingLayout title="Receive a delivery" subtitle="One delivery, one record for every laptop. File numbers are assigned when you save.">
+    <ErrorMessage message={error} />
+    {result ? <section className="receiving-success" role="status">
+      <h2>{result.quantity} {result.quantity === 1 ? 'unit' : 'units'} received</h2>
+      <p>Open a file to inspect the laptop. Print the file number from its detail page.</p>
+      <div className="receiving-actions">{result.fileNos.map(fileNo => <Link key={fileNo} to={'/return/' + fileNo}>{fileNo}</Link>)}</div>
+      <div className="receiving-actions">{canPermission('return.print') && <button onClick={printFileLabels}>Print all file labels</button>}</div>
+      <div className="receiving-actions"><button onClick={() => {
+        setResult(null); setDelivery({ tracking: '', receivedDate: today(), remark: '', company: companies.includes(defaultCompany) ? defaultCompany : '' }); setImages([]); setUnits([emptyUnit()]); setQuantity('1');
+      }}>Receive another delivery</button><Link to="/return">View returns</Link></div>
+    </section> : <form onSubmit={submit}><fieldset disabled={busy}>
+      <section className="receiving-card"><h2>Delivery information</h2><div className="receiving-grid">
+        <label>Tracking #<input name="tracking" value={delivery.tracking} onChange={change} maxLength={255} placeholder="Scan or enter tracking number" autoFocus /></label>
+        <label>Received date<input type="date" name="receivedDate" value={delivery.receivedDate} onChange={change} required /></label>
+        <label>Company<select name="company" value={delivery.company} onChange={change} disabled={loadingCompanies}><option value="">{loadingCompanies ? 'Loading companies…' : 'Unspecified'}</option>{companies.map(company => <option key={company}>{company}</option>)}</select></label>
+        <label>Quantity in this delivery<input type="number" min="1" max="100" step="1" required value={quantity} onChange={e => resizeQuantity(e.target.value)} /></label>
+      </div>
+      <label className="mt-5">Receiving remark<textarea name="remark" value={delivery.remark} onChange={change} maxLength={4000} rows={3} placeholder="Packaging condition, missing items, or delivery notes" /></label>
+      {canPermission('return.photos') && <label className="mt-5">Shared shipping label photos<input type="file" accept="image/jpeg,image/png" multiple onChange={e => selectImages(e.target.files, setImages)} /></label>}
+      <p className="receiving-muted mt-2">Optional. Up to 5 photos, shared by all units. Large photos are optimized before upload.</p>
+      {images.length > 0 && <p className="receiving-muted mt-2">{images.map(file => file.name).join(', ')}</p>}
+      </section>
+      <section className="receiving-card"><h2>Laptops in this delivery · {units.length}</h2>
+      {units.map((unit, index) => <div className="receiving-unit" key={index}><h3>Unit {index + 1}</h3><div className="receiving-grid">
+        <label>Laptop name<input value={unit.laptop} maxLength={255} placeholder="e.g., Dell Latitude 5420" onChange={e => setUnits(units.map((item, i) => i === index ? { ...item, laptop: e.target.value } : item))} /></label>
+        {canPermission('return.photos') && <UnitPhotoPicker files={unit.images} onChange={files => setUnits(previous => previous.map((item, i) => i === index ? { ...item, images: files } : item))} />}
+      </div></div>)}
+      <div className="receiving-actions"><button className="secondary" type="button" onClick={() => resizeQuantity(String(units.length + 1))} disabled={units.length >= 100}>+ Add laptop</button>
+      <button className="secondary" type="button" disabled={units.length === 1} onClick={() => resizeQuantity(String(units.length - 1))}>Remove last laptop</button></div>
+      <p className="receiving-muted mt-3">Serial numbers and pallets are assigned during inspection. Receive up to 100 units per delivery.</p></section>
+      <div className="receiving-actions"><button type="submit" disabled={loadingCompanies}>{busy ? 'Optimizing photos and saving…' : 'Receive ' + units.length + (units.length === 1 ? ' unit' : ' units')}</button><Link to="/return">Cancel</Link></div>
+    </fieldset></form>}
+    {result && <FileLabels items={result.fileNos.map((fileNo, index) => ({ fileNo, laptop: units[index].laptop, tracking: delivery.tracking, unitIndex: index + 1, groupSize: result.quantity }))} />}
+  </ReceivingLayout>;
 }
 
-export default ReturnReceivingInput;

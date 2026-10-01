@@ -3,6 +3,7 @@ import pyodbc
 import os
 from contextlib import contextmanager
 from flask import current_app
+from werkzeug.exceptions import ServiceUnavailable
 
 def get_project_root():
     if current_app:
@@ -19,7 +20,17 @@ def get_modi_rma_root():
         return get_project_root()
 
 def get_db_connection():
-    return pyodbc.connect(current_app.config['CONN_STR'])
+    if current_app.config.get('DATABASE_BACKEND') == 'sqlite':
+        from app.local_database import LocalConnection
+        return LocalConnection(current_app.config['SQLITE_PATH'])
+    driver = current_app.config['SQL_DRIVER'].strip('{}')
+    if driver not in pyodbc.drivers():
+        raise ServiceUnavailable(description=f'Database connection unavailable: install {driver} on this PC.')
+    try:
+        return pyodbc.connect(current_app.config['CONN_STR'], timeout=5)
+    except pyodbc.Error as exc:
+        current_app.logger.error('Database connection failed (ODBC state %s)', exc.args[0] if exc.args else 'unknown')
+        raise ServiceUnavailable(description='Database connection unavailable. Check the SQL Server address, network access, and database credentials.') from exc
 
 @contextmanager
 def db_connection():
@@ -34,64 +45,20 @@ def db_connection():
         conn.close()
 
 def save_laptop_images(images, type, item_id):
-    image_dir = os.path.join(get_modi_rma_root(), 'images', type, str(item_id))
-    os.makedirs(image_dir, exist_ok=True)
-    
-    from werkzeug.utils import secure_filename
-    for i, image in enumerate(images, start=1):
-        if image and image.filename:
-            ext = os.path.splitext(secure_filename(image.filename))[1]
-            filename = f"{i}{ext}"
-            image_path = os.path.join(image_dir, filename)
-            image.save(image_path, buffer_size=1024 * 1024)
-    return image_dir
+    from app.uploads import image_directory, save_image_files
+    root = get_modi_rma_root()
+    save_image_files(root, type, item_id, images)
+    return image_directory(root, type, item_id)
+
 
 def get_laptop_image_files(type, item_id):
-    image_dir = os.path.join(get_modi_rma_root(), 'images', type, str(item_id))
-    if os.path.exists(image_dir):
-        files = sorted([f for f in os.listdir(image_dir) if os.path.isfile(os.path.join(image_dir, f))])
-        return files
-    return []
+    from app.uploads import list_image_files
+    return list_image_files(get_modi_rma_root(), type, item_id)
+
 
 def save_shipping_label_image(images, tracking_number):
-    image_dir = os.path.join(get_modi_rma_root(), 'images', 'return_receiving', tracking_number)
-    os.makedirs(image_dir, exist_ok=True)
-    
-    from werkzeug.utils import secure_filename
+    return save_laptop_images(images, 'return_receiving', tracking_number)
 
-    for i, image in enumerate(images, start=1):
-        if image and image.filename:
-            ext = os.path.splitext(secure_filename(image.filename))[1]
-            filename = f"{i}{ext}"
-            image_path = os.path.join(image_dir, filename)
-            image.save(image_path, buffer_size=1024 * 1024)
-    return image_dir
-
-    # if image and image.filename:
-    #     filename = secure_filename(image.filename)
-    #     ext = os.path.splitext(filename)[1]
-    #     saved_filename = f"{tracking_number}{ext}"
-    #     image_dir = os.path.join(get_modi_rma_root(), 'images', 'return_receiving')
-    #     try:
-    #         os.makedirs(image_dir, exist_ok=True)
-    #         image_path = os.path.join(image_dir, saved_filename)
-    #         image.save(image_path)
-    #         print(f"✅ Image saved to: {image_path}")
-    #     except Exception as e:
-    #         print(f"❌ Failed to save image: {e}")
-    # else:
-    #     print("⚠️ Image missing or empty filename")
-    # return image_dir
 
 def get_shipping_label_image(tracking_number):
-    image_dir = os.path.join(get_modi_rma_root(), 'images', 'return_receiving', tracking_number)
-    if os.path.exists(image_dir):
-        files = sorted([f for f in os.listdir(image_dir) if os.path.isfile(os.path.join(image_dir, f))])
-        return files
-    return []
-    # image_dir = os.path.join(get_modi_rma_root(), 'images', 'return_receiving')
-    # if os.path.exists(image_dir):
-    #     for filename in os.listdir(image_dir):
-    #         if filename.startswith(tracking_number):
-    #             return filename
-    # return None
+    return get_laptop_image_files('return_receiving', tracking_number)

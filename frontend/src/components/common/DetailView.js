@@ -1,31 +1,29 @@
+import { canPermission, API_SERVER } from './access';
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import { ClipLoader } from 'react-spinners';
+import { BackToListing } from './listNavigation';
 
 function DetailView({ item, fields, basePath, itemId, actions = [], images = [] }) {
-  const navigate = useNavigate();
+  const scope = basePath.startsWith('/non-pc') ? 'nonpc' : basePath.startsWith('/pc') ? 'pc' : basePath.startsWith('/xie') ? 'xie' : 'legacy';
+  const actionPermission = action => action.permission || scope + ({ Sales: '.sell', Edit: '.edit', 'Edit Record': '.edit', Done: '.inspect', Distributed: '.distribute' }[action.label] || '.view');
 
   if (!item) {
     return (
-      <div className="p-6 flex justify-center items-center">
-        <ClipLoader color="#4B5563" size={40} />
+      <div role="status" className="p-6 flex gap-3 justify-center items-center">
+        <ClipLoader color="#4B5563" size={40} aria-hidden="true" />
+        Loading record…
       </div>
     );
   }
 
   return (
-    <div className="p-6">
+    <div className="app-page">
       <h1 className="text-2xl font-bold mb-4">{basePath.charAt(1).toUpperCase() + basePath.slice(2).replace('-', ' ')} Details</h1>
-      <div className="flex space-x-2 mb-4">
-        <button
-          onClick={() => navigate(basePath)}
-          className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-        >
-          Back
-        </button>
-        {actions.map((action, index) =>
+      <div className="app-actions mb-4">
+        <BackToListing fallback={basePath} />
+        {actions.filter(action => !action.hidden && canPermission(actionPermission(action))).map((action, index) =>
           action.render ? (
-            action.render()
+            <React.Fragment key={action.label || index}>{action.render()}</React.Fragment>
           ) : (
             <button
               key={index}
@@ -40,14 +38,14 @@ function DetailView({ item, fields, basePath, itemId, actions = [], images = [] 
         )}
       </div>
 
-      <div className="bg-white p-4 rounded-lg shadow">
+      <div className="app-card">
         <table className="w-full border-collapse">
           <tbody>
             {fields.map((field) => (
               <tr key={field.key} className="border-b">
-                <th className="p-2 text-left">{field.label}</th>
+                <th scope="row" className="p-2 text-left">{field.label}</th>
                 <td className={`p-2 ${field.className ? field.className(item) : ''}`}>
-                  {field.render ? field.render(item) : item[field.key] || 'None'}
+                  {field.render ? field.render(item) : item[field.key] ?? 'None'}
                 </td>
               </tr>
             ))}
@@ -62,9 +60,10 @@ function DetailView({ item, fields, basePath, itemId, actions = [], images = [] 
             {images.list.map((filename) => (
               <div key={filename} className="relative">
                 <img
-                  src={`http://${window.location.hostname}:8088/images/${images.type}/${itemId}/${filename}`}
+                  src={`${API_SERVER}/images/${encodeURIComponent(images.type)}/${encodeURIComponent(itemId)}/${encodeURIComponent(filename)}`}
                   alt={filename}
                   className="w-[600px] h-auto rounded shadow"
+                  loading="lazy"
                 />
               </div>
             ))}

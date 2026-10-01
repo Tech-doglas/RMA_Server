@@ -1,9 +1,16 @@
-import React, { useEffect, useState } from 'react';
+import { readList, requireOk } from '../common/requestResult';
+import { apiFetch } from '../common/access';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import GenericList from '../common/GenericList';
 import { gradeMapping } from '../common/GradeMapping'
 
 function NonPCList() {
   const [nonLaptops, set_nonLaptops] = useState([]);
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const searchVersion = useRef(0);
+  const lastSearch = useRef({});
 
   const columns = [
     { key: 'ReceivedDate', label: 'Rec Date', defaultVisible: false },
@@ -114,69 +121,37 @@ function NonPCList() {
     { name: 'Ready To Sale', action: (ids) => handleReadyToSale(ids)},
   ]
 
-  const handleSearch = (searchParams = {}) => {
-    const hasAnyFilters = Object.entries(searchParams).some(([key, value]) => {
-      if (Array.isArray(value)) return value.length > 0;
-      return value?.trim?.();
+  const handleSearch = useCallback(async (searchParams = {}) => {
+    const version = ++searchVersion.current;
+    lastSearch.current = searchParams;
+    setLoading(true);
+    setError('');
+    try {
+      const response = await apiFetch(`http://${window.location.hostname}:8088/non_laptop/api/search`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(searchParams),
+      });
+      const data = await readList(response);
+      if (version === searchVersion.current) set_nonLaptops(data);
+    } catch (failure) {
+      if (version === searchVersion.current) setError(failure.message || 'Unable to load items. Please try again.');
+    } finally {
+      if (version === searchVersion.current) setLoading(false);
+    }
+  }, []);
+  const updateSelected = async (endpoint, ids) => {
+    const response = await apiFetch(`http://${window.location.hostname}:8088/non_laptop/api/${endpoint}`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ids }),
     });
-
-    const finalParams = hasAnyFilters ? searchParams : {};
-
-    fetch(`http://${window.location.hostname}:8088/non_laptop/api/search`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(finalParams),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (Array.isArray(data)) {
-          set_nonLaptops(data);
-        } else {
-          console.error('Unexpected data format:', data);
-          set_nonLaptops([]);
-        }
-      })
-      .catch((err) => {
-        console.error('Fetch error:', err);
-        set_nonLaptops([]);
-      });
+    await requireOk(response);
+    await handleSearch(lastSearch.current);
   };
-
-  const handleDetailsCheck = (database_IDs) => {
-    console.log(database_IDs)
-    fetch(`http://${window.location.hostname}:8088/non_laptop/api/updaterequest`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ids: database_IDs }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        handleSearch({})
-      })
-      .catch((err) => {
-        console.error('Fetch error:', err);
-      });
-  }
-
-  const handleReadyToSale = (database_IDs) => {
-    console.log(database_IDs)
-    fetch(`http://${window.location.hostname}:8088/non_laptop/api/saleready`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ids: database_IDs }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        handleSearch({})
-      })
-      .catch((err) => {
-        console.error('Fetch error:', err);
-      });
-  }
+  const handleDetailsCheck = ids => updateSelected('updaterequest', ids);
+  const handleReadyToSale = ids => updateSelected('saleready', ids);
 
   useEffect(() => {
     handleSearch({});
-  }, []);
+    return () => { searchVersion.current += 1; };
+  }, [handleSearch]);
 
 
   return (
@@ -188,6 +163,8 @@ function NonPCList() {
       basePath="/non-pc"
       itemKey="ID"
       onSearch={handleSearch}
+      loading={loading}
+      error={error}
       actions={actions}
     />
   );

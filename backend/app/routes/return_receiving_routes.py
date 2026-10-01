@@ -1,8 +1,10 @@
 import os
 import time
 
-from flask import Blueprint, request, redirect, url_for, jsonify, current_app
+from flask import Blueprint, request, jsonify, current_app
 from app.models import get_db_connection, db_connection, save_shipping_label_image
+from app.uploads import storage_component, validate_images
+from app.permissions import require_action
 from datetime import datetime, timedelta
 from werkzeug.exceptions import ClientDisconnected
 
@@ -81,7 +83,8 @@ def show_return_receiving_sheet():
         return jsonify(results)
 
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        current_app.logger.exception('Unable to search previous receiving records')
+        return jsonify(error='Unable to load the records. Please try again.'), 500
     finally:
         if conn:
             conn.close()
@@ -102,7 +105,8 @@ def api_get_return_receiving_detail(tracking_number):
         record = dict(zip(columns, row))
         return jsonify(record)
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        current_app.logger.exception('Unable to load previous receiving record')
+        return jsonify(error='Unable to load the record. Please try again.'), 500
     finally:
         if conn:
             conn.close()
@@ -116,10 +120,11 @@ def submit_record():
 
     try:
         tracking_number = request.form.get('tracking_number')
+        storage_component(tracking_number)
         company = request.form.get('company')
         code = request.form.get('code')
         remark = request.form.get('remark')
-        images = [image for image in request.files.getlist('images') if image and image.filename]
+        images = validate_images(request.files.getlist('images'))
         total_bytes = sum(get_uploaded_file_size(image) for image in images)
 
         current_app.logger.info(
@@ -131,7 +136,16 @@ def submit_record():
 
         with db_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute("""
+            cursor.execute('SELECT TrackingNumber FROM RMA_return_receiving WITH (UPDLOCK, HOLDLOCK) WHERE TrackingNumber = ?', tracking_number)
+            if cursor.fetchone():
+                require_action('legacy.edit')
+            if current_app.config.get('DATABASE_BACKEND') == 'sqlite':
+                cursor.execute('''INSERT INTO RMA_return_receiving (TrackingNumber, Company, Code, Remark)
+                    VALUES (?, ?, ?, ?) ON CONFLICT(TrackingNumber) DO UPDATE SET
+                    Company = excluded.Company, Code = excluded.Code, Remark = excluded.Remark''',
+                    tracking_number, company, code, remark)
+            else:
+                cursor.execute("""
                 IF EXISTS (SELECT 1 FROM RMA_return_receiving WHERE TrackingNumber = ?)
                 BEGIN
                     UPDATE RMA_return_receiving
@@ -143,7 +157,7 @@ def submit_record():
                     INSERT INTO RMA_return_receiving (TrackingNumber, Company, Code, Remark)
                     VALUES (?, ?, ?, ?)
                 END
-            """, (tracking_number, company, code, remark, tracking_number, tracking_number, company, code, remark))
+                """, (tracking_number, company, code, remark, tracking_number, tracking_number, company, code, remark))
             save_started_at = time.perf_counter()
             save_shipping_label_image(images, tracking_number)
             save_duration_ms = (time.perf_counter() - save_started_at) * 1000
@@ -158,6 +172,10 @@ def submit_record():
             total_duration_ms,
         )
         return "OK", 200
+    except PermissionError as exc:
+        return jsonify(error=str(exc)), 403
+    except ValueError as exc:
+        return jsonify(error=str(exc)), 400
     except ClientDisconnected:
         total_duration_ms = (time.perf_counter() - started_at) * 1000
         current_app.logger.warning(
@@ -178,27 +196,29 @@ def submit_record():
             total_bytes,
             total_duration_ms,
         )
-        return jsonify({'error': str(e)}), 500
+        return jsonify(error='Unable to save the record. Please try again.'), 500
 
-@return_receiving_bp.route('/recorded/<tracking_number>')
+@return_receiving_bp.route('/recorded/<tracking_number>', methods=['POST'])
 def mark_recorded(tracking_number):
     try:
         with db_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("UPDATE RMA_return_receiving SET Recorded = 1 WHERE TrackingNumber = ?", (tracking_number,))
-        return redirect(url_for('return_receiving.return_receiving_record_detail', tracking_number=tracking_number))
+        return jsonify({'message': 'Marked as recorded.'})
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        current_app.logger.exception('Unable to mark previous receiving record as recorded')
+        return jsonify(error='Unable to update the record. Please try again.'), 500
 
-@return_receiving_bp.route('/updateCode/<tracking_number>/<code>')
+@return_receiving_bp.route('/updateCode/<tracking_number>/<code>', methods=['POST'])
 def update_code(tracking_number, code):
     try:
         with db_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("UPDATE RMA_return_receiving SET Code = ? WHERE TrackingNumber = ?", (code, tracking_number,))
-        return redirect(url_for('return_receiving.return_receiving_record_detail', tracking_number=tracking_number))
+        return jsonify({'message': 'Code updated.'})
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        current_app.logger.exception('Unable to update previous receiving code')
+        return jsonify(error='Unable to update the record. Please try again.'), 500
 
 
 @return_receiving_bp.route('/edit/<tracking_number>', methods=['POST'])
@@ -217,4 +237,5 @@ def edit_tracking(tracking_number):
 
         return jsonify({'message': 'Record updated successfully!'}), 200
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        current_app.logger.exception('Unable to edit previous receiving record')
+        return jsonify(error='Unable to update the record. Please try again.'), 500

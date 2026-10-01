@@ -1,3 +1,4 @@
+import { apiFetch } from '../common/access';
 import React, { useState, useEffect } from 'react';
 import GenericForm from '../common/GenericForm';
 import Toast from '../common/Toast';
@@ -169,7 +170,7 @@ function LaptopInput({handleLogout}) {
 
       if (formData.user === 'Unknown User') {
         setToast({ message: 'Failed to Submit, User name is empty. Try Relogin again', type: 'error' });
-        return; // Stop submission if user is unknown
+        return { success: false, error: 'Please sign in again before saving.' };
       }
   
       // Append images
@@ -180,7 +181,7 @@ function LaptopInput({handleLogout}) {
         });
       }
       
-      const response = await fetch(`http://${window.location.hostname}:8088/laptop/item/submit`, {
+      const response = await apiFetch(`http://${window.location.hostname}:8088/laptop/item/submit`, {
         method: 'POST',
         body: data,
       });
@@ -210,7 +211,7 @@ function LaptopInput({handleLogout}) {
               onSubmit={handleSubmit}
               basePath="/pc"
             />
-            <div className="p-6">
+            <div className="app-form app-card mt-4">
               <div className="flex flex-col mb-4">
                 <label className="text-sm font-bold mb-1">User</label>
                 <input

@@ -12,3 +12,9 @@ docker-compose.yml
 backup_db.sh
 dockerBuilder.sh
 backend/config.py
+# Local verification dependencies and package cache
+.test-deps/
+.pnpm-store/
+backend/logs/
+backend/storage/
+.run/

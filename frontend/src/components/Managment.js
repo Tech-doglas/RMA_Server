@@ -1,3 +1,4 @@
+import { apiFetch } from './common/access';
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Toast from "./common/Toast";
@@ -27,7 +28,7 @@ function Management({ department }) {
     console.log(departmentName, type);
     const url = `http://${window.location.hostname}:8088/report/${departmentName}?format=${type}`; // type = 'pdf' or 'excel'
     try {
-      const response = await fetch(url);
+      const response = await apiFetch(url);
       if (!response.ok) throw new Error("Export failed");
 
       const blob = await response.blob();
@@ -47,13 +48,13 @@ function Management({ department }) {
   return (
     <>
       {toast && <Toast {...toast} onClose={() => setToast(null)} />}
-      <div className="p-6 space-y-6">
-      <div className="space-y-4">
+      <div className="app-page app-form space-y-6">
+      <div className="app-card space-y-4">
           <h1 className="text-3xl font-bold">Management Page</h1>
-          <div className="space-x-2">
+          <div className="app-actions">
             <button
               onClick={() => handleExport("pdf")}
-              className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition"
+              className="app-button"
             >
               Export PDF
             </button>
@@ -68,7 +69,7 @@ function Management({ department }) {
 
         <button
           onClick={() => navigate("/dashboard")}
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition"
+          className="app-button secondary"
         >
           Back to Dashboard
         </button>

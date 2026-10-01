@@ -1,150 +1,76 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import DetailView from '../common/DetailView';
-import { ClipLoader } from 'react-spinners';
-import Toast from '../common/Toast';
+import { canPermission } from '../common/access';
+import React, { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
+import { BackToListing, RecordLink as Link } from '../common/listNavigation';
+import ReceivingLayout, { ErrorMessage, Status } from './ReceivingLayout';
+import { receivingApi, postJson, SERVER, today } from './receivingApi';
+import FileBarcode from './FileBarcode';
+import FileLabels, { printFileLabels } from './FileLabels';
+import UnitPhotoUpload from './UnitPhotoUpload';
+import PalletField from './PalletField';
 
-function ReturnReceivingDetails() {
+function Photos({ title, images }) {
+  return <section className="receiving-card"><h2>{title} · {images.length}</h2><div className="receiving-photos">
+    {images.map((url, index) => <a key={url} href={SERVER + url} target="_blank" rel="noreferrer"><img src={SERVER + url} alt={title + ' ' + (index + 1)} /></a>)}
+  </div>{!images.length && <p className="receiving-muted">No photos attached.</p>}</section>;
+}
+export default function ReturnReceivingDetails() {
   const { id } = useParams();
-  const [records, setRecords] = useState([]);
-  const [image, setImages] = useState([]);
+  const [item, setItem] = useState(null);
+  const [inspection, setInspection] = useState({});
+  const [bulk, setBulk] = useState('');
+  const [bulkTypes, setBulkTypes] = useState(['REGULAR', 'BULK_NEW']);
+  const [pallets, setPallets] = useState([]);
+  const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
+  const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [toast, setToast] = useState(null);
-  const navigate = useNavigate();
-
-  const fields = [
-    { key: 'TrackingNumber', label: 'Tracking #' },
-    { key: 'Company', label: 'Company' },
-    { key: 'Code', label: 'Code' },
-    { key: 'CreationDateTime', label: 'Record DateTime' },
-    { key: 'OrderNumber', label: 'Order #' },
-    { key: 'Remark', label: 'Remark' },
-    { key: 'Recorded', label: 'Recorded', render: (item) => item.Recorded ? '✅' : '❌' },
-  ];
-
-  const actions = [
-    {
-      label: 'Edit',
-      className: 'bg-orange-500 hover:bg-orange-600',
-      onClick: async () => {
-        try {
-          navigate(`/return/edit/${records?.TrackingNumber}`)
-        } catch (err) {
-          setToast({ message: 'Server error. Try again later.', type: 'error' })
-        }
-      },
-      hidden: records?.Company?.includes('SNOWBELL')
-    },
-    {
-      label: records?.Recorded ? 'Recorded' : 'Record',
-      onClick: async () => {
-        try {
-          await fetch(`http://${window.location.hostname}:8088/return/recorded/${records?.TrackingNumber}`);
-          setToast({ message: 'Marked as Recorded ✔️', type: 'success' });
-          window.location.reload();
-        } catch (err) {
-          setToast({ message: 'Server error. Try again later.', type: 'error' })
-        }
-      },
-      className: records?.Recorded ? 'bg-gray-400 cursor-not-allowed' : 'bg-sky-500 hover:bg-sky-600',
-      disabled: records?.Recorded,
-    },
-    {
-      label: 'Input',
-      onClick: async () => {
-        try {
-          navigate(`/xie/input`, {
-            state: {
-              trackingNumber: records?.TrackingNumber,
-              returnType: records?.Code,
-              trackingReceivedDate: new Date(records?.CreationDateTime).toISOString().split('T')[0],
-            }
-          })
-        } catch (err) {
-          setToast({ message: 'Server error. Try again later.', type: 'error' })
-        }
-      },
-      className: 'bg-green-500 hover:bg-green-600',
-      hidden: !records?.Company?.includes('SNOWBELL')
-    },
-    {
-      label: 'Input PC',
-      onClick: async () => {
-        try {
-          window.open(`${window.location.origin}/pc/input`, '_blank');
-        } catch (err) {
-          setToast({ message: 'Server error. Try again later.', type: 'error' })
-        }
-      },
-      className: 'bg-green-500 hover:bg-green-600',
-      hidden: records?.Company?.includes('SNOWBELL')
-    },
-    {
-      label: 'Input Non-PC',
-      onClick: async () => {
-        try {
-          window.open(`${window.location.origin}/non-pc/input`, '_blank');
-        } catch (err) {
-          setToast({ message: 'Server error. Try again later.', type: 'error' })
-        }
-      },
-      className: 'bg-green-500 hover:bg-green-600',
-      hidden: records?.Company?.includes('SNOWBELL')
-    },
-    {
-      label: records?.Code === "REGULAR" ? 'Mark As BULK_NEW' : 'Mark As REGULAR',
-      onClick: async () => {
-        try {
-          const newCode = records?.Code === "REGULAR" ? 'BULK_NEW' : 'REGULAR';
-          await fetch(`http://${window.location.hostname}:8088/return/updateCode/${records?.TrackingNumber}/${newCode}`);
-          setToast({ message: `Marked as ${newCode} ✔️`, type: 'success' });
-          window.location.reload();
-        } catch (err) {
-          setToast({ message: 'Server error. Try again later.', type: 'error' })
-        }
-      },
-      className: 'bg-orange-500 hover:bg-orange-600',
-      hidden: records.Company !== 'SNOWBELL/XIE/PITY TECH'
-    },
-  ];
-
   useEffect(() => {
-    fetch(`http://${window.location.hostname}:8088/return/api/return/${id}`)
-      .then(res => res.json())
-      .then(data => {
-        if (data.error) throw new Error(data.error);
-        setRecords(data);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error(err);
-        setLoading(false);
-      });
-    fetch(`http://${window.location.hostname}:8088/images/api/return_receiving/${id}`)
-      .then((res) => res.json())
-      .then((data) => setImages({ list: data, type: 'return_receiving' }))
-      .catch((err) => console.error('Error fetching images:', err));
+    let active = true;
+    setItem(null); setLoading(true); setError(''); setNotice('');
+    receivingApi('/units/' + encodeURIComponent(id)).then(data => {
+      if (!active) return;
+      setItem(data.item); setBulk(data.item.bulkType || 'REGULAR');
+      setPallets(data.availablePallets || []);
+      setBulkTypes(data.bulkTypes || ['REGULAR', 'BULK_NEW']);
+      setInspection({ inspectionDate: data.item.inspectionDate || today(), serial: data.item.serial || '', pallet: data.item.pallet || '', inspectionRemark: data.item.inspectionRemark || '' });
+    }).catch(err => { if (active) setError(err.message); }).finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
   }, [id]);
-
-  if (loading) return (
-    <div className="p-6 flex justify-center items-center">
-      <ClipLoader color="#4B5563" size={40} />
-    </div>
-  );
-
-  return (
-    <>
-      {toast && <Toast {...toast} onClose={() => setToast(null)} />}
-      <DetailView
-        item={records}
-        fields={fields}
-        basePath="/return"
-        itemId={id}
-        actions={actions}
-        images={image}
-      />
-    </>
-  );
+  async function save(event, kind) {
+    event.preventDefault(); setBusy(true); setError(''); setNotice('');
+    try {
+      const result = await postJson('/units/' + encodeURIComponent(id) + '/' + kind, kind === 'inspection' ? inspection : { bulkType: bulk });
+      const data = await receivingApi('/units/' + encodeURIComponent(id));
+      setItem(data.item); setPallets(data.availablePallets || []);
+      setNotice(kind === 'inspection' ? 'Inspection saved.' : 'Bulk type saved for ' + result.updatedCount + ' unit(s).');
+    } catch (err) { setError(err.message); }
+    finally { setBusy(false); }
+  }
+  const change = e => setInspection({ ...inspection, [e.target.name]: e.target.value });
+  return <ReceivingLayout title={item ? item.fileNo : 'Return details'} subtitle={item ? 'Unit ' + item.unitIndex + ' of ' + item.groupSize + ' in this delivery' : ''}>
+    <div className="receiving-actions mb-5"><BackToListing className="receiving-button secondary" fallback="/return" /></div>
+    <ErrorMessage message={error} />{notice && <div className="receiving-success" role="status">{notice}</div>}
+    {loading && <p className="receiving-empty">Loading return…</p>}
+    {item && <>
+      <section className="receiving-card"><div className="flex justify-between gap-4 mb-5"><h2>{item.laptop || 'Unnamed laptop'}</h2><Status item={item} /></div>
+      <div className="mb-5"><FileBarcode fileNo={item.fileNo} /><p className="receiving-muted">{item.fileNo}</p></div>
+      <dl>{[['Internal ID', item.id], ['File no.', item.fileNo], ['Delivery quantity', item.groupSize], ['Tracking #', item.tracking], ['Received date', item.receivedDate], ['Company', item.company], ['Serial', item.serial], ['Pallet', item.pallet], ['Inspection date', item.inspectionDate], ['Ship date', item.shipDate], ['Ship batch', item.shipBatch], ['Bulk type', item.bulkType], ['Receiving remark', item.remark], ['Inspection remark', item.inspectionRemark]].map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value || '—'}</dd></div>)}</dl>
+      <div className="receiving-actions">{canPermission('return.print') && <button onClick={printFileLabels}>Print file label</button>}{canPermission('return.print') && <button className="secondary" onClick={() => window.print()}>Print unit record</button>}{(canPermission('return.edit') || canPermission('return.delete')) && <Link to={'/return/admin/' + item.fileNo}>Edit or remove record</Link>}</div></section>
+      <Photos title="Shipping label photos" images={item.images} /><Photos title="Unit photos" images={item.unitImages} />
+      {canPermission('return.photos') && <UnitPhotoUpload key={item.fileNo} item={item} onSaved={unitImages => setItem(previous => ({ ...previous, unitImages }))} />}
+      <section className="receiving-card"><h2>Inspection</h2>
+      {item.shipDate ? <p className="receiving-muted">This unit shipped in {item.shipBatch}. Its inspection is complete.</p> : <form onSubmit={e => save(e, 'inspection')}><fieldset disabled={busy || !canPermission('return.inspect')}><div className="receiving-grid">
+        <label>Inspection date<input type="date" required name="inspectionDate" value={inspection.inspectionDate} onChange={change} /></label>
+        <label>Serial number<input required name="serial" value={inspection.serial} onChange={change} maxLength={255} placeholder="Scan or enter serial number" /></label>
+        <PalletField value={inspection.pallet || ''} onChange={pallet => setInspection(previous => ({ ...previous, pallet }))} pallets={pallets} />
+      </div><label className="mt-5">Inspection remark<textarea name="inspectionRemark" value={inspection.inspectionRemark} onChange={change} maxLength={4000} rows={3} /></label>
+      <div className="receiving-actions"><button type="submit">{busy ? 'Saving…' : 'Save inspection'}</button></div></fieldset></form>}</section>
+      <section className="receiving-card"><h2>Bulk type</h2><p className="receiving-muted mb-4">{item.tracking ? 'Applies to every unit with tracking number ' + item.tracking + '.' : 'Applies to this unit only because it has no tracking number.'}</p>
+      <form onSubmit={e => save(e, 'bulk-type')}><fieldset disabled={busy || !canPermission('return.classify')}><label>Bulk type<select value={bulk} onChange={e => setBulk(e.target.value)}>{bulkTypes.map(type => <option key={type} value={type}>{type}</option>)}</select></label><div className="receiving-actions"><button type="submit">Save bulk type</button></div></fieldset></form></section>
+      {item.siblings.length > 0 && <section className="receiving-card"><h2>Other laptops in this delivery</h2><div className="receiving-table-wrap"><table className="receiving-table"><thead><tr><th>File no.</th><th>Unit</th><th>Laptop</th><th>Status</th></tr></thead><tbody>{item.siblings.map(unit => <tr key={unit.id}><td><Link to={'/return/' + unit.fileNo}>{unit.fileNo}</Link></td><td>{unit.unitIndex}</td><td>{unit.laptop || 'Unnamed laptop'}</td><td><Status item={unit} /></td></tr>)}</tbody></table></div></section>}
+      <FileLabels items={[item]} />
+    </>}
+  </ReceivingLayout>;
 }
 
-export default ReturnReceivingDetails;
