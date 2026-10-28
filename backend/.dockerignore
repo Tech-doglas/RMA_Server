@@ -3,3 +3,13 @@ __pycache__
 images
 .dockerignore
 Dockerfile
+storage/
+logs/
+.env
+.env.*
+.session-key
+*.sqlite3
+*.sqlite3-*
+venv/
+.venv/
+tests/

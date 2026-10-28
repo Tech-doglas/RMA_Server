@@ -1,9 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import { readList } from '../common/requestResult';
+import { apiFetch } from '../common/access';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import GenericList from '../common/GenericList';
 import { gradeMapping } from '../common/GradeMapping';
 
 function LaptopList() {
   const [laptops, setLaptops] = useState([]);
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const searchVersion = useRef(0);
+  const lastSearch = useRef({});
 
   const columns = [
     { key: 'Brand', label: 'Brand' },
@@ -80,41 +87,28 @@ function LaptopList() {
     },
   ];
 
-  const handleSearch = (searchParams) => {
-    // Check if the user entered any filters
-    const hasAnyFilters = Object.entries(searchParams).some(([key, value]) => {
-      if (Array.isArray(value)) return value.length > 0;
-      return value?.trim?.();
-    });
-  
-    // If no filters, default to only TechDone = 'Not yet'
-    const finalParams = hasAnyFilters ? searchParams : { techDone: ['Not yet'] };
-  
-    fetch(`http://${window.location.hostname}:8088/laptop/api/laptops/search`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(finalParams),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (Array.isArray(data)) {
-          console.log(data)
-          setLaptops(data);
-        } else {
-          console.error('Unexpected data format:', data);
-          setLaptops([]);
-        }
-      })
-      .catch((err) => {
-        console.error('Fetch error:', err);
-        setLaptops([]);
-      })
-  };
-  
-  
-  useEffect(() => {
-    handleSearch({ techDone: ['Not yet'] });
+  const handleSearch = useCallback(async (searchParams = {}) => {
+    const version = ++searchVersion.current;
+    lastSearch.current = searchParams;
+    setLoading(true);
+    setError('');
+    try {
+      const response = await apiFetch(`http://${window.location.hostname}:8088/laptop/api/laptops/search`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(searchParams),
+      });
+      const data = await readList(response);
+      if (version === searchVersion.current) setLaptops(data);
+    } catch (failure) {
+      if (version === searchVersion.current) setError(failure.message || 'Unable to load items. Please try again.');
+    } finally {
+      if (version === searchVersion.current) setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    handleSearch({});
+    return () => { searchVersion.current += 1; };
+  }, [handleSearch]);
 
   return (
     <GenericList
@@ -125,6 +119,8 @@ function LaptopList() {
       basePath="/pc"
       itemKey="ID"
       onSearch={handleSearch}
+      loading={loading}
+      error={error}
     />
   );
 }

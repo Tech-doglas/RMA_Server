@@ -1,0 +1,82 @@
+name: rma
+
+services:
+  # Unique service name avoids advertising "backend" on production's network.
+  rma_sql_backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.fnos
+      args:
+        INSTALL_MSSQL_DRIVER: "true"
+    restart: unless-stopped
+    user: "${RMA_UID:?Set RMA_UID}:${RMA_GID:?Set RMA_GID}"
+    environment:
+      DATABASE_BACKEND: mssql
+      SQL_SERVER: ${SQL_SERVER:-1Panel-mssql-oP05,1433}
+      SQL_DATABASE: ${SQL_DATABASE:-RMA}
+      SQL_USER: ${SQL_USER:?Set SQL_USER}
+      SQL_PASSWORD: ${SQL_PASSWORD:?Set SQL_PASSWORD}
+      SQL_TRUST_CERT: ${SQL_TRUST_CERT:-yes}
+      MODI_RMA_DIR: /data
+      RMA_LOG_DIR: /logs
+      TZ: America/Toronto
+    volumes:
+      - type: bind
+        source: ${RMA_DATA_DIR:-./data}
+        target: /data
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${RMA_IMAGES_DIR:-/vol1/1001/RMA/images}
+        target: /data/images
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${RMA_LOG_DIR:-./logs}
+        target: /logs
+        bind:
+          create_host_path: false
+    networks:
+      default:
+        aliases: [backend]
+      production_sql: {}
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8088/auth/api/departments', timeout=5).read()"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.fnos
+    restart: unless-stopped
+    depends_on:
+      rma_sql_backend:
+        condition: service_healthy
+    environment:
+      RMA_PUBLIC_SCHEME: ${RMA_PUBLIC_SCHEME:-http}
+      NGINX_ENVSUBST_FILTER: ^RMA_PUBLIC_SCHEME$
+    ports:
+      - "${RMA_BIND_ADDRESS:-0.0.0.0}:${RMA_PORT:-3001}:80"
+    security_opt: ["no-new-privileges:true"]
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  production_sql:
+    external: true
+    name: 1panel-network

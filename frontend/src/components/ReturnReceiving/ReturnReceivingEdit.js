@@ -1,15 +1,19 @@
+import { apiFetch } from '../common/access';
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import GenericForm from "../common/GenericForm";
 import { ClipLoader } from "react-spinners";
+import { requireOk, readJson } from '../common/requestResult';
+import { BackToListing } from '../common/listNavigation';
 
 function ReturnReceivingEdit() {
     const { id } = useParams();
     const [returnItem, setreturnItem] = useState(null);
+    const [error, setError] = useState('');
 
     const initialData = {
         TrackingNumber: returnItem?.TrackingNumber || "",
-        Remark: returnItem?.Remark || "",
+        remark: returnItem?.Remark || "",
         OrderNumber: returnItem?.OrderNumber || "",
     };
 
@@ -34,28 +38,20 @@ function ReturnReceivingEdit() {
         }
     ];
 
-    const handleSubmit = (formData) => {
+    const handleSubmit = async (formData) => {
         const body = new FormData();
         body.append('OrderNumber', formData.OrderNumber);
         body.append('remark', formData.remark);
         body.append('user', formData.user);
 
-        fetch(
+        await requireOk(await apiFetch(
             `http://${window.location.hostname}:8088/return/edit/${id}`,
             {
                 method: "POST",
                 body,
             }
-        )
-            .then((res) => res.json())
-            .then((data) => {
-                console.log(data);
-                alert("Edit successful!");
-            })
-            .catch((err) => {
-                console.error(err);
-                alert("Edit failed!");
-            });
+        ));
+        return { success: true };
     };
 
 
@@ -63,18 +59,19 @@ function ReturnReceivingEdit() {
         const fetchData = async () => {
             try {
                 const [itemRes] = await Promise.all([
-                    fetch(`http://${window.location.hostname}:8088/return/api/return/${id}`),
+                    apiFetch(`http://${window.location.hostname}:8088/return/api/return/${id}`),
                 ]);
-                const itemData = await itemRes.json();
+                const itemData = await readJson(itemRes);
                 setreturnItem(itemData);
             } catch (err) {
-                console.error(err);
+                setError(err.message);
             }
         };
 
         fetchData();
     }, [id]);
 
+    if (error) return <div className="app-page"><p role="alert">{error}</p><BackToListing fallback="/return/legacy" /></div>;
     if (!returnItem) {
         return (
             <div className="flex justify-center items-center h-screen">
@@ -89,8 +86,7 @@ function ReturnReceivingEdit() {
             hideBackButton={true}
             fields={fields}
             onSubmit={handleSubmit}
-            onDelete={() => { }}
-            basePath="/return"
+            basePath="/return/legacy"
             itemId={id}
             isEdit={true}
             existingImages={{}}

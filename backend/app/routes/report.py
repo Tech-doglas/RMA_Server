@@ -1,5 +1,5 @@
 # app/routes/report.py
-from flask import Blueprint, request, jsonify, make_response, send_file
+from flask import Blueprint, request, jsonify, make_response, send_file, current_app
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from openpyxl import Workbook
@@ -161,10 +161,9 @@ def laptop_TRP():
             response.headers['Content-Disposition'] = 'attachment; filename=trp_report.pdf'
             return response
 
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        return f"Error: {str(e)}", 500
+    except Exception:
+        current_app.logger.exception('Unable to export TRP report')
+        return jsonify(error='Unable to export the report. Please try again.'), 500
 
 @report_bp.route('/laptop_ARP', methods=['GET'])
 def laptop_ARP():
@@ -238,7 +237,10 @@ def laptop_ARP():
                 ws[f"A{row_idx}"] = f"{month}: Order Numbers"
                 row_idx += 1
                 for order in orders:
-                    ws[f"A{row_idx}"] = order
+                    # Order identifiers are data even if they begin with '='.
+                    cell = ws[f"A{row_idx}"]
+                    cell.value = '' if order is None else str(order)
+                    cell.data_type = 's'
                     row_idx += 1
                 row_idx += 1  # add spacing between months
 
@@ -253,8 +255,9 @@ def laptop_ARP():
                 mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
 
-    except Exception as e:
-        return f"Error: {str(e)}", 500
+    except Exception:
+        current_app.logger.exception('Unable to export ARP report')
+        return jsonify(error='Unable to export the report. Please try again.'), 500
 
 @report_bp.route('/laptop_SRP', methods=['GET'])
 def laptop_SRP():
@@ -417,5 +420,6 @@ def laptop_SRP():
             response.headers['Content-Disposition'] = 'attachment; filename=sales_stock_report.pdf'
             return response
 
-    except Exception as e:
-        return f"Error: {str(e)}", 500
+    except Exception:
+        current_app.logger.exception('Unable to export sales report')
+        return jsonify(error='Unable to export the report. Please try again.'), 500

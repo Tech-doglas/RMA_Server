@@ -1,11 +1,14 @@
 # app/routes/xie_routes.py
-from flask import Blueprint, request, jsonify
-from app.models import get_db_connection
+from flask import Blueprint, request, jsonify, current_app
+from app.models import get_db_connection, db_connection
+from app.permissions import current_session
+from app.routes.return_units import api
 
 xie_bp = Blueprint('xie', __name__)
 
 @xie_bp.route('/api/search', methods=['POST'])
 def api_search_xie_laptops():
+    conn = None
     try:
         filters = request.json
 
@@ -48,20 +51,26 @@ def api_search_xie_laptops():
             columns = [col[0] for col in cursor.description]
             result = [dict(zip(columns, row)) for row in data]
 
-        conn.close()
         return jsonify(result)
 
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+    except Exception:
+        current_app.logger.exception('Unable to search SnowBell records')
+        return jsonify(error='Unable to load the records. Please try again.'), 500
+    finally:
+        if conn is not None:
+            conn.close()
 
 @xie_bp.route('/api/xie-insert', methods=['POST'])
+@api
 def insert_xie_item():
-    try:
-        data = request.json.get('data', [])
-        if not data:
-            return jsonify({'error': 'No data provided'}), 400
+    payload = request.get_json(silent=True)
+    if not isinstance(payload, dict):
+        raise ValueError('Enter the records to receive.')
+    data = payload.get('data', [])
+    if not isinstance(data, list) or not 1 <= len(data) <= 1000 or any(not isinstance(item, dict) for item in data):
+        raise ValueError('Receive between 1 and 1000 records at a time.')
 
-        conn = get_db_connection()
+    with db_connection() as conn:
         cursor = conn.cursor()
 
         for item in data:
@@ -85,53 +94,32 @@ def insert_xie_item():
                 item.get('location'),
                 item.get('trackingReceivedDate'),
                 item.get('inspectionDate'),
-                item.get('user'),  # last_modified_user
+                current_session()['username'],
                 item.get('returnType')
             ))
 
-        conn.commit()
-        conn.close()
-
-        return jsonify({'message': 'Xie items inserted successfully!'}), 200
-
-    except Exception as e:
-        print('Error inserting xie item:', e)
-        return jsonify({'error': str(e)}), 500
+    return jsonify({'message': 'Xie items inserted successfully!'}), 200
 
 
 @xie_bp.route('/api/xie-update/<int:id>', methods=['PUT'])
+@api
 def update_xie_item(id):
-    data = request.json
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-    cursor.execute("""
-        UPDATE xie_laptop_return SET
-            order_number = ?, tracking_number = ?, location = ?, laptop_name = ?, customer_name = ?,
-            remark = ?, serial_number = ?, return_id = ?, condition = ?, tracking_received_date = ?,
-            inspection_date = ?, delivery_date = ?, last_modified_user = ?, last_modified_datetime = ?, return_type = ?
-        WHERE id = ?
-    """, (
-        data['order_number'],
-        data['tracking_number'],
-        data['location'],
-        data['laptop_name'],
-        data.get('customer_name'),
-        data.get('remark'),
-        data['serial_number'],
-        data['return_id'],
-        data['condition'],
-        data['tracking_received_date'],
-        data.get('inspection_date'),
-        data.get('delivery_date'),
-        data['last_modified_user'],
-        data['last_modified_datetime'],
-        data['return_type'],
-        id
-    ))
-
-    conn.commit()
-    conn.close()
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        raise ValueError('Enter the record details to update.')
+    fields = ['order_number', 'tracking_number', 'location', 'laptop_name', 'customer_name', 'remark',
+              'serial_number', 'return_id', 'condition', 'tracking_received_date', 'inspection_date', 'delivery_date', 'return_type']
+    with db_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM xie_laptop_return WITH (UPDLOCK, HOLDLOCK) WHERE id = ?', id)
+        row = cursor.fetchone()
+        if not row:
+            return jsonify(error='Record not found.'), 404
+        original = dict(zip([column[0] for column in cursor.description], row))
+        values = [data.get(field, original[field]) for field in fields]
+        cursor.execute('UPDATE xie_laptop_return SET ' + ', '.join(field + ' = ?' for field in fields) +
+                       ', last_modified_user = ?, last_modified_datetime = GETDATE() WHERE id = ?',
+                       *values, current_session()['username'], id)
 
     return jsonify({"message": "Record updated successfully"})
 
@@ -154,10 +142,11 @@ def get_items_by_tracking(tracking_number):
         SELECT * FROM xie_laptop_return WHERE tracking_number = ?
     """, (tracking_number,))
     rows = cursor.fetchall()
+    columns = [column[0] for column in cursor.description]
     conn.close()
 
     # Convert to dicts if needed
-    items = [dict(zip([column[0] for column in cursor.description], row)) for row in rows]
+    items = [dict(zip(columns, row)) for row in rows]
     return jsonify(items)
 
 @xie_bp.route('/api/return_number', methods=['GET'])
@@ -171,11 +160,4 @@ def get_return_number():
 
 @xie_bp.route('/api/request', methods=['POST'])
 def api_request():
-    value = request.json
-    print(value)
-    # conn = get_db_connection()
-    # cursor = conn.cursor()
-    # cursor.execute("SELECT MAX(CAST(SUBSTRING(return_id, 4, 5) AS INT)) FROM xie_laptop_return")
-    # max_id = cursor.fetchone()[0] or 0
-    # conn.close()
-    return jsonify({'message': 'Request received successfully'})
+    return jsonify(error='Request submission is not configured. Contact an admin.'), 501

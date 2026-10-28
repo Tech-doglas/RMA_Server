@@ -1,3 +1,6 @@
+import { readJson, readList } from '../common/requestResult';
+import RequestFailure from '../common/RequestFailure';
+import { apiFetch } from '../common/access';
 import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate  } from 'react-router-dom';
 import DetailView from '../common/DetailView';
@@ -8,6 +11,7 @@ function LaptopDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [laptop, setLaptop] = useState(null);
+  const [loadError, setLoadError] = useState('');
   const [images, setImages] = useState([]);
   const [toast, setToast] = useState(null);
 
@@ -30,15 +34,15 @@ function LaptopDetails() {
   ];
 
   useEffect(() => {
-    fetch(`http://${window.location.hostname}:8088/laptop/item/${id}`)
-      .then((res) => res.json())
+    apiFetch(`http://${window.location.hostname}:8088/laptop/item/${id}`)
+      .then(readJson)
       .then((data) => setLaptop(data))
-      .catch((err) => console.error('Error fetching laptop:', err));
+      .catch(err => setLoadError(err.message || 'Unable to load this record. Please try again.'));
 
-    fetch(`http://${window.location.hostname}:8088/images/api/laptop/${id}`)
-      .then((res) => res.json())
+    apiFetch(`http://${window.location.hostname}:8088/images/api/laptop/${id}`)
+      .then(readList)
       .then((data) => setImages({ list: data, type: 'laptop' }))
-      .catch((err) => console.error('Error fetching images:', err));
+      .catch(err => setToast({ message: err.message || 'Unable to load images. Please try again.', type: 'error' }));
   }, [id]);
 
   const actions = [
@@ -70,10 +74,10 @@ function LaptopDetails() {
     {
       label: 'Done',
       onClick: () => {
-        fetch(`http://${window.location.hostname}:8088/laptop/item/tech_done/${id}`, {
+        apiFetch(`http://${window.location.hostname}:8088/laptop/item/tech_done/${id}`, {
           method: 'POST',
         })
-          .then((res) => res.json())
+          .then(readJson)
           .then((data) => {
             if (data.status === 'success') {
               setToast({ message: 'Marked as Tech Done ✔️', type: 'success' });
@@ -93,6 +97,8 @@ function LaptopDetails() {
       disabled: laptop?.Stock !== 'SOLD' || laptop?.TechDone,
     }
   ];
+
+  if (loadError) return <RequestFailure error={loadError} basePath="/pc" />;
 
   return (
     <>

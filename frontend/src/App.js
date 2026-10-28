@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -6,6 +6,9 @@ import {
   Navigate,
 } from "react-router-dom";
 import "./index.css";
+import AppFrame from './components/common/AppFrame';
+import SessionAccess from './components/common/SessionAccess';
+import { apiFetch, API_SERVER, canPermission } from './components/common/access';
 import Login from "./components/auth/Login";
 import Register from "./components/auth/Register";
 import Dashboard from "./components/Dashboard";
@@ -23,6 +26,13 @@ import ReturnReceivingList from "./components/ReturnReceiving/ReturnReceivingLis
 import ReturnReceivingInput from "./components/ReturnReceiving/ReturnReceivingInput";
 import ReturnReceivingDetails from "./components/ReturnReceiving/ReturnReceivingDetails";
 import ReturnReceivingEdit from "./components/ReturnReceiving/ReturnReceivingEdit";
+import ReturnReceivingShip from "./components/ReturnReceiving/ReturnReceivingShip";
+import ReturnReceivingReport from "./components/ReturnReceiving/ReturnReceivingReport";
+import ReturnReceivingAdmin, { ReturnReceivingManage } from "./components/ReturnReceiving/ReturnReceivingAdminConsole";
+import ReturnReceivingAdminEdit from "./components/ReturnReceiving/ReturnReceivingAdminEdit";
+import ReturnReceivingSettings from "./components/ReturnReceiving/ReturnReceivingSettings";
+import LegacyReceivingList from "./components/ReturnReceiving/LegacyReceivingList";
+import LegacyReceivingDetails from "./components/ReturnReceiving/LegacyReceivingDetails";
 import XieList from "./components/Xie/XieList";
 import XieInput from "./components/Xie/XieInput";
 import XieDetails from './components/Xie/XieDetails';
@@ -36,8 +46,9 @@ function App() {
   const [userRole, setUserRole] = useState(null);
   const [department, setDepartment] = useState("");
   const [authChecked, setAuthChecked] = useState(false);
+  const [accessRevision, setAccessRevision] = useState(0);
 
-  const handleLogin = (role, dept, username) => {
+  const handleLogin = (role, dept, username, token, permissions = []) => {
     setIsAuthenticated(true);
     setUserRole(role);
     setDepartment(dept);
@@ -48,33 +59,49 @@ function App() {
         role,
         department: dept,
         username,
+        permissions,
       })
     );
   };
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
+    apiFetch(API_SERVER + '/auth/api/logout', { method: 'POST' }).catch(() => {});
     setIsAuthenticated(false);
     setUserRole("");
     setDepartment("");
     localStorage.removeItem("auth");
-  };
+    Object.keys(sessionStorage).filter(key => key.startsWith('list-view:')).forEach(key => sessionStorage.removeItem(key));
+  }, []);
+  const handleSession = useCallback(data => {
+    let previous;
+    try { previous = JSON.parse(localStorage.getItem('auth') || '{}') || {}; } catch { previous = {}; }
+    const next = { ...previous, ...data, isAuthenticated: true };
+    delete next.token;
+    if (JSON.stringify(previous) === JSON.stringify(next)) return;
+    Object.keys(sessionStorage).filter(key => key.startsWith('list-view:')).forEach(key => sessionStorage.removeItem(key));
+    localStorage.setItem('auth', JSON.stringify(next));
+    setUserRole(data.role); setDepartment(data.department); setAccessRevision(value => value + 1);
+  }, []);
 
   useEffect(() => {
     const savedAuth = localStorage.getItem("auth");
     if (savedAuth) {
-      const parsed = JSON.parse(savedAuth);
-      setIsAuthenticated(parsed.isAuthenticated);
-      setUserRole(parsed.role);
-      setDepartment(parsed.department);
+      try {
+        const parsed = JSON.parse(savedAuth);
+        setIsAuthenticated(!!parsed?.isAuthenticated);
+        setUserRole(parsed?.role);
+        setDepartment(parsed?.department);
+      } catch { localStorage.removeItem('auth'); }
     }
     setAuthChecked(true);
   }, []);
 
   return (
     <Router>
-      <div className="min-h-screen bg-gray-100">
+      <AppFrame authenticated={isAuthenticated} role={userRole} department={department} onLogout={handleLogout}>
+        <SessionAccess authenticated={isAuthenticated} role={userRole} onSession={handleSession} onInvalid={handleLogout}>
         {authChecked ? (
-          <Routes>
+          <Routes key={accessRevision}>
             <Route path="/" element={<Login onLogin={handleLogin} />} />
             <Route path="/register" element={<Register />} />
             <Route
@@ -148,7 +175,7 @@ function App() {
             <Route
               path="/return/input"
               element={
-                isAuthenticated ? <ReturnReceivingInput /> : <Navigate to="/" />
+                isAuthenticated ? <ReturnReceivingInput department={department} /> : <Navigate to="/" />
               }
             />
             <Route
@@ -161,6 +188,15 @@ function App() {
                 )
               }
             />
+            <Route path="/return/ship" element={isAuthenticated ? <ReturnReceivingShip /> : <Navigate to="/" />} />
+            <Route path="/return/report" element={isAuthenticated ? <ReturnReceivingReport /> : <Navigate to="/" />} />
+            <Route path="/admin" element={isAuthenticated && userRole === 'admin' ? <ReturnReceivingAdmin /> : <Navigate to="/" />} />
+            <Route path="/return/admin" element={isAuthenticated && userRole === 'admin' ? <Navigate replace to="/admin" /> : <Navigate to="/" />} />
+            <Route path="/return/manage" element={isAuthenticated ? <ReturnReceivingManage /> : <Navigate to="/" />} />
+            <Route path="/return/settings" element={isAuthenticated && userRole === 'admin' ? <ReturnReceivingSettings /> : <Navigate to="/dashboard" />} />
+            <Route path="/return/admin/:id" element={isAuthenticated && (canPermission('return.edit') || canPermission('return.delete')) ? <ReturnReceivingAdminEdit /> : <Navigate to="/dashboard" />} />
+            <Route path="/return/legacy" element={isAuthenticated ? <LegacyReceivingList department={department} /> : <Navigate to="/" />} />
+            <Route path="/return/legacy/:id" element={isAuthenticated ? <LegacyReceivingDetails /> : <Navigate to="/" />} />
             <Route
               path="/xie"
               element={isAuthenticated ? <XieList department={department}/> : <Navigate to="/" />}
@@ -174,7 +210,7 @@ function App() {
             <Route
               path="/manager-tools"
               element={
-                isAuthenticated && userRole === "manager" ? (
+                isAuthenticated && canPermission('pc.report') ? (
                   <Managment department={department}/>
                 ) : (
                   <Navigate to="/" />
@@ -187,7 +223,8 @@ function App() {
             <ClipLoader color="#4B5563" size={40} />
           </div>
         )}
-      </div>
+        </SessionAccess>
+      </AppFrame>
     </Router>
   );
 }

@@ -1,3 +1,4 @@
+import { apiFetch } from '../common/access';
 import React, { useState, useEffect } from 'react';
 import GenericForm from '../common/GenericForm';
 import Toast from '../common/Toast';
@@ -140,7 +141,7 @@ function NonPCInput({handleLogout}) {
 
       if (formData.user === 'Unknown User') {
         setToast({ message: 'Failed to Submit, User name is empty. Try Relogin again', type: 'error' });
-        return; // Stop submission if user is unknown
+        return { success: false, error: 'Please sign in again before saving.' };
       }
 
   
@@ -152,7 +153,7 @@ function NonPCInput({handleLogout}) {
         });
       }
       
-      const response = await fetch(`http://${window.location.hostname}:8088/non_laptop/item/submit`, {
+      const response = await apiFetch(`http://${window.location.hostname}:8088/non_laptop/item/submit`, {
         method: 'POST',
         body: data,
       });
@@ -172,7 +173,7 @@ function NonPCInput({handleLogout}) {
   };
 
   const handleTracking = () => {
-      fetch(`http://${window.location.hostname}:8088/non_laptop/api/get_tracking_number`)
+      apiFetch(`http://${window.location.hostname}:8088/non_laptop/api/get_tracking_number`)
       .then((res) => res.json())
       .then((maxNumber) => {
         const nextNumber = maxNumber + 1;
@@ -188,7 +189,7 @@ function NonPCInput({handleLogout}) {
       if (parsed.username) {
         setCurrentUser(parsed.username);
       } else {
-        alert('User not found in local storage. Please log in again.');
+        setToast({ message: 'Please log in again to continue.', type: 'error' });
         handleLogout()
       }
     }
@@ -198,7 +199,6 @@ function NonPCInput({handleLogout}) {
     <>
     {toast && <Toast {...toast} onClose={() => setToast(null)} />}
     <div>
-      {toast && <Toast {...toast} onClose={() => setToast(null)} />}
       <GenericForm
         initialData={initialData}
         fields={fields}
@@ -208,7 +208,7 @@ function NonPCInput({handleLogout}) {
         onTracking={handleTracking}
         emptyTracking={emptyTracking}
       />
-      <div className="p-6">
+      <div className="app-form app-card mt-4">
         <div className="flex flex-col mb-4">
           <label className="text-sm font-bold mb-1">User</label>
           <input

@@ -1,49 +1,45 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { canPermission } from './common/access';
 
 function Dashboard({ role, department, onLogout }) {
-  const list = ["Tech", "IT", "Accounting", "Sale", "Warehouse"];
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded-lg shadow-lg text-center">
+    <div className="dashboard-page">
+      <div>
         <h1 className="text-3xl font-bold text-gray-800 mb-8">
           RMA System Dashboard
         </h1>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {list.includes(department) && (
-            <>
-              <Link to="/pc">
-                <button className="w-full bg-green-500 text-white p-4 rounded-lg hover:bg-green-600 transition-colors">
-                  PC
-                </button>
-              </Link>
-              <Link to="/non-pc">
-                <button className="w-full bg-blue-500 text-white p-4 rounded-lg hover:bg-blue-600 transition-colors">
-                  Non-PC
-                </button>
-              </Link>
-            </>
+        <p className="dashboard-intro">Manage PC / Non-PC inventory or handle returns for other companies.</p>
+        <div className="dashboard-workspaces">
+          {(canPermission('pc.view') || canPermission('nonpc.view')) && (
+            <section className="app-card dashboard-workspace" aria-labelledby="inventory-heading">
+              <h2 id="inventory-heading">PC / Non-PC</h2>
+              <p>Manage devices, inventory, and sales.</p>
+              <div className="app-actions">
+                {canPermission('pc.view') && <Link className="app-button" to="/pc">PC inventory</Link>}
+                {canPermission('nonpc.view') && <Link className="app-button" to="/non-pc">Non-PC inventory</Link>}
+              </div>
+            </section>
           )}
-          <Link to="/return">
-            <button className="w-full bg-orange-500 text-white p-4 rounded-lg hover:bg-orange-600 transition-colors">
-              Return Receiving
-            </button>
-          </Link>
-          <Link to="/xie">
-            <button className="w-full bg-purple-500 text-white p-4 rounded-lg hover:bg-purple-600 transition-colors">
-              SnowBell Return
-            </button>
-          </Link>
-          {role === "manager" && (
-            <Link to="/manager-tools">
-              <button className="w-full bg-red-600 text-white p-4 rounded-lg">
-                Manager
-              </button>
-            </Link>
+          {canPermission('return.view') && <section className="app-card dashboard-workspace" aria-labelledby="third-party-heading">
+            <h2 id="third-party-heading">Third-party logistics (3PL)</h2>
+            <p>Manage returns for other companies: receive, inspect, palletize, and ship their units.</p>
+            <div className="app-actions">
+              <Link className="app-button" to="/return">All returns</Link>
+              {canPermission('return.receive') && <Link className="app-button" to="/return/input">Receive delivery</Link>}
+              {(canPermission('return.pallet_view') || canPermission('return.ship') || canPermission('return.pallet_status')) && <Link className="app-button" to="/return/ship">{canPermission('return.ship') ? 'Ship out / pallets' : 'Pallets & shipments'}</Link>}
+              {canPermission('return.report') && <Link className="app-button" to="/return/report">Monthly report</Link>}
+            </div>
+          </section>}
+        </div>
+        <div className="app-actions dashboard-tools">
+          {canPermission('pc.report') && (
+            <Link className="app-button" to="/manager-tools">Manager tools</Link>
           )}
+          {role === 'admin' && <Link className="app-button" to="/admin">Administration</Link>}
           <button
             onClick={onLogout}
-            className="bg-red-500 w-full text-white px-4 py-2 rounded"
+            className="app-button"
           >
             Logout
           </button>

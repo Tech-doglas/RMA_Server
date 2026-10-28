@@ -1,29 +1,11 @@
-# config.py
-class Config:
-    SQL_SERVER = "1Panel-mssql-oP05"
-    DATABASE = "RMA"
-    UID = "rma"
-    PWD = "p-+\I16e656`+jB"
-    DRIVER = "{ODBC Driver 18 for SQL Server}"
-    TRUST_CERT = "yes"
-    MODI_RMA_DIR = "/vol1/1001/RMA"
-    
-# config.py for testing purposes
-# class Config:
-#     SQL_SERVER = "localhost\SQLEXPRESS"
-#     DATABASE = "RMA"
-#     UID = "rma"
-#     PWD = "rma_admin1234"
-#     DRIVER = "{ODBC Driver 18 for SQL Server}"
-#     TRUST_CERT = "yes"
-#     MODI_RMA_DIR = "/vol1/1001/RMA"
+import os
 
-# config.py for Macbook purposes
-# class Config:
-#     SQL_SERVER = "tcp:127.0.0.1,1433"
-#     DATABASE = "RMA"
-#     UID = "sa"
-#     PWD = "rma_admin1234"
-#     DRIVER = "{ODBC Driver 18 for SQL Server}"
-#     TRUST_CERT = "yes"
-#     MODI_RMA_DIR = "/vol1/1001/RMA"
+
+class Config:
+    SQL_SERVER = os.environ.get('SQL_SERVER', 'localhost')
+    DATABASE = os.environ.get('SQL_DATABASE', 'RMA')
+    UID = os.environ.get('SQL_USER', 'rma')
+    PWD = os.environ.get('SQL_PASSWORD', '')
+    DRIVER = os.environ.get('SQL_DRIVER', '{ODBC Driver 18 for SQL Server}')
+    TRUST_CERT = os.environ.get('SQL_TRUST_CERT', 'no')
+    MODI_RMA_DIR = '/vol1/1001/RMA'

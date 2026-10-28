@@ -1,0 +1,40 @@
+FROM python:3.12-slim-bookworm AS wheels
+WORKDIR /build
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends g++ unixodbc-dev \
+    && rm -rf /var/lib/apt/lists/*
+COPY requirements.txt requirements-fnos.txt ./
+RUN pip wheel --no-cache-dir --wheel-dir /wheels -r requirements-fnos.txt
+
+FROM python:3.12-slim-bookworm
+ARG INSTALL_MSSQL_DRIVER=false
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
+WORKDIR /app
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libodbc2 \
+    && rm -rf /var/lib/apt/lists/* \
+    && groupadd --gid 1000 rma \
+    && useradd --uid 1000 --gid rma --no-create-home rma
+# Opt-in driver for the SQL Server deployment; the SQLite image stays unchanged.
+RUN if [ "$INSTALL_MSSQL_DRIVER" = "true" ]; then \
+        apt-get update \
+        && apt-get install -y --no-install-recommends curl ca-certificates \
+        && curl -fsSL https://packages.microsoft.com/config/debian/12/packages-microsoft-prod.deb -o /tmp/packages-microsoft-prod.deb \
+        && dpkg -i /tmp/packages-microsoft-prod.deb \
+        && apt-get update \
+        && ACCEPT_EULA=Y apt-get install -y --no-install-recommends msodbcsql18 \
+        && rm -f /tmp/packages-microsoft-prod.deb \
+        && rm -rf /var/lib/apt/lists/*; \
+    fi
+COPY --from=wheels /wheels /wheels
+COPY requirements.txt requirements-fnos.txt ./
+RUN pip install --no-cache-dir --no-index --find-links=/wheels -r requirements-fnos.txt \
+    && rm -rf /wheels
+COPY app ./app
+COPY config.py nas_wsgi.py create_admin.py upgrade_sqlserver.py repair_historical_receipts.py ./
+COPY migrations ./migrations
+USER rma
+EXPOSE 8088
+# One worker keeps startup migrations and in-memory login throttling coordinated.
+# Docker manages this process; disable the optional socket under the read-only home.
+CMD ["gunicorn", "--no-control-socket", "--bind", "0.0.0.0:8088", "--workers", "1", "--threads", "4", "--timeout", "120", "--worker-tmp-dir", "/tmp", "--error-logfile", "-", "nas_wsgi:create_nas_app()"]

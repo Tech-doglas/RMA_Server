@@ -1,0 +1,66 @@
+name: rma
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.fnos
+    restart: unless-stopped
+    user: "${RMA_UID:?Set RMA_UID in .env}:${RMA_GID:?Set RMA_GID in .env}"
+    environment:
+      DATABASE_BACKEND: sqlite
+      MODI_RMA_DIR: /data
+      SQLITE_PATH: /data/rma.sqlite3
+      RMA_LOG_DIR: /logs
+      TZ: America/Toronto
+    volumes:
+      - type: bind
+        source: ${RMA_DATA_DIR:-./data}
+        target: /data
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${RMA_LOG_DIR:-./logs}
+        target: /logs
+        bind:
+          create_host_path: false
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8088/auth/api/departments', timeout=5).read()"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.fnos
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    environment:
+      RMA_PUBLIC_SCHEME: ${RMA_PUBLIC_SCHEME:-http}
+      # Substitute this one setting; leave Nginx's own $variables intact.
+      NGINX_ENVSUBST_FILTER: ^RMA_PUBLIC_SCHEME$
+    ports:
+      - "${RMA_BIND_ADDRESS:-0.0.0.0}:${RMA_PORT:-3000}:80"
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

@@ -1,11 +1,17 @@
+import { readList } from '../common/requestResult';
+import RequestFailure from '../common/RequestFailure';
+import { apiFetch, API_SERVER } from '../common/access';
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
+import { BackToListing } from '../common/listNavigation';
 
 function XieDetails() {
   const { trackingNumber } = useParams();
   const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [imageError, setImageError] = useState('');
   const [images, setImages] = useState([]);
-  const navigate = useNavigate();
 
   const formatDate = (dateString) => {
     if (!dateString) return "-";
@@ -22,39 +28,38 @@ function XieDetails() {
   };
 
   useEffect(() => {
-    fetch(`http://${window.location.hostname}:8088/xie/api/tracking/${trackingNumber}`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (Array.isArray(data)) {
-          setItems(data);
-        } else {
-          console.error("Unexpected data format", data);
-        }
-      })
-      .catch((err) => console.error("Fetch error:", err));
-    fetch(`http://${window.location.hostname}:8088/images/api/return_receiving/${trackingNumber}`)
-      .then((res) => res.json())
-      .then((data) => setImages({ list: data, type: 'return_receiving' }))
-      .catch((err) => console.error('Error fetching images:', err));
+    let active = true;
+    setLoading(true);
+    setError('');
+    setImageError('');
+    apiFetch(`${API_SERVER}/xie/api/tracking/${encodeURIComponent(trackingNumber)}`)
+      .then(readList)
+      .then(data => { if (active) setItems(data); })
+      .catch(failure => { if (active) setError(failure.message || 'Unable to load this tracking number.'); })
+      .finally(() => { if (active) setLoading(false); });
+    apiFetch(`${API_SERVER}/images/api/return_receiving/${encodeURIComponent(trackingNumber)}`)
+      .then(readList)
+      .then(data => { if (active) setImages({ list: data, type: 'return_receiving' }); })
+      .catch(failure => { if (active) setImageError(failure.message || 'Unable to load images.'); });
+    return () => { active = false; };
   }, [trackingNumber]);
+
+  if (error) return <RequestFailure error={error} basePath="/xie" />;
+  if (loading) return <p role="status">Loading tracking details…</p>;
 
   const shared = items[0] || {}; // grab shared fields from first item
 
   return (
-    <div className="p-6">
+    <div className="app-page">
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
+      <div className="app-actions justify-between mb-6">
         <h1 className="text-2xl font-bold">Tracking Details</h1>
-        <button
-          onClick={() => navigate("/xie")}
-          className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded"
-        >
-          ← Back
-        </button>
+        <BackToListing fallback="/xie" />
       </div>
 
+      {imageError && <p role="alert" className="mb-4 text-red-800">{imageError}</p>}
       {/* Shared Info */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-gray-100 p-4 rounded mb-6">
+      <div className="app-card grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div>
           <p className="text-sm text-gray-600 font-semibold">Tracking Number</p>
           <p className="text-lg font-bold">{shared.tracking_number || trackingNumber}</p>
@@ -123,7 +128,8 @@ function XieDetails() {
                 {images.list.map((filename) => (
                   <div key={filename} className="relative">
                     <img
-                      src={`http://${window.location.hostname}:8088/images/return_receiving/${trackingNumber}/${filename}`}
+                      src={`${API_SERVER}/images/return_receiving/${encodeURIComponent(trackingNumber)}/${encodeURIComponent(filename)}`}
+                      loading="lazy"
                       alt={filename}
                       className="w-[600px] h-auto rounded shadow"
                     />
